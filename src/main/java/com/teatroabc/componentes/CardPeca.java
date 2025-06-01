@@ -6,23 +6,23 @@ import com.teatroabc.utilitarios.CarregadorImagem;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import javax.swing.ImageIcon;
+import java.awt.image.BufferedImage;
 
 public class CardPeca extends JPanel {
     private Peca peca;
     private boolean modoSelecao = false;
     private boolean selecionado = false;
-    private ImageIcon imagem;
+    private BufferedImage imagem;
     private ActionListener actionListener;
-
+    
     public CardPeca(Peca peca) {
         this.peca = peca;
-        this.imagem = CarregadorImagem.carregar(peca.getCaminhoImagem(), 350, 350);
-
+        this.imagem = CarregadorImagem.carregar(peca.getCaminhoImagem());
+        
         setPreferredSize(new Dimension(350, 450));
         setBackground(peca.getCorFundo());
         setCursor(new Cursor(Cursor.HAND_CURSOR));
-
+        
         addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -32,52 +32,53 @@ public class CardPeca extends JPanel {
             }
         });
     }
-
+    
     public void setSelecao(boolean modoSelecao) {
         this.modoSelecao = modoSelecao;
     }
-
+    
     public void setSelecionado(boolean selecionado) {
         this.selecionado = selecionado;
         repaint();
     }
-
+    
     public void addActionListener(ActionListener listener) {
         this.actionListener = listener;
     }
-
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
+        
         // Desenhar imagem ou placeholder
         if (imagem != null) {
-            g2d.drawImage(imagem.getImage(), 0, 0, getWidth(), getHeight() - 100, this);
+            g2d.drawImage(imagem, 0, 0, getWidth(), getHeight() - 100, this);
         } else {
-            // Placeholder with error message
-            g2d.setColor(Color.RED);
+            // Placeholder
+            g2d.setColor(Color.DARK_GRAY);
             g2d.fillRect(0, 0, getWidth(), getHeight() - 100);
-
-            g2d.setColor(Color.WHITE);
-            g2d.setFont(new Font("Arial", Font.BOLD, 20));
-            String errorMsg = "Imagem não carregada";
+            
+            // Ícone de teatro
+            g2d.setColor(Color.GRAY);
+            g2d.setFont(new Font("Arial", Font.BOLD, 60));
+            String icone = "🎭";
             FontMetrics fm = g2d.getFontMetrics();
-            int x = (getWidth() - fm.stringWidth(errorMsg)) / 2;
+            int x = (getWidth() - fm.stringWidth(icone)) / 2;
             int y = (getHeight() - 100) / 2;
-            g2d.drawString(errorMsg, x, y);
+            g2d.drawString(icone, x, y);
         }
-
+        
         // Área colorida inferior
         g2d.setColor(peca.getCorFundo());
         g2d.fillRect(0, getHeight() - 100, getWidth(), 100);
-
+        
         // Título
         g2d.setColor(Color.WHITE);
         g2d.setFont(new Font("Arial", Font.BOLD, 24));
         FontMetrics fm = g2d.getFontMetrics();
-
+        
         if (peca.getTitulo().contains("MORTE")) {
             // Título em duas linhas
             String[] linhas = {"MORTE E VIDA", "SEVERINA"};
@@ -90,7 +91,7 @@ public class CardPeca extends JPanel {
         } else {
             int x = (getWidth() - fm.stringWidth(peca.getTitulo())) / 2;
             g2d.drawString(peca.getTitulo(), x, getHeight() - 40);
-
+            
             // Subtítulo
             if (!peca.getSubtitulo().isEmpty()) {
                 g2d.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -99,14 +100,14 @@ public class CardPeca extends JPanel {
                 g2d.drawString(peca.getSubtitulo(), x, getHeight() - 15);
             }
         }
-
+        
         // Borda de seleção
         if (modoSelecao && selecionado) {
             g2d.setColor(Constantes.AMARELO);
             g2d.setStroke(new BasicStroke(4));
             g2d.drawRect(2, 2, getWidth() - 4, getHeight() - 4);
         }
-
+        
         g2d.dispose();
     }
 }
