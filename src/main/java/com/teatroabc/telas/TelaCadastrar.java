@@ -49,7 +49,7 @@ public class TelaCadastrar extends JPanel {
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.add(new LogoTeatro());
-        containerPrincipal.add(Box.createVerticalStrut(30));
+        containerPrincipal.add(Box.createVerticalStrut(50));
         containerPrincipal.add(painelLogo);
 
         // Título
@@ -57,12 +57,12 @@ public class TelaCadastrar extends JPanel {
         titulo.setFont(Constantes.FONTE_TITULO);
         titulo.setForeground(Color.WHITE);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        containerPrincipal.add(Box.createVerticalStrut(40));
+        containerPrincipal.add(Box.createVerticalStrut(50));
         containerPrincipal.add(titulo);
 
         // Formulário
         JPanel formulario = criarFormulario();
-        containerPrincipal.add(Box.createVerticalStrut(40));
+        containerPrincipal.add(Box.createVerticalStrut(60));
         containerPrincipal.add(formulario);
 
         // Botão Cadastrar
@@ -72,7 +72,7 @@ public class TelaCadastrar extends JPanel {
         btnCadastrar.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnCadastrar.addActionListener(e -> cadastrar());
 
-        containerPrincipal.add(Box.createVerticalStrut(40));
+        containerPrincipal.add(Box.createVerticalStrut(50));
         containerPrincipal.add(btnCadastrar);
 
         add(containerPrincipal, BorderLayout.CENTER);
@@ -97,90 +97,107 @@ public class TelaCadastrar extends JPanel {
 
     private JPanel criarFormulario() {
         JPanel formulario = new JPanel();
-        formulario.setLayout(new GridBagLayout());
+        formulario.setLayout(new BoxLayout(formulario, BoxLayout.Y_AXIS));
         formulario.setBackground(Constantes.AZUL_ESCURO);
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(10, 0, 10, 0);
+        formulario.setBorder(BorderFactory.createEmptyBorder(0, 100, 0, 100));
 
         // CPF
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        try {
-            MaskFormatter maskCPF = new MaskFormatter("###.###.###-##");
-            txtCPF = new JFormattedTextField(maskCPF);
-            if (cpfInformado != null) {
-                txtCPF.setText(cpfInformado);
-                txtCPF.setEditable(false);
-            }
-        } catch (ParseException e) {
-            txtCPF = new JFormattedTextField();
-        }
-        configurarCampo(txtCPF, "CPF");
-        formulario.add(txtCPF, gbc);
+        formulario.add(criarCampoComRotulo("CPF", criarCampoCPF()));
+        formulario.add(Box.createVerticalStrut(25));
 
         // Nome
-        gbc.gridy = 1;
-        txtNome = new JTextField();
-        configurarCampo(txtNome, "NOME");
-        formulario.add(txtNome, gbc);
+        formulario.add(criarCampoComRotulo("NOME", criarCampoNome()));
+        formulario.add(Box.createVerticalStrut(25));
 
         // Data de Nascimento
-        gbc.gridy = 2;
-        try {
-            MaskFormatter maskData = new MaskFormatter("##/##/####");
-            txtDataNascimento = new JFormattedTextField(maskData);
-        } catch (ParseException e) {
-            txtDataNascimento = new JFormattedTextField();
-        }
-        configurarCampo(txtDataNascimento, "DATA DE NASCIMENTO");
-        formulario.add(txtDataNascimento, gbc);
+        formulario.add(criarCampoComRotulo("DATA DE NASCIMENTO", criarCampoDataNascimento()));
+        formulario.add(Box.createVerticalStrut(25));
 
         // Telefone
-        gbc.gridy = 3;
-        try {
-            MaskFormatter maskTelefone = new MaskFormatter("(##) #####-####");
-            txtTelefone = new JFormattedTextField(maskTelefone);
-        } catch (ParseException e) {
-            txtTelefone = new JFormattedTextField();
-        }
-        configurarCampo(txtTelefone, "TELEFONE");
-        formulario.add(txtTelefone, gbc);
+        formulario.add(criarCampoComRotulo("TELEFONE", criarCampoTelefone()));
 
         return formulario;
     }
 
-    private void configurarCampo(JTextField campo, String placeholder) {
-        campo.setPreferredSize(new Dimension(400, 50));
-        campo.setFont(new Font("Arial", Font.PLAIN, 20));
-        campo.setHorizontalAlignment(JTextField.CENTER);
+    private JPanel criarCampoComRotulo(String rotulo, JTextField campo) {
+        JPanel painelCampo = new JPanel();
+        painelCampo.setLayout(new BoxLayout(painelCampo, BoxLayout.Y_AXIS));
+        painelCampo.setBackground(Constantes.AZUL_ESCURO);
+
+        // Rótulo
+        JLabel lblRotulo = new JLabel(rotulo);
+        lblRotulo.setFont(new Font("Arial", Font.BOLD, 16));
+        lblRotulo.setForeground(Color.WHITE);
+        lblRotulo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCampo.add(lblRotulo);
+
+        painelCampo.add(Box.createVerticalStrut(8));
+
+        // Campo
+        campo.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCampo.add(campo);
+
+        return painelCampo;
+    }
+
+    private JFormattedTextField criarCampoCPF() {
+        try {
+            MaskFormatter maskCPF = new MaskFormatter("###.###.###-##");
+            maskCPF.setPlaceholderCharacter('_');
+            txtCPF = new JFormattedTextField(maskCPF);
+            if (cpfInformado != null) {
+                txtCPF.setText(cpfInformado);
+                txtCPF.setEditable(false);
+                txtCPF.setBackground(new Color(70, 80, 90));
+            }
+        } catch (ParseException e) {
+            txtCPF = new JFormattedTextField();
+        }
+        configurarCampo(txtCPF);
+        return txtCPF;
+    }
+
+    private JTextField criarCampoNome() {
+        txtNome = new JTextField();
+        configurarCampo(txtNome);
+        return txtNome;
+    }
+
+    private JFormattedTextField criarCampoDataNascimento() {
+        try {
+            MaskFormatter maskData = new MaskFormatter("##/##/####");
+            maskData.setPlaceholderCharacter('_');
+            txtDataNascimento = new JFormattedTextField(maskData);
+        } catch (ParseException e) {
+            txtDataNascimento = new JFormattedTextField();
+        }
+        configurarCampo(txtDataNascimento);
+        return txtDataNascimento;
+    }
+
+    private JFormattedTextField criarCampoTelefone() {
+        try {
+            MaskFormatter maskTelefone = new MaskFormatter("(##) #####-####");
+            maskTelefone.setPlaceholderCharacter('_');
+            txtTelefone = new JFormattedTextField(maskTelefone);
+        } catch (ParseException e) {
+            txtTelefone = new JFormattedTextField();
+        }
+        configurarCampo(txtTelefone);
+        return txtTelefone;
+    }
+
+    private void configurarCampo(JTextField campo) {
+        campo.setPreferredSize(new Dimension(500, 55));
+        campo.setMaximumSize(new Dimension(500, 55));
+        campo.setFont(new Font("Arial", Font.PLAIN, 18));
         campo.setBackground(new Color(52, 73, 94));
         campo.setForeground(Color.WHITE);
         campo.setCaretColor(Color.WHITE);
         campo.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 2),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                BorderFactory.createEmptyBorder(8, 15, 8, 15)
         ));
-
-        // Placeholder
-        campo.setText(placeholder);
-        campo.setForeground(Color.GRAY);
-
-        campo.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                if (campo.getText().equals(placeholder)) {
-                    campo.setText("");
-                    campo.setForeground(Color.WHITE);
-                }
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                if (campo.getText().trim().isEmpty()) {
-                    campo.setText(placeholder);
-                    campo.setForeground(Color.GRAY);
-                }
-            }
-        });
     }
 
     private void cadastrar() {
@@ -192,7 +209,7 @@ public class TelaCadastrar extends JPanel {
         try {
             // Criar cliente
             String cpf = txtCPF.getText().replaceAll("[^0-9]", "");
-            String nome = txtNome.getText();
+            String nome = txtNome.getText().trim();
             String dataNascimento = txtDataNascimento.getText();
             String telefone = txtTelefone.getText();
 
@@ -224,12 +241,12 @@ public class TelaCadastrar extends JPanel {
     }
 
     private boolean validarCampos() {
-        if (txtNome.getText().equals("NOME") || txtNome.getText().trim().isEmpty()) {
+        if (txtNome.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Por favor, informe o nome!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
             return false;
         }
 
-        if (txtDataNascimento.getText().equals("DATA DE NASCIMENTO") || txtDataNascimento.getText().trim().isEmpty()) {
+        if (txtDataNascimento.getText().trim().isEmpty() || txtDataNascimento.getText().contains("_")) {
             JOptionPane.showMessageDialog(this, "Por favor, informe a data de nascimento!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
             return false;
         }
@@ -243,7 +260,7 @@ public class TelaCadastrar extends JPanel {
             return false;
         }
 
-        if (txtTelefone.getText().equals("TELEFONE") || txtTelefone.getText().trim().isEmpty()) {
+        if (txtTelefone.getText().trim().isEmpty() || txtTelefone.getText().contains("_")) {
             JOptionPane.showMessageDialog(this, "Por favor, informe o telefone!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
             return false;
         }

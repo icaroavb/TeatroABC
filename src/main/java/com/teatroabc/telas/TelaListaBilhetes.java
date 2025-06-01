@@ -78,56 +78,35 @@ public class TelaListaBilhetes extends JPanel {
         JPanel card = new JPanel(new BorderLayout());
         card.setBackground(new Color(52, 73, 94));
         card.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 
-        // Informações principais
-        JPanel painelInfo = new JPanel(new GridBagLayout());
-        painelInfo.setBackground(new Color(52, 73, 94));
-        
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(3, 0, 3, 30);
+        // Painel principal com informações
+        JPanel painelPrincipal = new JPanel(new BorderLayout());
+        painelPrincipal.setBackground(new Color(52, 73, 94));
 
-        // Nome da peça
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        // Nome da peça (lado esquerdo)
         JLabel lblTituloPeca = new JLabel(bilhete.getPeca().getTitulo());
-        lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 20));
+        lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 22));
         lblTituloPeca.setForeground(Color.WHITE);
-        painelInfo.add(lblTituloPeca, gbc);
-
-        // Código de barras visual (pequeno)
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.gridheight = 4;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        JPanel miniCodigoBarras = criarMiniCodigoBarras(bilhete.getCodigoBarras());
-        painelInfo.add(miniCodigoBarras, gbc);
-
+        
+        // Informações centrais
+        JPanel painelCentral = new JPanel(new GridLayout(2, 2, 20, 5));
+        painelCentral.setBackground(new Color(52, 73, 94));
+        
         // Data
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridheight = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        JLabel lblData = new JLabel("Data");
-        lblData.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblData.setForeground(Color.LIGHT_GRAY);
-        painelInfo.add(lblData, gbc);
-
-        gbc.gridy = 2;
+        JLabel lblDataRotulo = new JLabel("Data");
+        lblDataRotulo.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblDataRotulo.setForeground(Color.LIGHT_GRAY);
+        
         JLabel lblDataValor = new JLabel(FormatadorData.formatar(bilhete.getPeca().getDataHora()));
         lblDataValor.setFont(new Font("Arial", Font.BOLD, 16));
         lblDataValor.setForeground(Color.WHITE);
-        painelInfo.add(lblDataValor, gbc);
 
         // Assentos
-        gbc.gridy = 3;
-        JLabel lblAssentos = new JLabel("Assentos");
-        lblAssentos.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblAssentos.setForeground(Color.LIGHT_GRAY);
-        painelInfo.add(lblAssentos, gbc);
-
-        gbc.gridy = 4;
+        JLabel lblAssentosRotulo = new JLabel("Assentos");
+        lblAssentosRotulo.setFont(new Font("Arial", Font.PLAIN, 14));
+        lblAssentosRotulo.setForeground(Color.LIGHT_GRAY);
+        
         List<Assento> assentos = bilhete.getAssentos();
         String assentosTexto = assentos.isEmpty() ? "N/A" : 
             assentos.stream()
@@ -137,24 +116,37 @@ public class TelaListaBilhetes extends JPanel {
         JLabel lblAssentosValor = new JLabel(assentosTexto);
         lblAssentosValor.setFont(new Font("Arial", Font.BOLD, 16));
         lblAssentosValor.setForeground(Color.WHITE);
-        painelInfo.add(lblAssentosValor, gbc);
 
-        card.add(painelInfo, BorderLayout.CENTER);
+        painelCentral.add(lblDataRotulo);
+        painelCentral.add(lblAssentosRotulo);
+        painelCentral.add(lblDataValor);
+        painelCentral.add(lblAssentosValor);
 
-        // Botão Visualizar
-        JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        painelBotao.setBackground(new Color(52, 73, 94));
+        // Layout do painel principal
+        painelPrincipal.add(lblTituloPeca, BorderLayout.WEST);
+        painelPrincipal.add(painelCentral, BorderLayout.CENTER);
+
+        // Código de barras visual e botão no lado direito
+        JPanel painelDireito = new JPanel(new BorderLayout());
+        painelDireito.setBackground(new Color(52, 73, 94));
         
+        // Mini código de barras
+        JPanel miniCodigoBarras = criarMiniCodigoBarras(bilhete.getCodigoBarras());
+        painelDireito.add(miniCodigoBarras, BorderLayout.CENTER);
+        
+        // Botão Visualizar
         BotaoAnimado btnVisualizar = new BotaoAnimado("VISUALIZAR",
-            Constantes.AZUL_CLARO, new Color(70, 130, 180), new Dimension(120, 40));
-        btnVisualizar.setFont(new Font("Arial", Font.BOLD, 14));
+            Constantes.AZUL_CLARO, new Color(70, 130, 180), new Dimension(120, 35));
+        btnVisualizar.setFont(new Font("Arial", Font.BOLD, 12));
         btnVisualizar.addActionListener(e -> {
             DialogoDetalhesBilhete dialogo = new DialogoDetalhesBilhete(bilhete);
             dialogo.setVisible(true);
         });
         
-        painelBotao.add(btnVisualizar);
-        card.add(painelBotao, BorderLayout.EAST);
+        painelDireito.add(btnVisualizar, BorderLayout.EAST);
+
+        card.add(painelPrincipal, BorderLayout.CENTER);
+        card.add(painelDireito, BorderLayout.EAST);
 
         return card;
     }
