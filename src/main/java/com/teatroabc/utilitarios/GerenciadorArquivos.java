@@ -92,3 +92,46 @@ public class GerenciadorArquivos {
             e.printStackTrace();
         }
     }
+    
+    // Métodos auxiliares
+    private static void salvarLinha(String arquivo, String linha) {
+        Path caminho = Paths.get(DIRETORIO_DADOS, arquivo);
+        try {
+            if (!Files.exists(caminho)) {
+                Files.createFile(caminho);
+            }
+            Files.write(caminho, 
+                       (linha + System.lineSeparator()).getBytes(), 
+                       StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    private static List<String> lerArquivo(String arquivo) {
+        Path caminho = Paths.get(DIRETORIO_DADOS, arquivo);
+        try {
+            if (Files.exists(caminho)) {
+                return Files.readAllLines(caminho);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
+    }
+    
+    public static void limparDados() {
+        // Método para limpar todos os dados (útil para testes)
+        try {
+            Path clientes = Paths.get(DIRETORIO_DADOS, ARQUIVO_CLIENTES);
+            Path bilhetes = Paths.get(DIRETORIO_DADOS, ARQUIVO_BILHETES);
+            Path assentos = Paths.get(DIRETORIO_DADOS, ARQUIVO_ASSENTOS);
+            
+            if (Files.exists(clientes)) Files.delete(clientes);
+            if (Files.exists(bilhetes)) Files.delete(bilhetes);
+            if (Files.exists(assentos)) Files.delete(assentos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
