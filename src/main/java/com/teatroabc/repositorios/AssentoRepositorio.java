@@ -38,33 +38,37 @@ public class AssentoRepositorio {
             }
         }
         
-        // Verificar status dos assentos no arquivo
-        List<String> statusAssentos = GerenciadorArquivos.lerAssentos();
-        for (String linha : statusAssentos) {
+        // Verificar status dos assentos ocupados nos bilhetes vendidos
+        List<String> bilhetes = GerenciadorArquivos.lerBilhetes();
+        Set<String> assentosOcupados = new HashSet<>();
+        
+        for (String linha : bilhetes) {
             String[] partes = linha.split("\\|");
-            if (partes.length >= 3 && partes[0].equals(pecaId)) {
-                // Encontrar o assento e atualizar seu status
-                for (Assento assento : todosAssentos) {
-                    if (assento.getCodigo().equals(partes[1])) {
-                        try {
-                            assento.setStatus(StatusAssento.valueOf(partes[2]));
-                        } catch (IllegalArgumentException e) {
-                            // Status inválido, manter como disponível
-                        }
-                        break;
-                    }
+            if (partes.length >= 5 && partes[3].equals(pecaId)) {
+                // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_PECA|ASSENTOS|VALOR_TOTAL|DATA_HORA_COMPRA
+                String[] codigosAssentos = partes[4].split(",");
+                for (String codigo : codigosAssentos) {
+                    assentosOcupados.add(codigo.trim());
                 }
             }
         }
+        
+        // Marcar assentos como ocupados
+        for (Assento assento : todosAssentos) {
+            if (assentosOcupados.contains(assento.getCodigo())) {
+                assento.setStatus(StatusAssento.OCUPADO);
+            }
+        }
+        
+        System.out.println("Carregados " + todosAssentos.size() + " assentos para peça " + pecaId);
+        System.out.println("Assentos ocupados: " + assentosOcupados.size());
         
         return todosAssentos;
     }
     
     public void atualizarStatusAssentos(String pecaId, List<Assento> assentos) {
-        for (Assento assento : assentos) {
-            GerenciadorArquivos.salvarAssento(
-                pecaId + "|" + assento.getCodigo() + "|" + assento.getStatus().name()
-            );
-        }
+        // Este método não é mais necessário pois a persistência é feita através dos bilhetes
+        // Mantido para compatibilidade
+        System.out.println("Status dos assentos será atualizado através da venda de bilhetes");
     }
 }
