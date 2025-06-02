@@ -6,6 +6,7 @@ import com.teatroabc.enums.CategoriaAssento;
 import com.teatroabc.enums.StatusAssento;
 import com.teatroabc.modelos.Assento;
 import com.teatroabc.modelos.Peca;
+import com.teatroabc.repositorios.AssentoRepositorio;
 import com.teatroabc.utilitarios.FormatadorMoeda;
 import javax.swing.*;
 import java.awt.*;
@@ -15,12 +16,16 @@ import java.util.List;
 public class TelaSelecionarAssento extends JPanel {
     private Peca peca;
     private List<Assento> assentosSelecionados;
+    private List<Assento> todosAssentos;
+    private AssentoRepositorio assentoRepo;
     private JLabel lblTotal;
     private BotaoAnimado btnConfirmar;
 
     public TelaSelecionarAssento(Peca peca) {
         this.peca = peca;
         this.assentosSelecionados = new ArrayList<>();
+        this.assentoRepo = new AssentoRepositorio();
+        this.todosAssentos = assentoRepo.buscarAssentosPorPeca(peca.getId());
         configurarTela();
     }
 
@@ -134,7 +139,7 @@ public class TelaSelecionarAssento extends JPanel {
         secoes.add(criarSecao("BALCÃO NOBRE", CategoriaAssento.BALCAO_NOBRE, 4, 10));
 
         // Balcão
-        secoes.add(criarSecao("BALCÃO\nNOBRE", CategoriaAssento.BALCAO, 4, 10));
+        secoes.add(criarSecao("BALCÃO", CategoriaAssento.BALCAO, 4, 10));
 
         return secoes;
     }
@@ -167,26 +172,31 @@ public class TelaSelecionarAssento extends JPanel {
         containerAssentos.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         containerAssentos.setOpaque(false);
 
-        // Adicionar assentos
+        // Adicionar assentos usando os dados persistidos
         for (int f = 1; f <= fileiras; f++) {
             for (int a = 1; a <= assentosPorFileira; a++) {
-                String codigo = categoria.name().charAt(0) + String.valueOf(f) + "-" + a;
-                Assento assento = new Assento(codigo, f, a, categoria);
-
-                // Simular alguns assentos ocupados
-                if (Math.random() < 0.3) {
-                    assento.setStatus(StatusAssento.OCUPADO);
+                String codigo = obterPrefixoCategoria(categoria) + f + "-" + a;
+                
+                // Buscar assento nos dados carregados
+                Assento assento = buscarAssentoPorCodigo(codigo);
+                if (assento == null) {
+                    // Se não existe, criar novo
+                    assento = new Assento(codigo, f, a, categoria);
+                    todosAssentos.add(assento);
                 }
 
                 BotaoAssento botao = new BotaoAssento(assento);
+                
+                final Assento assentoFinal = assento;
                 botao.addActionListener(e -> {
-                    if (assento.getStatus() == StatusAssento.SELECIONADO) {
-                        assento.setStatus(StatusAssento.DISPONIVEL);
-                        assentosSelecionados.remove(assento);
-                    } else if (assento.getStatus() == StatusAssento.DISPONIVEL) {
-                        assento.setStatus(StatusAssento.SELECIONADO);
-                        assentosSelecionados.add(assento);
+                    if (assentoFinal.getStatus() == StatusAssento.SELECIONADO) {
+                        assentoFinal.setStatus(StatusAssento.DISPONIVEL);
+                        assentosSelecionados.remove(assentoFinal);
+                    } else if (assentoFinal.getStatus() == StatusAssento.DISPONIVEL) {
+                        assentoFinal.setStatus(StatusAssento.SELECIONADO);
+                        assentosSelecionados.add(assentoFinal);
                     }
+                    botao.repaint();
                     atualizarTotal();
                 });
 
@@ -196,6 +206,26 @@ public class TelaSelecionarAssento extends JPanel {
 
         secao.add(containerAssentos, BorderLayout.CENTER);
         return secao;
+    }
+
+    private String obterPrefixoCategoria(CategoriaAssento categoria) {
+        switch (categoria) {
+            case FRISAS:
+                return "F";
+            case BALCAO_NOBRE:
+                return "B";
+            case BALCAO:
+                return "C";
+            default:
+                return "X";
+        }
+    }
+
+    private Assento buscarAssentoPorCodigo(String codigo) {
+        return todosAssentos.stream()
+                .filter(a -> a.getCodigo().equals(codigo))
+                .findFirst()
+                .orElse(null);
     }
 
     private JPanel criarLegenda() {
@@ -292,7 +322,7 @@ public class TelaSelecionarAssento extends JPanel {
     private void confirmarCompra() {
         if (!assentosSelecionados.isEmpty()) {
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            frame.setContentPane(new TelaInformarCPF(false, peca, assentosSelecionados));
+            frame.setContentPane(new TelaInformarCPF(false, peca, new ArrayList<>(assentosSelecionados)));
             frame.revalidate();
             frame.repaint();
         }
