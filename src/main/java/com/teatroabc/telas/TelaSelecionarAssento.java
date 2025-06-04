@@ -133,13 +133,13 @@ public class TelaSelecionarAssento extends JPanel {
         secoes.setMaximumSize(new Dimension(1000, 200));
 
         // Frisas
-        secoes.add(criarSecao("FRISAS", CategoriaAssento.FRISAS, 3, 8));
+        secoes.add(criarSecao("FRISAS", CategoriaAssento.FRISAS, 10, 8));
 
         // Balcão Nobre
-        secoes.add(criarSecao("BALCÃO NOBRE", CategoriaAssento.BALCAO_NOBRE, 4, 10));
+        secoes.add(criarSecao("BALCÃO NOBRE", CategoriaAssento.BALCAO_NOBRE, 10, 10));
 
         // Balcão
-        secoes.add(criarSecao("BALCÃO", CategoriaAssento.BALCAO, 4, 10));
+        secoes.add(criarSecao("BALCÃO", CategoriaAssento.BALCAO, 10, 10));
 
         return secoes;
     }
