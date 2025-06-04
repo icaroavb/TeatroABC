@@ -8,12 +8,22 @@ public class Cliente {
     private final String nome;
     private final LocalDate dataNascimento;
     private final String telefone;
+    private final String email;
+    private final boolean membroABC;
 
-    public Cliente(String cpf, String nome, LocalDate dataNascimento2, String telefone) {
+    // Construtor completo
+    public Cliente(String cpf, String nome, LocalDate dataNascimento, String telefone, String email, boolean membroABC) {
         this.cpf = cpf;
         this.nome = nome;
-        this.dataNascimento = dataNascimento2;
+        this.dataNascimento = dataNascimento;
         this.telefone = telefone;
+        this.email = email;
+        this.membroABC = membroABC;
+    }
+
+    // Construtor para compatibilidade (cliente não ABC)
+    public Cliente(String cpf, String nome, LocalDate dataNascimento, String telefone) {
+        this(cpf, nome, dataNascimento, telefone, "", false);
     }
 
     // Getters
@@ -21,6 +31,8 @@ public class Cliente {
     public String getNome() { return nome; }
     public LocalDate getDataNascimento() { return dataNascimento; }
     public String getTelefone() { return telefone; }
+    public String getEmail() { return email; }
+    public boolean isMembroABC() { return membroABC; }
 
     @Override
     public boolean equals(Object o) {

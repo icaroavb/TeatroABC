@@ -3,6 +3,7 @@ package com.teatroabc.telas;
 import com.teatroabc.componentes.*;
 import com.teatroabc.constantes.Constantes;
 import com.teatroabc.modelos.*;
+import com.teatroabc.enums.Turno;
 import com.teatroabc.servicos.ClienteServico;
 import com.teatroabc.servicos.interfaces.IClienteServico;
 import com.teatroabc.utilitarios.ValidadorCPF;
@@ -16,6 +17,7 @@ public class TelaInformarCPF extends JPanel {
     private boolean modoConsulta;
     private Peca peca;
     private List<Assento> assentosSelecionados;
+    private Turno turnoSelecionado;
     private JFormattedTextField txtCPF;
     private IClienteServico clienteServico;
 
@@ -29,6 +31,10 @@ public class TelaInformarCPF extends JPanel {
         this.assentosSelecionados = assentosSelecionados;
         this.clienteServico = new ClienteServico();
         configurarTela();
+    }
+    
+    public void setTurnoSelecionado(Turno turno) {
+        this.turnoSelecionado = turno;
     }
 
     private void configurarTela() {
@@ -167,10 +173,14 @@ public class TelaInformarCPF extends JPanel {
             if (clienteServico.existe(cpf)) {
                 // Cliente existe - ir para confirmação
                 Cliente cliente = clienteServico.buscarPorCpf(cpf).orElse(null);
-                frame.setContentPane(new TelaConfirmarPedido(peca, cliente, assentosSelecionados));
+                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados);
+                // Se temos turno selecionado, podemos passar essa informação
+                // (você pode adicionar um método setTurnoSelecionado na TelaConfirmarPedido se quiser mostrar o turno)
+                frame.setContentPane(telaConfirmar);
             } else {
                 // Cliente não existe - ir para cadastro
-                frame.setContentPane(new TelaCadastrar(cpf, peca, assentosSelecionados));
+                TelaCadastrar telaCadastrar = new TelaCadastrar(cpf, peca, assentosSelecionados);
+                frame.setContentPane(telaCadastrar);
             }
         }
 
