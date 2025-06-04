@@ -5,7 +5,18 @@ import java.util.*;
 import java.time.LocalDateTime;
 import java.awt.Color;
 
+/**
+ * Aqui serão armazenadas as peças em exibição no Teatro ABC
+ * Considerando que a quantidade de peças não foi modificada, como é que ocorre o controle da quantidade de Peças Add ao respositório?
+ * Verificação SOLID
+ * S - Responsabilidade Única (OK)
+ * O - Aberto para extensoes, modificado para extensões
+ * L - Princípio da Substituição de Liskov
+ * I - Segregação de Interfaces
+ * D - Inversão de Dependências 
+ */
 public class PecaRepositorio {
+
     private static final List<Peca> pecas = new ArrayList<>();
     
     static {

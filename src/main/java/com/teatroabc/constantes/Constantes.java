@@ -3,6 +3,9 @@ package com.teatroabc.constantes;
 import java.awt.Color;
 import java.awt.Font;
 
+/**
+ * Aqui é necessário desacoplar e criar Classes de Constantes - Não está sendo observado aqui os princípios SOLID
+ */
 public class Constantes {
     // Cores
     public static final Color AZUL_ESCURO = new Color(23, 42, 58);

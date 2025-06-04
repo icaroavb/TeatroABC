@@ -1,9 +1,18 @@
 package com.teatroabc.utilitarios;
 
-public class ValidadorCPF {
+/**
+ * Verificação SOLID
+ * S - Responsabilidade Única - OK
+ * O - Aberto para extensão, fechado para modificação - Aqui há um acoplamento forte / Deve ser encapsulado o que varia
+ * L - Princípio da Substiutição de Liskov - OK
+ * I - Segregração de Interfaces - OK
+ * D - Inversão de Dependências - OK
+ * Modificação: Implementação de uma interface para fazer desacomplamento com outras clases
+ */
+public class ValidadorCPF {    
     
     public static boolean isValid(String cpf) {
-        // Remove caracteres especiais
+        // Remove caracteres especiais (limpar pontos, hífem e quaisquer outros caractere)
         cpf = cpf.replaceAll("[^0-9]", "");
         
         // Verifica se tem 11 dígitos
