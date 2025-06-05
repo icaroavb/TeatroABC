@@ -22,6 +22,10 @@ public class TelaCadastrar extends JPanel {
     private JTextField txtNome;
     private JFormattedTextField txtDataNascimento;
     private JFormattedTextField txtTelefone;
+    private JTextField txtEmail;
+    private JCheckBox chkMembroABC;
+    private JPanel painelTelefone;
+    private JPanel painelEmail;
     private IClienteServico clienteServico;
 
     public TelaCadastrar(String cpf) {
@@ -40,6 +44,11 @@ public class TelaCadastrar extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
+        // Scroll para o formulário
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
         // Container principal
         JPanel containerPrincipal = new JPanel();
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
@@ -49,7 +58,7 @@ public class TelaCadastrar extends JPanel {
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.add(new LogoTeatro());
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        containerPrincipal.add(Box.createVerticalStrut(30));
         containerPrincipal.add(painelLogo);
 
         // Título
@@ -57,13 +66,18 @@ public class TelaCadastrar extends JPanel {
         titulo.setFont(Constantes.FONTE_TITULO);
         titulo.setForeground(Color.WHITE);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        containerPrincipal.add(Box.createVerticalStrut(40));
         containerPrincipal.add(titulo);
 
         // Formulário
         JPanel formulario = criarFormulario();
-        containerPrincipal.add(Box.createVerticalStrut(60));
+        containerPrincipal.add(Box.createVerticalStrut(40));
         containerPrincipal.add(formulario);
+
+        // Checkbox ABC GOLD
+        JPanel painelCheckbox = criarCheckboxABCGold();
+        containerPrincipal.add(Box.createVerticalStrut(30));
+        containerPrincipal.add(painelCheckbox);
 
         // Botão Cadastrar
         BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR",
@@ -72,10 +86,12 @@ public class TelaCadastrar extends JPanel {
         btnCadastrar.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnCadastrar.addActionListener(e -> cadastrar());
 
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        containerPrincipal.add(Box.createVerticalStrut(40));
         containerPrincipal.add(btnCadastrar);
+        containerPrincipal.add(Box.createVerticalStrut(30));
 
-        add(containerPrincipal, BorderLayout.CENTER);
+        scrollPane.setViewportView(containerPrincipal);
+        add(scrollPane, BorderLayout.CENTER);
 
         // Botão Voltar
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -99,7 +115,8 @@ public class TelaCadastrar extends JPanel {
         JPanel formulario = new JPanel();
         formulario.setLayout(new BoxLayout(formulario, BoxLayout.Y_AXIS));
         formulario.setBackground(Constantes.AZUL_ESCURO);
-        formulario.setBorder(BorderFactory.createEmptyBorder(0, 100, 0, 100));
+        formulario.setMaximumSize(new Dimension(500, 600));
+        formulario.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // CPF
         formulario.add(criarCampoComRotulo("CPF", criarCampoCPF()));
@@ -111,10 +128,17 @@ public class TelaCadastrar extends JPanel {
 
         // Data de Nascimento
         formulario.add(criarCampoComRotulo("DATA DE NASCIMENTO", criarCampoDataNascimento()));
-        formulario.add(Box.createVerticalStrut(25));
 
-        // Telefone
-        formulario.add(criarCampoComRotulo("TELEFONE", criarCampoTelefone()));
+        // Campos adicionais para membros ABC GOLD (inicialmente ocultos)
+        painelTelefone = criarCampoComRotulo("TELEFONE", criarCampoTelefone());
+        painelTelefone.setVisible(false);
+        formulario.add(Box.createVerticalStrut(25));
+        formulario.add(painelTelefone);
+
+        painelEmail = criarCampoComRotulo("E-MAIL", criarCampoEmail());
+        painelEmail.setVisible(false);
+        formulario.add(Box.createVerticalStrut(25));
+        formulario.add(painelEmail);
 
         return formulario;
     }
@@ -123,6 +147,8 @@ public class TelaCadastrar extends JPanel {
         JPanel painelCampo = new JPanel();
         painelCampo.setLayout(new BoxLayout(painelCampo, BoxLayout.Y_AXIS));
         painelCampo.setBackground(Constantes.AZUL_ESCURO);
+        painelCampo.setMaximumSize(new Dimension(500, 85));
+        painelCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // Rótulo
         JLabel lblRotulo = new JLabel(rotulo);
@@ -138,6 +164,85 @@ public class TelaCadastrar extends JPanel {
         painelCampo.add(campo);
 
         return painelCampo;
+    }
+
+    private JPanel criarCheckboxABCGold() {
+        JPanel painelCheckbox = new JPanel();
+        painelCheckbox.setLayout(new FlowLayout(FlowLayout.CENTER));
+        painelCheckbox.setBackground(Constantes.AZUL_ESCURO);
+        painelCheckbox.setMaximumSize(new Dimension(500, 60));
+
+        // Container com borda amarela
+        JPanel containerCheckbox = new JPanel();
+        containerCheckbox.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        containerCheckbox.setBackground(new Color(255, 193, 7, 20)); // Amarelo transparente
+        containerCheckbox.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Constantes.AMARELO, 2),
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+
+        chkMembroABC = new JCheckBox("Ser membro ABC GOLD");
+        chkMembroABC.setFont(new Font("Arial", Font.BOLD, 18));
+        chkMembroABC.setForeground(Constantes.AMARELO);
+        chkMembroABC.setBackground(new Color(0, 0, 0, 0));
+        chkMembroABC.setFocusPainted(false);
+        chkMembroABC.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        // Ícone personalizado para o checkbox
+        chkMembroABC.setIcon(new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(Color.WHITE);
+                g2d.fillRect(x, y, 20, 20);
+                g2d.setColor(Constantes.AMARELO);
+                g2d.setStroke(new BasicStroke(2));
+                g2d.drawRect(x, y, 20, 20);
+                g2d.dispose();
+            }
+            @Override
+            public int getIconWidth() { return 20; }
+            @Override
+            public int getIconHeight() { return 20; }
+        });
+        
+        chkMembroABC.setSelectedIcon(new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(Constantes.AMARELO);
+                g2d.fillRect(x, y, 20, 20);
+                g2d.setColor(Color.BLACK);
+                g2d.setStroke(new BasicStroke(3));
+                g2d.drawLine(x + 4, y + 10, x + 8, y + 14);
+                g2d.drawLine(x + 8, y + 14, x + 16, y + 6);
+                g2d.dispose();
+            }
+            @Override
+            public int getIconWidth() { return 20; }
+            @Override
+            public int getIconHeight() { return 20; }
+        });
+
+        chkMembroABC.addActionListener(e -> {
+            boolean selecionado = chkMembroABC.isSelected();
+            painelTelefone.setVisible(selecionado);
+            painelEmail.setVisible(selecionado);
+            revalidate();
+            repaint();
+        });
+
+        // Ícone de estrela dourada
+        JLabel lblEstrela = new JLabel("⭐");
+        lblEstrela.setFont(new Font("Arial", Font.PLAIN, 24));
+
+       
+        containerCheckbox.add(chkMembroABC);
+        
+        painelCheckbox.add(containerCheckbox);
+        return painelCheckbox;
     }
 
     private JFormattedTextField criarCampoCPF() {
@@ -187,6 +292,12 @@ public class TelaCadastrar extends JPanel {
         return txtTelefone;
     }
 
+    private JTextField criarCampoEmail() {
+        txtEmail = new JTextField();
+        configurarCampo(txtEmail);
+        return txtEmail;
+    }
+
     private void configurarCampo(JTextField campo) {
         campo.setPreferredSize(new Dimension(500, 55));
         campo.setMaximumSize(new Dimension(500, 55));
@@ -211,21 +322,31 @@ public class TelaCadastrar extends JPanel {
             String cpf = txtCPF.getText().replaceAll("[^0-9]", "");
             String nome = txtNome.getText().trim();
             String dataNascimento = txtDataNascimento.getText();
-            String telefone = txtTelefone.getText();
+            String telefone = chkMembroABC.isSelected() ? txtTelefone.getText() : "";
+            String email = chkMembroABC.isSelected() ? txtEmail.getText().trim() : "";
+            boolean isMembroABC = chkMembroABC.isSelected();
 
+            // Por enquanto, vamos usar o método existente do ClienteServico
+            // Em uma implementação real, você modificaria o Cliente e ClienteServico 
+            // para incluir email e status de membro ABC
             Cliente cliente = clienteServico.cadastrar(cpf, nome, dataNascimento, telefone);
+            
+            // Aqui você salvaria também o status de membro ABC e email
+            // Por exemplo: clienteServico.atualizarMembroABC(cpf, isMembroABC, email);
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
             if (peca != null && assentosSelecionados != null) {
-                // Veio do fluxo de compra
-                frame.setContentPane(new TelaConfirmarPedido(peca, cliente, assentosSelecionados));
+                // Veio do fluxo de compra - passar informação de membro ABC
+                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados);
+                telaConfirmar.setMembroABC(isMembroABC); // Método a ser criado
+                frame.setContentPane(telaConfirmar);
             } else {
                 // Cadastro direto
-                JOptionPane.showMessageDialog(this,
-                        "Cliente cadastrado com sucesso!",
-                        "Sucesso",
-                        JOptionPane.INFORMATION_MESSAGE);
+                String mensagem = isMembroABC ? 
+                    "Cliente cadastrado como membro ABC GOLD com sucesso!\nVocê terá 5% de desconto em todas as compras!" :
+                    "Cliente cadastrado com sucesso!";
+                JOptionPane.showMessageDialog(this, mensagem, "Sucesso", JOptionPane.INFORMATION_MESSAGE);
                 frame.setContentPane(new TelaPrincipal());
             }
 
@@ -260,9 +381,23 @@ public class TelaCadastrar extends JPanel {
             return false;
         }
 
-        if (txtTelefone.getText().trim().isEmpty() || txtTelefone.getText().contains("_")) {
-            JOptionPane.showMessageDialog(this, "Por favor, informe o telefone!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
-            return false;
+        // Validar campos de membro ABC GOLD
+        if (chkMembroABC.isSelected()) {
+            if (txtTelefone.getText().trim().isEmpty() || txtTelefone.getText().contains("_")) {
+                JOptionPane.showMessageDialog(this, "Por favor, informe o telefone para ser membro ABC GOLD!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            if (txtEmail.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Por favor, informe o e-mail para ser membro ABC GOLD!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
+                return false;
+            }
+
+            // Validar formato do email
+            if (!txtEmail.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                JOptionPane.showMessageDialog(this, "E-mail inválido!", "E-mail inválido", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
         }
 
         return true;

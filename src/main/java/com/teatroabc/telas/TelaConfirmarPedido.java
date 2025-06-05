@@ -16,13 +16,26 @@ public class TelaConfirmarPedido extends JPanel {
     private Cliente cliente;
     private List<Assento> assentos;
     private IReservaServico reservaServico;
+    private boolean isMembroABC = false;
+    private static final double DESCONTO_ABC = 0.05; // 5% de desconto
 
     public TelaConfirmarPedido(Peca peca, Cliente cliente, List<Assento> assentos) {
         this.peca = peca;
         this.cliente = cliente;
         this.assentos = assentos;
         this.reservaServico = new ReservaServico();
+        // Verificar se o cliente é membro ABC
+        this.isMembroABC = cliente.isMembroABC();
         configurarTela();
+    }
+    
+    public void setMembroABC(boolean isMembroABC) {
+        this.isMembroABC = isMembroABC;
+        // Recriar a tela se necessário
+        removeAll();
+        configurarTela();
+        revalidate();
+        repaint();
     }
 
     private void configurarTela() {
@@ -82,15 +95,32 @@ public class TelaConfirmarPedido extends JPanel {
         painel.setBackground(new Color(52, 73, 94));
         painel.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
         painel.setLayout(new GridBagLayout());
-        painel.setMaximumSize(new Dimension(600, 300));
+        painel.setMaximumSize(new Dimension(700, 400));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(10, 20, 10, 20);
 
+        int linha = 0;
+
+        // Se for membro ABC, mostrar badge
+        if (isMembroABC) {
+            gbc.gridx = 0;
+            gbc.gridy = linha;
+            gbc.gridwidth = 2;
+            gbc.anchor = GridBagConstraints.CENTER;
+            
+            JPanel badgeABC = criarBadgeABC();
+            painel.add(badgeABC, gbc);
+            
+            linha++;
+            gbc.gridwidth = 1;
+            gbc.anchor = GridBagConstraints.WEST;
+        }
+
         // Peça
         gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridy = linha;
         JLabel lblPecaTitulo = new JLabel("Peça");
         lblPecaTitulo.setFont(new Font("Arial", Font.PLAIN, 20));
         lblPecaTitulo.setForeground(Color.LIGHT_GRAY);
@@ -102,9 +132,11 @@ public class TelaConfirmarPedido extends JPanel {
         lblPecaValor.setForeground(Color.WHITE);
         painel.add(lblPecaValor, gbc);
 
+        linha++;
+
         // Assentos
         gbc.gridx = 0;
-        gbc.gridy = 1;
+        gbc.gridy = linha;
         JLabel lblAssentosTitulo = new JLabel("Assentos");
         lblAssentosTitulo.setFont(new Font("Arial", Font.PLAIN, 20));
         lblAssentosTitulo.setForeground(Color.LIGHT_GRAY);
@@ -119,33 +151,125 @@ public class TelaConfirmarPedido extends JPanel {
         lblAssentosValor.setForeground(Color.WHITE);
         painel.add(lblAssentosValor, gbc);
 
-        // Total
+        linha++;
+
+        // Subtotal
+        double subtotal = assentos.stream().mapToDouble(Assento::getPreco).sum();
+        
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = linha;
+        JLabel lblSubtotalTitulo = new JLabel("Subtotal");
+        lblSubtotalTitulo.setFont(new Font("Arial", Font.PLAIN, 20));
+        lblSubtotalTitulo.setForeground(Color.LIGHT_GRAY);
+        painel.add(lblSubtotalTitulo, gbc);
+
+        gbc.gridx = 1;
+        JLabel lblSubtotalValor = new JLabel(FormatadorMoeda.formatar(subtotal));
+        lblSubtotalValor.setFont(new Font("Arial", Font.PLAIN, 20));
+        lblSubtotalValor.setForeground(Color.WHITE);
+        painel.add(lblSubtotalValor, gbc);
+
+        linha++;
+
+        // Desconto ABC GOLD (se aplicável)
+        if (isMembroABC) {
+            double desconto = subtotal * DESCONTO_ABC;
+            
+            gbc.gridx = 0;
+            gbc.gridy = linha;
+            JLabel lblDescontoTitulo = new JLabel("Desconto ABC GOLD (5%)");
+            lblDescontoTitulo.setFont(new Font("Arial", Font.PLAIN, 18));
+            lblDescontoTitulo.setForeground(Constantes.AMARELO);
+            painel.add(lblDescontoTitulo, gbc);
+
+            gbc.gridx = 1;
+            JLabel lblDescontoValor = new JLabel("- " + FormatadorMoeda.formatar(desconto));
+            lblDescontoValor.setFont(new Font("Arial", Font.PLAIN, 18));
+            lblDescontoValor.setForeground(Constantes.AMARELO);
+            painel.add(lblDescontoValor, gbc);
+
+            linha++;
+        }
+
+        // Linha separadora
+        gbc.gridx = 0;
+        gbc.gridy = linha;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JSeparator separador = new JSeparator();
+        separador.setForeground(Color.GRAY);
+        painel.add(separador, gbc);
+
+        linha++;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.gridwidth = 1;
+
+        // Total
+        double total = isMembroABC ? subtotal * (1 - DESCONTO_ABC) : subtotal;
+        
+        gbc.gridx = 0;
+        gbc.gridy = linha;
         JLabel lblTotalTitulo = new JLabel("Total");
-        lblTotalTitulo.setFont(new Font("Arial", Font.PLAIN, 20));
-        lblTotalTitulo.setForeground(Color.LIGHT_GRAY);
+        lblTotalTitulo.setFont(new Font("Arial", Font.BOLD, 24));
+        lblTotalTitulo.setForeground(Color.WHITE);
         painel.add(lblTotalTitulo, gbc);
 
         gbc.gridx = 1;
-        double total = assentos.stream().mapToDouble(Assento::getPreco).sum();
         JLabel lblTotalValor = new JLabel(FormatadorMoeda.formatar(total));
-        lblTotalValor.setFont(new Font("Arial", Font.BOLD, 24));
-        lblTotalValor.setForeground(Color.WHITE);
+        lblTotalValor.setFont(new Font("Arial", Font.BOLD, 28));
+        lblTotalValor.setForeground(isMembroABC ? Constantes.AMARELO : Color.WHITE);
         painel.add(lblTotalValor, gbc);
 
         return painel;
     }
 
+    private JPanel criarBadgeABC() {
+        JPanel badge = new JPanel();
+        badge.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        badge.setBackground(Constantes.AMARELO);
+        badge.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 215, 0), 3),
+            BorderFactory.createEmptyBorder(8, 20, 8, 20)
+        ));
+
+        // Estrela
+        JLabel lblEstrela = new JLabel("⭐");
+        lblEstrela.setFont(new Font("Arial", Font.PLAIN, 24));
+
+        // Texto
+        JLabel lblTexto = new JLabel("MEMBRO ABC GOLD");
+        lblTexto.setFont(new Font("Arial", Font.BOLD, 18));
+        lblTexto.setForeground(Color.BLACK);
+
+        // Outra estrela
+        JLabel lblEstrela2 = new JLabel("⭐");
+        lblEstrela2.setFont(new Font("Arial", Font.PLAIN, 24));
+
+        badge.add(lblEstrela);
+        badge.add(lblTexto);
+        badge.add(lblEstrela2);
+
+        return badge;
+    }
+
     private void confirmar() {
         try {
-            // Criar bilhete
+            // Calcular valor total com desconto se aplicável
+            double subtotal = assentos.stream().mapToDouble(Assento::getPreco).sum();
+            double valorFinal = isMembroABC ? subtotal * (1 - DESCONTO_ABC) : subtotal;
+
+            // Criar bilhete (você precisaria modificar o modelo Bilhete para aceitar valor customizado)
             Bilhete bilhete = reservaServico.criarReserva(peca, cliente, assentos);
 
-            JOptionPane.showMessageDialog(this,
-                    "Compra realizada com sucesso!\nCódigo do bilhete: " + bilhete.getCodigoBarras(),
-                    "Sucesso",
-                    JOptionPane.INFORMATION_MESSAGE);
+            String mensagem = "Compra realizada com sucesso!\n" +
+                            "Código do bilhete: " + bilhete.getCodigoBarras();
+            
+            if (isMembroABC) {
+                mensagem += "\n\nComo membro ABC GOLD, você economizou " + 
+                           FormatadorMoeda.formatar(subtotal * DESCONTO_ABC) + " nesta compra!";
+            }
+
+            JOptionPane.showMessageDialog(this, mensagem, "Sucesso", JOptionPane.INFORMATION_MESSAGE);
 
             // Voltar para tela principal
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
