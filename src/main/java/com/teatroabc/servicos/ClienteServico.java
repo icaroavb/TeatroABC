@@ -13,9 +13,19 @@ public class ClienteServico implements IClienteServico {
 
     @Override
     public Cliente cadastrar(String cpf, String nome, String dataNascimento, String telefone) {
+        return cadastrar(cpf, nome, dataNascimento, telefone, "", false);
+    }
+
+    public Cliente cadastrar(String cpf, String nome, String dataNascimento, String telefone, String email, boolean membroABC) {
+        // Verificar se cliente já existe
+        if (repo.existe(cpf)) {
+            System.out.println("Cliente já existe: " + cpf);
+            return repo.buscarPorCpf(cpf);
+        }
+        
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate dataNascimentoLocalDate = LocalDate.parse(dataNascimento, formatter);
-        Cliente cliente = new Cliente(cpf, nome, dataNascimentoLocalDate, telefone);
+        Cliente cliente = new Cliente(cpf, nome, dataNascimentoLocalDate, telefone, email, membroABC);
         repo.salvar(cliente);
         return cliente;
     }

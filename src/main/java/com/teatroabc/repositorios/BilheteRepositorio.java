@@ -9,40 +9,48 @@ public class BilheteRepositorio {
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private ClienteRepositorio clienteRepo = new ClienteRepositorio();
     private PecaRepositorio pecaRepo = new PecaRepositorio();
-    private AssentoRepositorio assentoRepo = new AssentoRepositorio();
     
+    // Método original mantido para compatibilidade
     public void salvar(Bilhete bilhete) {
-        // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_PECA|ASSENTOS|VALOR_TOTAL|DATA_HORA_COMPRA
+        salvar(bilhete, "NOITE"); // Turno padrão
+    }
+    
+    // Novo método com suporte a turno
+    public void salvar(Bilhete bilhete, String turno) {
+        // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_PECA|ASSENTOS|VALOR_TOTAL|VALOR_DESCONTO|TURNO|DATA_HORA_COMPRA
         StringBuilder assentosStr = new StringBuilder();
         for (Assento assento : bilhete.getAssentos()) {
             if (assentosStr.length() > 0) assentosStr.append(",");
             assentosStr.append(assento.getCodigo());
         }
         
-        String linha = String.format("%s|%s|%s|%s|%s|%.2f|%s",
+        String linha = String.format("%s|%s|%s|%s|%s|%.2f|%.2f|%s|%s",
             bilhete.getId(),
             bilhete.getCodigoBarras(),
             bilhete.getCliente().getCpf(),
             bilhete.getPeca().getId(),
             assentosStr.toString(),
             bilhete.getValorTotal(),
+            bilhete.getValorDesconto(),
+            turno != null ? turno : "NOITE",
             bilhete.getDataHoraCompra().format(DATETIME_FORMATTER)
         );
         
         // Salvar bilhete
         GerenciadorArquivos.salvarBilhete(linha);
         
-        // Marcar assentos como ocupados
+        // Marcar assentos como ocupados no turno específico
+        String turnoFinal = turno != null ? turno : "NOITE";
         for (Assento assento : bilhete.getAssentos()) {
-            GerenciadorArquivos.atualizarStatusAssento(
+            GerenciadorArquivos.marcarAssentoOcupado(
                 bilhete.getPeca().getId(), 
-                assento.getCodigo(), 
-                "OCUPADO"
+                turnoFinal,
+                assento.getCodigo()
             );
         }
         
         System.out.println("Bilhete salvo: " + linha);
-        System.out.println("Assentos marcados como ocupados: " + assentosStr.toString());
+        System.out.println("Assentos marcados como ocupados no turno " + turnoFinal + ": " + assentosStr.toString());
     }
     
     public List<Bilhete> listarPorCpf(String cpf) {
@@ -80,7 +88,9 @@ public class BilheteRepositorio {
     
     private Bilhete parsearBilhete(String linha) {
         String[] partes = linha.split("\\|");
-        if (partes.length == 7) {
+        
+        // Compatibilidade com formatos: antigo (7), meio (8) e novo (9)
+        if (partes.length >= 7) {
             try {
                 // Buscar cliente
                 Cliente cliente = clienteRepo.buscarPorCpf(partes[2]);
@@ -134,8 +144,22 @@ public class BilheteRepositorio {
                     return null;
                 }
                 
+                // Verificar se temos valor de desconto
+                double valorDesconto = 0.0;
+                if (partes.length >= 8) {
+                    try {
+                        valorDesconto = Double.parseDouble(partes[6]);
+                        System.out.println("Desconto encontrado no bilhete: " + valorDesconto);
+                    } catch (NumberFormatException e) {
+                        valorDesconto = 0.0;
+                        System.out.println("Erro ao parsear desconto, usando 0.0");
+                    }
+                }
+                
                 // Criar bilhete
-                return new Bilhete(peca, cliente, assentos);
+                Bilhete bilhete = new Bilhete(peca, cliente, assentos, valorDesconto);
+                System.out.println("Bilhete criado - Valor total: " + bilhete.getValorTotal() + ", Desconto: " + bilhete.getValorDesconto());
+                return bilhete;
                 
             } catch (Exception e) {
                 System.out.println("Erro ao parsear bilhete: " + e.getMessage());

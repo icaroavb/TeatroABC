@@ -25,7 +25,7 @@ public class DialogoDetalhesBilhete extends JDialog {
     }
     
     private void configurarDialogo(Bilhete bilhete) {
-        setSize(600, 700);
+        setSize(600, 750); // Aumentado para acomodar desconto
         setLocationRelativeTo(getParent());
         setResizable(false);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -71,6 +71,14 @@ public class DialogoDetalhesBilhete extends JDialog {
         painel.setBackground(Color.WHITE);
         painel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
         
+        // Badge ABC GOLD se aplicável
+        if (bilhete.getCliente().isMembroABC()) {
+            JPanel badgeABC = criarBadgeABC();
+            badgeABC.setAlignmentX(Component.CENTER_ALIGNMENT);
+            painel.add(badgeABC);
+            painel.add(Box.createVerticalStrut(20));
+        }
+        
         // Título da peça
         JLabel lblTitulo = new JLabel(bilhete.getPeca().getTitulo());
         lblTitulo.setFont(new Font("Arial", Font.BOLD, 28));
@@ -91,7 +99,50 @@ public class DialogoDetalhesBilhete extends JDialog {
             .collect(Collectors.joining(", "));
         adicionarInfo(painel, "Assentos:", assentosStr);
         
-        adicionarInfo(painel, "Valor Total:", FormatadorMoeda.formatar(bilhete.getValorTotal()));
+        // Se houve desconto, mostrar detalhes
+        if (bilhete.getValorDesconto() > 0) {
+            adicionarInfo(painel, "Subtotal:", FormatadorMoeda.formatar(bilhete.getSubtotal()));
+            
+            // Desconto em amarelo
+            JPanel linhaPainel = new JPanel(new BorderLayout());
+            linhaPainel.setBackground(Color.WHITE);
+            linhaPainel.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
+            
+            JLabel lblRotulo = new JLabel("Desconto ABC GOLD:");
+            lblRotulo.setFont(new Font("Arial", Font.BOLD, 18));
+            lblRotulo.setForeground(new Color(255, 140, 0)); // Laranja dourado
+            lblRotulo.setPreferredSize(new Dimension(180, 25));
+            
+            JLabel lblValor = new JLabel("- " + FormatadorMoeda.formatar(bilhete.getValorDesconto()));
+            lblValor.setFont(new Font("Arial", Font.BOLD, 18));
+            lblValor.setForeground(new Color(255, 140, 0));
+            
+            linhaPainel.add(lblRotulo, BorderLayout.WEST);
+            linhaPainel.add(lblValor, BorderLayout.CENTER);
+            painel.add(linhaPainel);
+        }
+        
+        // Valor total (destacado)
+        JPanel linhaTotalPainel = new JPanel(new BorderLayout());
+        linhaTotalPainel.setBackground(Color.WHITE);
+        linhaTotalPainel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(2, 0, 0, 0, Color.LIGHT_GRAY),
+            BorderFactory.createEmptyBorder(15, 0, 8, 0)
+        ));
+        
+        JLabel lblTotalRotulo = new JLabel("VALOR TOTAL:");
+        lblTotalRotulo.setFont(new Font("Arial", Font.BOLD, 22));
+        lblTotalRotulo.setForeground(Color.BLACK);
+        lblTotalRotulo.setPreferredSize(new Dimension(180, 30));
+        
+        JLabel lblTotalValor = new JLabel(FormatadorMoeda.formatar(bilhete.getValorTotal()));
+        lblTotalValor.setFont(new Font("Arial", Font.BOLD, 22));
+        lblTotalValor.setForeground(bilhete.getCliente().isMembroABC() ? 
+            new Color(255, 140, 0) : Color.BLACK);
+        
+        linhaTotalPainel.add(lblTotalRotulo, BorderLayout.WEST);
+        linhaTotalPainel.add(lblTotalValor, BorderLayout.CENTER);
+        painel.add(linhaTotalPainel);
         
         painel.add(Box.createVerticalStrut(30));
         
@@ -120,6 +171,30 @@ public class DialogoDetalhesBilhete extends JDialog {
         
         painelContainer.add(painel, BorderLayout.CENTER);
         return painelContainer;
+    }
+    
+    private JPanel criarBadgeABC() {
+        JPanel badge = new JPanel();
+        badge.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        badge.setBackground(Constantes.AMARELO);
+        badge.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(255, 215, 0), 2),
+            BorderFactory.createEmptyBorder(5, 15, 5, 15)
+        ));
+        badge.setMaximumSize(new Dimension(300, 40));
+
+        // Texto
+        JLabel lblTexto = new JLabel("MEMBRO ABC GOLD");
+        lblTexto.setFont(new Font("Arial", Font.BOLD, 14));
+        lblTexto.setForeground(Color.BLACK);
+
+       
+
+     
+        badge.add(lblTexto);
+       
+
+        return badge;
     }
     
     private void adicionarInfo(JPanel painel, String rotulo, String valor) {

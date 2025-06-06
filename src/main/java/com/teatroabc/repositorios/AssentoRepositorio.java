@@ -8,6 +8,10 @@ import java.util.*;
 public class AssentoRepositorio {
     
     public List<Assento> buscarAssentosPorPeca(String pecaId) {
+        return buscarAssentosPorPecaETurno(pecaId, Turno.NOITE);
+    }
+    
+    public List<Assento> buscarAssentosPorPecaETurno(String pecaId, Turno turno) {
         List<Assento> todosAssentos = new ArrayList<>();
         
         // Criar todos os assentos possíveis
@@ -38,17 +42,32 @@ public class AssentoRepositorio {
             }
         }
         
-        // Verificar status dos assentos ocupados nos bilhetes vendidos
+        // Verificar status dos assentos ocupados nos bilhetes vendidos para esse turno específico
         List<String> bilhetes = GerenciadorArquivos.lerBilhetes();
         Set<String> assentosOcupados = new HashSet<>();
         
         for (String linha : bilhetes) {
             String[] partes = linha.split("\\|");
-            if (partes.length >= 5 && partes[3].equals(pecaId)) {
-                // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_PECA|ASSENTOS|VALOR_TOTAL|DATA_HORA_COMPRA
-                String[] codigosAssentos = partes[4].split(",");
-                for (String codigo : codigosAssentos) {
-                    assentosOcupados.add(codigo.trim());
+            if (partes.length >= 9) { // Novo formato com turno
+                // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_PECA|ASSENTOS|VALOR_TOTAL|VALOR_DESCONTO|DATA_HORA_COMPRA|TURNO
+                if (partes[3].equals(pecaId)) {
+                    String turnoVendido = partes.length > 8 ? partes[8] : "NOITE";
+                    
+                    // Só marcar como ocupado se for o mesmo turno
+                    if (turnoVendido.equals(turno.name())) {
+                        String[] codigosAssentos = partes[4].split(",");
+                        for (String codigo : codigosAssentos) {
+                            assentosOcupados.add(codigo.trim());
+                        }
+                    }
+                }
+            } else if (partes.length >= 7) { // Formato antigo sem turno
+                // Compatibilidade com dados antigos - assumir turno NOITE
+                if (partes[3].equals(pecaId) && turno == Turno.NOITE) {
+                    String[] codigosAssentos = partes[4].split(",");
+                    for (String codigo : codigosAssentos) {
+                        assentosOcupados.add(codigo.trim());
+                    }
                 }
             }
         }
@@ -60,8 +79,8 @@ public class AssentoRepositorio {
             }
         }
         
-        System.out.println("Carregados " + todosAssentos.size() + " assentos para peça " + pecaId);
-        System.out.println("Assentos ocupados: " + assentosOcupados.size());
+        System.out.println("Carregados " + todosAssentos.size() + " assentos para peça " + pecaId + " turno " + turno);
+        System.out.println("Assentos ocupados para este turno: " + assentosOcupados.size());
         
         return todosAssentos;
     }

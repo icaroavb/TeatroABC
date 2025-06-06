@@ -238,7 +238,6 @@ public class TelaCadastrar extends JPanel {
         JLabel lblEstrela = new JLabel("⭐");
         lblEstrela.setFont(new Font("Arial", Font.PLAIN, 24));
 
-       
         containerCheckbox.add(chkMembroABC);
         
         painelCheckbox.add(containerCheckbox);
@@ -318,28 +317,32 @@ public class TelaCadastrar extends JPanel {
         }
 
         try {
-            // Criar cliente
             String cpf = txtCPF.getText().replaceAll("[^0-9]", "");
+            
+            // Verificar se cliente já existe
+            if (clienteServico.existe(cpf)) {
+                JOptionPane.showMessageDialog(this,
+                        "Cliente com este CPF já está cadastrado!",
+                        "CPF Já Cadastrado",
+                        JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // Criar cliente
             String nome = txtNome.getText().trim();
             String dataNascimento = txtDataNascimento.getText();
             String telefone = chkMembroABC.isSelected() ? txtTelefone.getText() : "";
             String email = chkMembroABC.isSelected() ? txtEmail.getText().trim() : "";
             boolean isMembroABC = chkMembroABC.isSelected();
 
-            // Por enquanto, vamos usar o método existente do ClienteServico
-            // Em uma implementação real, você modificaria o Cliente e ClienteServico 
-            // para incluir email e status de membro ABC
-            Cliente cliente = clienteServico.cadastrar(cpf, nome, dataNascimento, telefone);
-            
-            // Aqui você salvaria também o status de membro ABC e email
-            // Por exemplo: clienteServico.atualizarMembroABC(cpf, isMembroABC, email);
+            // Usar o novo método que inclui ABC GOLD
+            Cliente cliente = ((ClienteServico) clienteServico).cadastrar(cpf, nome, dataNascimento, telefone, email, isMembroABC);
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
             if (peca != null && assentosSelecionados != null) {
-                // Veio do fluxo de compra - passar informação de membro ABC
+                // Veio do fluxo de compra
                 TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados);
-                telaConfirmar.setMembroABC(isMembroABC); // Método a ser criado
                 frame.setContentPane(telaConfirmar);
             } else {
                 // Cadastro direto
