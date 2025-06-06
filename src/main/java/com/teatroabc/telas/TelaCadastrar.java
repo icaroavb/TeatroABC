@@ -3,6 +3,7 @@ package com.teatroabc.telas;
 import com.teatroabc.componentes.*;
 import com.teatroabc.constantes.Constantes;
 import com.teatroabc.modelos.*;
+import com.teatroabc.enums.Turno;
 import com.teatroabc.servicos.ClienteServico;
 import com.teatroabc.servicos.interfaces.IClienteServico;
 import javax.swing.*;
@@ -18,6 +19,7 @@ public class TelaCadastrar extends JPanel {
     private String cpfInformado;
     private Peca peca;
     private List<Assento> assentosSelecionados;
+    private Turno turnoSelecionado;
     private JFormattedTextField txtCPF;
     private JTextField txtNome;
     private JFormattedTextField txtDataNascimento;
@@ -38,6 +40,11 @@ public class TelaCadastrar extends JPanel {
         this.assentosSelecionados = assentosSelecionados;
         this.clienteServico = new ClienteServico();
         configurarTela();
+    }
+    
+    public void setTurnoSelecionado(Turno turno) {
+        this.turnoSelecionado = turno;
+        System.out.println("Turno selecionado definido no cadastro: " + turno);
     }
 
     private void configurarTela() {
@@ -342,7 +349,7 @@ public class TelaCadastrar extends JPanel {
 
             if (peca != null && assentosSelecionados != null) {
                 // Veio do fluxo de compra
-                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados);
+                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados, turnoSelecionado);
                 frame.setContentPane(telaConfirmar);
             } else {
                 // Cadastro direto
@@ -410,7 +417,9 @@ public class TelaCadastrar extends JPanel {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
         if (peca != null) {
-            frame.setContentPane(new TelaInformarCPF(false, peca, assentosSelecionados));
+            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(false, peca, assentosSelecionados);
+            telaInformarCPF.setTurnoSelecionado(turnoSelecionado);
+            frame.setContentPane(telaInformarCPF);
         } else {
             frame.setContentPane(new TelaPrincipal());
         }

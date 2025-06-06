@@ -29,6 +29,14 @@ public class Bilhete {
         this.valorDesconto = valorDesconto;
         this.valorTotal = calcularValorTotal();
         this.dataHoraCompra = LocalDateTime.now();
+        
+        // Debug para acompanhar a criação do bilhete
+        System.out.println("=== CRIANDO BILHETE ===");
+        System.out.println("Cliente: " + cliente.getNome() + " (ABC: " + cliente.isMembroABC() + ")");
+        System.out.println("Subtotal: " + getSubtotal());
+        System.out.println("Desconto: " + valorDesconto);
+        System.out.println("Total: " + valorTotal);
+        System.out.println("=======================");
     }
 
     private String gerarCodigoBarras() {

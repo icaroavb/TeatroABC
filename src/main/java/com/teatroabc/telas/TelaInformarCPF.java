@@ -35,6 +35,7 @@ public class TelaInformarCPF extends JPanel {
     
     public void setTurnoSelecionado(Turno turno) {
         this.turnoSelecionado = turno;
+        System.out.println("Turno selecionado definido: " + turno);
     }
 
     private void configurarTela() {
@@ -173,13 +174,15 @@ public class TelaInformarCPF extends JPanel {
             if (clienteServico.existe(cpf)) {
                 // Cliente existe - ir para confirmação
                 Cliente cliente = clienteServico.buscarPorCpf(cpf).orElse(null);
-                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados);
-                // Se temos turno selecionado, podemos passar essa informação
-                // (você pode adicionar um método setTurnoSelecionado na TelaConfirmarPedido se quiser mostrar o turno)
+                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados, turnoSelecionado);
                 frame.setContentPane(telaConfirmar);
             } else {
                 // Cliente não existe - ir para cadastro
                 TelaCadastrar telaCadastrar = new TelaCadastrar(cpf, peca, assentosSelecionados);
+                // Passar o turno para o cadastro também
+                if (turnoSelecionado != null) {
+                    telaCadastrar.setTurnoSelecionado(turnoSelecionado);
+                }
                 frame.setContentPane(telaCadastrar);
             }
         }

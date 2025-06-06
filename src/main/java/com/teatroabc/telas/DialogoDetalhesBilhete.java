@@ -183,16 +183,22 @@ public class DialogoDetalhesBilhete extends JDialog {
         ));
         badge.setMaximumSize(new Dimension(300, 40));
 
+        // Estrela
+        JLabel lblEstrela = new JLabel("⭐");
+        lblEstrela.setFont(new Font("Arial", Font.PLAIN, 20));
+
         // Texto
         JLabel lblTexto = new JLabel("MEMBRO ABC GOLD");
         lblTexto.setFont(new Font("Arial", Font.BOLD, 14));
         lblTexto.setForeground(Color.BLACK);
 
-       
+        // Outra estrela
+        JLabel lblEstrela2 = new JLabel("⭐");
+        lblEstrela2.setFont(new Font("Arial", Font.PLAIN, 20));
 
-     
+        badge.add(lblEstrela);
         badge.add(lblTexto);
-       
+        badge.add(lblEstrela2);
 
         return badge;
     }
