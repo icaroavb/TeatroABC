@@ -9,6 +9,7 @@ public class GerenciadorArquivos {
     private static final String ARQUIVO_CLIENTES = "clientes.txt";
     private static final String ARQUIVO_BILHETES = "bilhetes.txt";
     private static final String ARQUIVO_ASSENTOS = "assentos.txt";
+    private static final String ARQUIVO_ASSENTOS_TURNOS = "assentos_turnos.txt";
     
     static {
         // Criar diretório de dados se não existir
@@ -82,6 +83,37 @@ public class GerenciadorArquivos {
         return bilhetesCliente;
     }
     
+    // Métodos para Assentos com Turnos
+    public static void marcarAssentoOcupado(String pecaId, String turno, String codigoAssento) {
+        String chave = pecaId + "|" + turno + "|" + codigoAssento;
+        salvarLinha(ARQUIVO_ASSENTOS_TURNOS, chave);
+        System.out.println("Assento marcado como ocupado: " + chave);
+    }
+    
+    public static boolean isAssentoOcupado(String pecaId, String turno, String codigoAssento) {
+        String chave = pecaId + "|" + turno + "|" + codigoAssento;
+        List<String> assentosOcupados = lerArquivo(ARQUIVO_ASSENTOS_TURNOS);
+        boolean ocupado = assentosOcupados.contains(chave);
+        System.out.println("Verificando ocupação: " + chave + " = " + ocupado);
+        return ocupado;
+    }
+    
+    public static Set<String> buscarAssentosOcupados(String pecaId, String turno) {
+        Set<String> assentosOcupados = new HashSet<>();
+        List<String> linhas = lerArquivo(ARQUIVO_ASSENTOS_TURNOS);
+        
+        String prefixo = pecaId + "|" + turno + "|";
+        for (String linha : linhas) {
+            if (linha.startsWith(prefixo)) {
+                String codigoAssento = linha.substring(prefixo.length());
+                assentosOcupados.add(codigoAssento);
+            }
+        }
+        
+        System.out.println("Assentos ocupados para " + pecaId + " no turno " + turno + ": " + assentosOcupados);
+        return assentosOcupados;
+    }
+    
     // Métodos para Assentos (mantido para compatibilidade)
     public static void salvarAssento(String linha) {
         if (salvarLinha(ARQUIVO_ASSENTOS, linha)) {
@@ -140,6 +172,7 @@ public class GerenciadorArquivos {
             Path clientes = Paths.get(DIRETORIO_DADOS, ARQUIVO_CLIENTES);
             Path bilhetes = Paths.get(DIRETORIO_DADOS, ARQUIVO_BILHETES);
             Path assentos = Paths.get(DIRETORIO_DADOS, ARQUIVO_ASSENTOS);
+            Path assentosTurnos = Paths.get(DIRETORIO_DADOS, ARQUIVO_ASSENTOS_TURNOS);
             
             if (Files.exists(clientes)) {
                 Files.delete(clientes);
@@ -152,6 +185,10 @@ public class GerenciadorArquivos {
             if (Files.exists(assentos)) {
                 Files.delete(assentos);
                 System.out.println("Arquivo de assentos deletado");
+            }
+            if (Files.exists(assentosTurnos)) {
+                Files.delete(assentosTurnos);
+                System.out.println("Arquivo de assentos por turno deletado");
             }
         } catch (IOException e) {
             System.err.println("Erro ao limpar dados:");
@@ -174,6 +211,10 @@ public class GerenciadorArquivos {
         System.out.println("\n--- ASSENTOS ---");
         List<String> assentos = lerAssentos();
         assentos.forEach(System.out::println);
+        
+        System.out.println("\n--- ASSENTOS POR TURNO ---");
+        List<String> assentosTurnos = lerArquivo(ARQUIVO_ASSENTOS_TURNOS);
+        assentosTurnos.forEach(System.out::println);
         
         System.out.println("\n=== FIM DEBUG ===\n");
     }

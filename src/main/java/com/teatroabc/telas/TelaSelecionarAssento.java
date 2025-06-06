@@ -7,22 +7,21 @@ import com.teatroabc.enums.StatusAssento;
 import com.teatroabc.enums.Turno;
 import com.teatroabc.modelos.Assento;
 import com.teatroabc.modelos.Peca;
-import com.teatroabc.repositorios.AssentoRepositorio;
 import com.teatroabc.utilitarios.FormatadorMoeda;
+import com.teatroabc.utilitarios.GerenciadorArquivos;
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.Set;
 
 public class TelaSelecionarAssento extends JPanel {
     private Peca peca;
     private List<Assento> assentosSelecionados;
     private Map<Turno, List<Assento>> assentosPorTurno;
     private Turno turnoSelecionado;
-    private AssentoRepositorio assentoRepo;
     private JLabel lblTotal;
     private BotaoAnimado btnConfirmar;
     private JPanel painelSecoes;
@@ -31,21 +30,22 @@ public class TelaSelecionarAssento extends JPanel {
     public TelaSelecionarAssento(Peca peca) {
         this.peca = peca;
         this.assentosSelecionados = new ArrayList<>();
-        this.assentoRepo = new AssentoRepositorio();
         this.turnoSelecionado = Turno.NOITE; // Turno padrão
         this.assentosPorTurno = new HashMap<>();
         
-        // Carregar assentos para cada turno
+        // Carregar assentos para cada turno com ocupação real baseada no arquivo
         carregarAssentosPorTurno();
         configurarTela();
     }
 
     private void carregarAssentosPorTurno() {
-        // Para cada turno, criar uma lista de assentos com ocupação diferente
-        Random random = new Random(peca.getId().hashCode()); // Seed baseado na peça para consistência
+        System.out.println("Carregando assentos para peça: " + peca.getId());
         
         for (Turno turno : Turno.values()) {
             List<Assento> assentosTurno = new ArrayList<>();
+            
+            // Buscar assentos ocupados para este turno específico
+            Set<String> assentosOcupados = GerenciadorArquivos.buscarAssentosOcupados(peca.getId(), turno.name());
             
             // Criar todos os assentos para este turno
             // Frisas - 3 fileiras x 8 assentos
@@ -54,9 +54,15 @@ public class TelaSelecionarAssento extends JPanel {
                     String codigo = "F" + f + "-" + a;
                     Assento assento = new Assento(codigo, f, a, CategoriaAssento.FRISAS);
                     
-                    // Simular ocupação diferente por turno
-                    if (random.nextDouble() < getOcupacaoPorTurno(turno)) {
+                    // Verificar se está ocupado no arquivo
+                    if (assentosOcupados.contains(codigo)) {
                         assento.setStatus(StatusAssento.OCUPADO);
+                        System.out.println("Assento " + codigo + " ocupado no turno " + turno.name());
+                    } else {
+                        // Se não está no arquivo, simular ocupação baseada em padrão determinístico
+                        if (isAssentoOcupadoSimulacao(codigo, turno)) {
+                            assento.setStatus(StatusAssento.OCUPADO);
+                        }
                     }
                     
                     assentosTurno.add(assento);
@@ -69,7 +75,10 @@ public class TelaSelecionarAssento extends JPanel {
                     String codigo = "B" + f + "-" + a;
                     Assento assento = new Assento(codigo, f, a, CategoriaAssento.BALCAO_NOBRE);
                     
-                    if (random.nextDouble() < getOcupacaoPorTurno(turno)) {
+                    if (assentosOcupados.contains(codigo)) {
+                        assento.setStatus(StatusAssento.OCUPADO);
+                        System.out.println("Assento " + codigo + " ocupado no turno " + turno.name());
+                    } else if (isAssentoOcupadoSimulacao(codigo, turno)) {
                         assento.setStatus(StatusAssento.OCUPADO);
                     }
                     
@@ -83,7 +92,10 @@ public class TelaSelecionarAssento extends JPanel {
                     String codigo = "C" + f + "-" + a;
                     Assento assento = new Assento(codigo, f, a, CategoriaAssento.BALCAO);
                     
-                    if (random.nextDouble() < getOcupacaoPorTurno(turno)) {
+                    if (assentosOcupados.contains(codigo)) {
+                        assento.setStatus(StatusAssento.OCUPADO);
+                        System.out.println("Assento " + codigo + " ocupado no turno " + turno.name());
+                    } else if (isAssentoOcupadoSimulacao(codigo, turno)) {
                         assento.setStatus(StatusAssento.OCUPADO);
                     }
                     
@@ -92,20 +104,35 @@ public class TelaSelecionarAssento extends JPanel {
             }
             
             assentosPorTurno.put(turno, assentosTurno);
+            
+            long ocupados = assentosTurno.stream().mapToLong(a -> a.getStatus() == StatusAssento.OCUPADO ? 1 : 0).sum();
+            System.out.println("Turno " + turno.name() + ": " + ocupados + " assentos ocupados de " + assentosTurno.size());
         }
     }
 
-    private double getOcupacaoPorTurno(Turno turno) {
-        // Simular diferentes taxas de ocupação por turno
+    // Método para simular ocupação quando não há dados reais
+    private boolean isAssentoOcupadoSimulacao(String codigo, Turno turno) {
+        // Criar um hash único baseado no código do assento, peça e turno
+        int hash = (codigo + peca.getId() + turno.name()).hashCode();
+        
+        // Usar o hash para criar padrões diferentes para cada turno
+        double probabilidade = getProbabilidadeOcupacao(turno);
+        
+        // Usar o hash para criar uma decisão determinística mas aparentemente aleatória
+        return (Math.abs(hash) % 100) < (probabilidade * 100);
+    }
+
+    private double getProbabilidadeOcupacao(Turno turno) {
+        // Diferentes probabilidades de ocupação por turno (mais realista)
         switch (turno) {
             case MANHA:
-                return 0.2; // 20% ocupado de manhã
+                return 0.15; // 15% ocupado de manhã
             case TARDE:
-                return 0.4; // 40% ocupado à tarde
+                return 0.35; // 35% ocupado à tarde
             case NOITE:
-                return 0.6; // 60% ocupado à noite
+                return 0.55; // 55% ocupado à noite (mais popular)
             default:
-                return 0.3;
+                return 0.25;
         }
     }
 
@@ -242,9 +269,24 @@ public class TelaSelecionarAssento extends JPanel {
         });
 
         radio.addActionListener(e -> {
+            Turno turnoAnterior = turnoSelecionado;
             turnoSelecionado = turno;
-            // Limpar seleções anteriores
-            assentosSelecionados.clear();
+            
+            // Resetar seleções do turno anterior
+            if (turnoAnterior != turnoSelecionado) {
+                List<Assento> assentosAnteriores = assentosPorTurno.get(turnoAnterior);
+                if (assentosAnteriores != null) {
+                    assentosAnteriores.forEach(assento -> {
+                        if (assento.getStatus() == StatusAssento.SELECIONADO) {
+                            assento.setStatus(StatusAssento.DISPONIVEL);
+                        }
+                    });
+                }
+                
+                // Limpar lista de selecionados
+                assentosSelecionados.clear();
+            }
+            
             // Recriar seções com novos assentos
             atualizarSecoes();
             atualizarTotal();
