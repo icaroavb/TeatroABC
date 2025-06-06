@@ -17,7 +17,7 @@ public class TelaConfirmarPedido extends JPanel {
     private Cliente cliente;
     private List<Assento> assentos;
     private Turno turnoSelecionado;
-    private IReservaServico reservaServico;
+    private ReservaServico reservaServico;
     private static final double DESCONTO_ABC = 0.05; // 5% de desconto
 
     public TelaConfirmarPedido(Peca peca, Cliente cliente, List<Assento> assentos) {
@@ -269,7 +269,7 @@ public class TelaConfirmarPedido extends JPanel {
         try {
             // Criar bilhete com desconto se aplicável - PASSANDO O TURNO
             String turno = turnoSelecionado != null ? turnoSelecionado.name() : "NOITE";
-            Bilhete bilhete = ((ReservaServico) reservaServico).criarReserva(peca, cliente, assentos, turno);
+            Bilhete bilhete = reservaServico.criarReserva(peca, cliente, assentos, turno);
 
             double subtotal = assentos.stream().mapToDouble(Assento::getPreco).sum();
             

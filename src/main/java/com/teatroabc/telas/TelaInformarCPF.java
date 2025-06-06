@@ -5,7 +5,6 @@ import com.teatroabc.constantes.Constantes;
 import com.teatroabc.modelos.*;
 import com.teatroabc.enums.Turno;
 import com.teatroabc.servicos.ClienteServico;
-import com.teatroabc.servicos.interfaces.IClienteServico;
 import com.teatroabc.utilitarios.ValidadorCPF;
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
@@ -19,7 +18,7 @@ public class TelaInformarCPF extends JPanel {
     private List<Assento> assentosSelecionados;
     private Turno turnoSelecionado;
     private JFormattedTextField txtCPF;
-    private IClienteServico clienteServico;
+    private ClienteServico clienteServico;
 
     public TelaInformarCPF(boolean modoConsulta) {
         this(modoConsulta, null, null);
@@ -42,32 +41,26 @@ public class TelaInformarCPF extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
-        // Container principal
         JPanel containerPrincipal = new JPanel();
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
 
-        // Logo centralizado
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.add(new LogoTeatro());
         containerPrincipal.add(Box.createVerticalStrut(50));
         containerPrincipal.add(painelLogo);
 
-        // Espaço
         containerPrincipal.add(Box.createVerticalStrut(80));
 
-        // Título
         JLabel titulo = new JLabel("INFORME O CPF");
         titulo.setFont(Constantes.FONTE_TITULO);
         titulo.setForeground(Constantes.AMARELO);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         containerPrincipal.add(titulo);
 
-        // Espaço
         containerPrincipal.add(Box.createVerticalStrut(50));
 
-        // Campo CPF
         JPanel painelCPF = new JPanel();
         painelCPF.setBackground(Constantes.AZUL_ESCURO);
         painelCPF.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -91,7 +84,6 @@ public class TelaInformarCPF extends JPanel {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
 
-        // Placeholder
         txtCPF.setText("CPF");
         txtCPF.setForeground(Color.GRAY);
 
@@ -113,10 +105,8 @@ public class TelaInformarCPF extends JPanel {
         painelCPF.add(txtCPF);
         containerPrincipal.add(painelCPF);
 
-        // Espaço
         containerPrincipal.add(Box.createVerticalStrut(50));
 
-        // Botão Continuar
         BotaoAnimado btnContinuar = new BotaoAnimado("CONTINUAR",
                 Constantes.LARANJA, Constantes.AMARELO, new Dimension(400, 70));
         btnContinuar.setFont(new Font("Arial", Font.BOLD, 28));
@@ -127,7 +117,6 @@ public class TelaInformarCPF extends JPanel {
 
         add(containerPrincipal, BorderLayout.CENTER);
 
-        // Botão Voltar
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         painelVoltar.setBackground(Constantes.AZUL_ESCURO);
 
@@ -167,19 +156,14 @@ public class TelaInformarCPF extends JPanel {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
         if (modoConsulta) {
-            // Modo consulta - ir para lista de bilhetes
             frame.setContentPane(new TelaListaBilhetes(cpf));
         } else {
-            // Modo compra - verificar se cliente existe
             if (clienteServico.existe(cpf)) {
-                // Cliente existe - ir para confirmação
                 Cliente cliente = clienteServico.buscarPorCpf(cpf).orElse(null);
                 TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados, turnoSelecionado);
                 frame.setContentPane(telaConfirmar);
             } else {
-                // Cliente não existe - ir para cadastro
                 TelaCadastrar telaCadastrar = new TelaCadastrar(cpf, peca, assentosSelecionados);
-                // Passar o turno para o cadastro também
                 if (turnoSelecionado != null) {
                     telaCadastrar.setTurnoSelecionado(turnoSelecionado);
                 }

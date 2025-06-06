@@ -27,7 +27,6 @@ public class CardBilhete extends JPanel {
     }
     
     private void configurarCard() {
-        // Informações principais
         JPanel painelInfo = new JPanel(new GridBagLayout());
         painelInfo.setBackground(new Color(52, 73, 94));
         
@@ -35,7 +34,6 @@ public class CardBilhete extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(3, 0, 3, 30);
 
-        // Nome da peça
         gbc.gridx = 0;
         gbc.gridy = 0;
         JLabel lblTituloPeca = new JLabel(bilhete.getPeca().getTitulo());
@@ -43,7 +41,6 @@ public class CardBilhete extends JPanel {
         lblTituloPeca.setForeground(Color.WHITE);
         painelInfo.add(lblTituloPeca, gbc);
 
-        // Código de barras visual (pequeno)
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.gridheight = 4;
@@ -51,7 +48,6 @@ public class CardBilhete extends JPanel {
         JPanel miniCodigoBarras = criarMiniCodigoBarras(bilhete.getCodigoBarras());
         painelInfo.add(miniCodigoBarras, gbc);
 
-        // Data
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridheight = 1;
@@ -67,7 +63,6 @@ public class CardBilhete extends JPanel {
         lblDataValor.setForeground(Color.WHITE);
         painelInfo.add(lblDataValor, gbc);
 
-        // Assentos
         gbc.gridy = 3;
         JLabel lblAssentos = new JLabel("Assentos");
         lblAssentos.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -88,7 +83,6 @@ public class CardBilhete extends JPanel {
 
         add(painelInfo, BorderLayout.CENTER);
 
-        // Botão Visualizar
         JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         painelBotao.setBackground(new Color(52, 73, 94));
         
@@ -97,7 +91,7 @@ public class CardBilhete extends JPanel {
         btnVisualizar.setFont(new Font("Arial", Font.BOLD, 14));
         btnVisualizar.addActionListener(e -> {
             if (actionListener != null) {
-                actionListener.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "visualizar"));
+                actionListener.actionPerformed(e);
             }
         });
         
@@ -112,14 +106,12 @@ public class CardBilhete extends JPanel {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g.create();
                 
-                // Desenhar código de barras pequeno
                 int x = 5;
                 int larguraBarra = 2;
                 int espacamento = 1;
                 
                 g2d.setColor(Color.WHITE);
                 
-                // Desenhar apenas algumas barras representativas
                 for (int i = 0; i < 15 && x < getWidth() - 10; i++) {
                     char c = codigo.charAt(i % codigo.length());
                     int altura = 20 + (c % 10);

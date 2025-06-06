@@ -5,7 +5,6 @@ import com.teatroabc.constantes.Constantes;
 import com.teatroabc.modelos.*;
 import com.teatroabc.enums.Turno;
 import com.teatroabc.servicos.ClienteServico;
-import com.teatroabc.servicos.interfaces.IClienteServico;
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
@@ -28,7 +27,7 @@ public class TelaCadastrar extends JPanel {
     private JCheckBox chkMembroABC;
     private JPanel painelTelefone;
     private JPanel painelEmail;
-    private IClienteServico clienteServico;
+    private ClienteServico clienteServico;
 
     public TelaCadastrar(String cpf) {
         this(cpf, null, null);
@@ -51,24 +50,20 @@ public class TelaCadastrar extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
-        // Scroll para o formulário
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
-        // Container principal
         JPanel containerPrincipal = new JPanel();
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
 
-        // Logo
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.add(new LogoTeatro());
         containerPrincipal.add(Box.createVerticalStrut(30));
         containerPrincipal.add(painelLogo);
 
-        // Título
         JLabel titulo = new JLabel("CADASTRAR");
         titulo.setFont(Constantes.FONTE_TITULO);
         titulo.setForeground(Color.WHITE);
@@ -76,17 +71,14 @@ public class TelaCadastrar extends JPanel {
         containerPrincipal.add(Box.createVerticalStrut(40));
         containerPrincipal.add(titulo);
 
-        // Formulário
         JPanel formulario = criarFormulario();
         containerPrincipal.add(Box.createVerticalStrut(40));
         containerPrincipal.add(formulario);
 
-        // Checkbox ABC GOLD
         JPanel painelCheckbox = criarCheckboxABCGold();
         containerPrincipal.add(Box.createVerticalStrut(30));
         containerPrincipal.add(painelCheckbox);
 
-        // Botão Cadastrar
         BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR",
                 Constantes.LARANJA, Constantes.AMARELO, new Dimension(400, 70));
         btnCadastrar.setFont(new Font("Arial", Font.BOLD, 28));
@@ -100,7 +92,6 @@ public class TelaCadastrar extends JPanel {
         scrollPane.setViewportView(containerPrincipal);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Botão Voltar
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         painelVoltar.setBackground(Constantes.AZUL_ESCURO);
 
@@ -125,18 +116,14 @@ public class TelaCadastrar extends JPanel {
         formulario.setMaximumSize(new Dimension(500, 600));
         formulario.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // CPF
         formulario.add(criarCampoComRotulo("CPF", criarCampoCPF()));
         formulario.add(Box.createVerticalStrut(25));
 
-        // Nome
         formulario.add(criarCampoComRotulo("NOME", criarCampoNome()));
         formulario.add(Box.createVerticalStrut(25));
 
-        // Data de Nascimento
         formulario.add(criarCampoComRotulo("DATA DE NASCIMENTO", criarCampoDataNascimento()));
 
-        // Campos adicionais para membros ABC GOLD (inicialmente ocultos)
         painelTelefone = criarCampoComRotulo("TELEFONE", criarCampoTelefone());
         painelTelefone.setVisible(false);
         formulario.add(Box.createVerticalStrut(25));
@@ -157,7 +144,6 @@ public class TelaCadastrar extends JPanel {
         painelCampo.setMaximumSize(new Dimension(500, 85));
         painelCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Rótulo
         JLabel lblRotulo = new JLabel(rotulo);
         lblRotulo.setFont(new Font("Arial", Font.BOLD, 16));
         lblRotulo.setForeground(Color.WHITE);
@@ -166,7 +152,6 @@ public class TelaCadastrar extends JPanel {
 
         painelCampo.add(Box.createVerticalStrut(8));
 
-        // Campo
         campo.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelCampo.add(campo);
 
@@ -179,10 +164,9 @@ public class TelaCadastrar extends JPanel {
         painelCheckbox.setBackground(Constantes.AZUL_ESCURO);
         painelCheckbox.setMaximumSize(new Dimension(500, 60));
 
-        // Container com borda amarela
         JPanel containerCheckbox = new JPanel();
         containerCheckbox.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        containerCheckbox.setBackground(new Color(255, 193, 7, 20)); // Amarelo transparente
+        containerCheckbox.setBackground(new Color(255, 193, 7, 20));
         containerCheckbox.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Constantes.AMARELO, 2),
             BorderFactory.createEmptyBorder(10, 20, 10, 20)
@@ -195,7 +179,6 @@ public class TelaCadastrar extends JPanel {
         chkMembroABC.setFocusPainted(false);
         chkMembroABC.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
-        // Ícone personalizado para o checkbox
         chkMembroABC.setIcon(new Icon() {
             @Override
             public void paintIcon(Component c, Graphics g, int x, int y) {
@@ -241,7 +224,6 @@ public class TelaCadastrar extends JPanel {
             repaint();
         });
 
-        // Ícone de estrela dourada
         JLabel lblEstrela = new JLabel("⭐");
         lblEstrela.setFont(new Font("Arial", Font.PLAIN, 24));
 
@@ -318,7 +300,6 @@ public class TelaCadastrar extends JPanel {
     }
 
     private void cadastrar() {
-        // Validar campos
         if (!validarCampos()) {
             return;
         }
@@ -326,7 +307,6 @@ public class TelaCadastrar extends JPanel {
         try {
             String cpf = txtCPF.getText().replaceAll("[^0-9]", "");
             
-            // Verificar se cliente já existe
             if (clienteServico.existe(cpf)) {
                 JOptionPane.showMessageDialog(this,
                         "Cliente com este CPF já está cadastrado!",
@@ -335,24 +315,20 @@ public class TelaCadastrar extends JPanel {
                 return;
             }
 
-            // Criar cliente
             String nome = txtNome.getText().trim();
             String dataNascimento = txtDataNascimento.getText();
             String telefone = chkMembroABC.isSelected() ? txtTelefone.getText() : "";
             String email = chkMembroABC.isSelected() ? txtEmail.getText().trim() : "";
             boolean isMembroABC = chkMembroABC.isSelected();
 
-            // Usar o novo método que inclui ABC GOLD
-            Cliente cliente = ((ClienteServico) clienteServico).cadastrar(cpf, nome, dataNascimento, telefone, email, isMembroABC);
+            Cliente cliente = clienteServico.cadastrar(cpf, nome, dataNascimento, telefone, email, isMembroABC);
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
             if (peca != null && assentosSelecionados != null) {
-                // Veio do fluxo de compra
                 TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados, turnoSelecionado);
                 frame.setContentPane(telaConfirmar);
             } else {
-                // Cadastro direto
                 String mensagem = isMembroABC ? 
                     "Cliente cadastrado como membro ABC GOLD com sucesso!\nVocê terá 5% de desconto em todas as compras!" :
                     "Cliente cadastrado com sucesso!";
@@ -382,7 +358,6 @@ public class TelaCadastrar extends JPanel {
             return false;
         }
 
-        // Validar formato da data
         try {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate.parse(txtDataNascimento.getText(), formatter);
@@ -391,7 +366,6 @@ public class TelaCadastrar extends JPanel {
             return false;
         }
 
-        // Validar campos de membro ABC GOLD
         if (chkMembroABC.isSelected()) {
             if (txtTelefone.getText().trim().isEmpty() || txtTelefone.getText().contains("_")) {
                 JOptionPane.showMessageDialog(this, "Por favor, informe o telefone para ser membro ABC GOLD!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
@@ -403,7 +377,6 @@ public class TelaCadastrar extends JPanel {
                 return false;
             }
 
-            // Validar formato do email
             if (!txtEmail.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
                 JOptionPane.showMessageDialog(this, "E-mail inválido!", "E-mail inválido", JOptionPane.ERROR_MESSAGE);
                 return false;
