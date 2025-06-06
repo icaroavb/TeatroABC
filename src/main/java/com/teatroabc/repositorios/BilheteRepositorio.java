@@ -24,7 +24,7 @@ public class BilheteRepositorio {
             assentosStr.append(assento.getCodigo());
         }
         
-        String linha = String.format("%s|%s|%s|%s|%s|%.2f|%.2f|%s|%s",
+        String linha = String.format(Locale.US, "%s|%s|%s|%s|%s|%.2f|%.2f|%s|%s",
             bilhete.getId(),
             bilhete.getCodigoBarras(),
             bilhete.getCliente().getCpf(),
@@ -146,19 +146,23 @@ public class BilheteRepositorio {
                 
                 // Verificar se temos valor de desconto
                 double valorDesconto = 0.0;
-                if (partes.length >= 8) {
+                if (partes.length >= 7) {
                     try {
-                        valorDesconto = Double.parseDouble(partes[6]);
+                        // Tratar vírgula decimal caso exista
+                        String valorDescontoStr = partes[6].replace(",", ".");
+                        valorDesconto = Double.parseDouble(valorDescontoStr);
                         System.out.println("Desconto encontrado no bilhete: " + valorDesconto);
                     } catch (NumberFormatException e) {
                         valorDesconto = 0.0;
-                        System.out.println("Erro ao parsear desconto, usando 0.0");
+                        System.out.println("Erro ao parsear desconto: " + partes[6] + ", usando 0.0");
                     }
                 }
                 
                 // Criar bilhete
                 Bilhete bilhete = new Bilhete(peca, cliente, assentos, valorDesconto);
-                System.out.println("Bilhete criado - Valor total: " + bilhete.getValorTotal() + ", Desconto: " + bilhete.getValorDesconto());
+                System.out.println("Bilhete criado - Valor total: " + bilhete.getValorTotal() + 
+                                 ", Desconto: " + bilhete.getValorDesconto() + 
+                                 ", Subtotal: " + bilhete.getSubtotal());
                 return bilhete;
                 
             } catch (Exception e) {
