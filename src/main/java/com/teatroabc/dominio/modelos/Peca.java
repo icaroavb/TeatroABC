@@ -18,19 +18,8 @@ public class Peca {
     public Peca(String id, String titulo, String subtitulo, String descricao,
                 String corFundoHex, String caminhoImagem, LocalDateTime dataHora) {
 
-        if (id == null || id.trim().isEmpty()) {
-            throw new IllegalArgumentException("ID da peça não pode ser nulo ou vazio.");
-        }
-        if (titulo == null || titulo.trim().isEmpty()) {
-            throw new IllegalArgumentException("Título da peça não pode ser nulo ou vazio.");
-        }
-        // Validação simples para formato hexadecimal. Pode ser mais robusta.
-        if (corFundoHex == null || !corFundoHex.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")) {
-            throw new IllegalArgumentException("Cor de fundo em formato hexadecimal inválido ou ausente. Ex: #RRGGBB");
-        }
-        if (dataHora == null) {
-            throw new IllegalArgumentException("Data e hora da peça não podem ser nulos.");
-        }
+        //logica de validacao encapsulada, caso não seja necessário validar os dados, basta apenas comentar esta linha
+        apurarInformacoesEssenciais(id, titulo, corFundoHex, dataHora);
 
         this.id = id;
         this.titulo = titulo;
@@ -39,6 +28,60 @@ public class Peca {
         this.corFundoHex = corFundoHex;
         this.caminhoImagem = caminhoImagem; // Pode ser nulo/vazio
         this.dataHora = dataHora;
+    }
+    
+    //Encapsulamento das lógicas de validação     
+    /**
+     * Encapsulamento da lógica para apurar se o Id é válido
+     * @param id
+     * @return
+     */
+    private boolean verificarId (String id){
+        return id == null || id.trim().isEmpty();
+    }
+    /**
+     * Encapsualmento da lógica para apurar se o título é válido
+     * @param titulo
+     * @return
+     */
+    private boolean verificarTitulo (String titulo){
+        return titulo == null || titulo.trim().isEmpty();
+    }
+    /**
+     * Encapsulamento da lógica para apurar se a corFundo é válida - Comentários: Pode ser mais robusta
+     * @param corFundoHex
+     * @return
+     */
+    private boolean verificarCorFundoHex (String corFundoHex){
+        return corFundoHex == null || !corFundoHex.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+    }
+    /**
+     * Encapsulamento da lógica para apurar se hora registrarada é nula
+     * @param dateTime
+     * @return
+     */
+    private boolean verificarHora (LocalDateTime dateTime){
+        return dataHora == null;
+    }
+
+    //Encapsulamento sobre as verificações das informações
+    /**
+     * Encapsulamento da lógica de negócio - Facilta a modificação caso seja necessário acrescentar ou modificar algo
+     */
+    public void apurarInformacoesEssenciais(String id, String titulo, String corFundoHex, LocalDateTime dataHora){
+        if (verificarId(id)) {
+            throw new IllegalArgumentException("ID da peça não pode ser nulo ou vazio.");
+        }
+        if (verificarTitulo(titulo)) {
+            throw new IllegalArgumentException("Título da peça não pode ser nulo ou vazio.");
+        }
+        // Validação simples para formato hexadecimal. Pode ser mais robusta.
+        if (verificarCorFundoHex(corFundoHex)) {
+            throw new IllegalArgumentException("Cor de fundo em formato hexadecimal inválido ou ausente. Ex: #RRGGBB");
+        }
+        if (verificarHora(dataHora)) {
+            throw new IllegalArgumentException("Data e hora da peça não podem ser nulos.");
+        }
     }
 
     // Getters

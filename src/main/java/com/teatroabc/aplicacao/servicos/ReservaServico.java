@@ -28,7 +28,8 @@ public class ReservaServico implements IReservaServico {
 
     private final IBilheteRepositorio bilheteRepositorio;
     private final IAssentoRepositorio assentoRepositorio;
-    // private final IValidadorDisponibilidadeAssento validadorDisponibilidade; // Exemplo de outra porta se a lógica fosse mais complexa
+    // private final IValidadorDisponibilidadeAssento validadorDisponibilidade; 
+    // Exemplo de outra porta se a lógica fosse mais complexa
 
     /**
      * Construtor para ReservaServico.

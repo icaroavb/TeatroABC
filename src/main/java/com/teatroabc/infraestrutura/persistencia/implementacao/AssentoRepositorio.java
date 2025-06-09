@@ -27,7 +27,7 @@ public class AssentoRepositorio implements IAssentoRepositorio {
         for (int f = 1; f <= 3; f++) {
             for (int a = 1; a <= 8; a++) {
                 String codigo = "F" + f + "-" + a;
-                CategoriaAssento cat = CategoriaAssento.FRISAS;
+                CategoriaAssento cat = CategoriaAssento.FRISA;
                 // O preço é o precoBase da categoria, conforme definido no Assento construtor
                 Assento assento = new Assento(codigo, f, a, cat, cat.getPrecoBase());
                 if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
@@ -52,7 +52,7 @@ public class AssentoRepositorio implements IAssentoRepositorio {
         for (int f = 1; f <= 4; f++) {
             for (int a = 1; a <= 10; a++) {
                 String codigo = "C" + f + "-" + a;
-                CategoriaAssento cat = CategoriaAssento.BALCAO;
+                CategoriaAssento cat = CategoriaAssento.BALCAO_NOBRE;
                 Assento assento = new Assento(codigo, f, a, cat, cat.getPrecoBase());
                 if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
                     assento.setStatus(StatusAssento.OCUPADO);

@@ -37,16 +37,9 @@ public class Cliente {
      */
     public Cliente(String cpf, String nome, LocalDate dataNascimento,
                    String telefone, String email, PlanoFidelidade planoFidelidade) {
-
-        if (cpf == null || cpf.trim().isEmpty()) {
-            throw new IllegalArgumentException("CPF do cliente não pode ser nulo, vazio ou inválido.");
-        }
-        if (nome == null || nome.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome do cliente não pode ser nulo ou vazio.");
-        }
-        if (dataNascimento == null) {
-            throw new IllegalArgumentException("Data de nascimento do cliente não pode ser nula.");
-        }
+        
+        //lógica dos dados essenciais agora está encapsulada, caso seja necessário modificar ou retirar o lançamento de excecoes, basta comentar esta linha
+        apurarInformacoesEssenciais(cpf, nome, dataNascimento);
 
         this.cpf = cpf.replaceAll("[^0-9]", ""); // Normaliza CPF para apenas dígitos
         this.nome = nome;
@@ -54,6 +47,52 @@ public class Cliente {
         this.telefone = telefone;
         this.email = email;
         this.planoFidelidade = Objects.requireNonNullElseGet(planoFidelidade, SemFidelidade::new);
+    }
+
+    //Encapusulamento das validações do CPF, nome e data de nascimento
+    /**
+     * Encapsular lógica para apurar validade do CPF - Útil caso outras modificações sejam apuradas
+     * @param cpf
+     * @return true caso seja nulo ou se estiver vazio
+     */
+    private boolean verificarCPFNulo (String cpf){
+        return cpf == null || cpf.trim().isEmpty();
+    }
+    /**
+     * Encapsular lógica para apurar se o nome é válido, ou seja, se não é nulo ou se estiver vazio
+     * @param nome
+     * @return true caso seja nulo ou se estiver vazio
+     */
+    private boolean verificarNomeNulo (String nome){
+        return nome == null || nome.trim().isEmpty();
+    }
+    /**
+     * Encapsular lógica 
+     * @param date
+     * @return true caso seja uma data null
+     */
+    private boolean verificarDataNascimento (LocalDate date){
+        return date ==  null;
+    }
+
+    /**
+     * Encapsualmento das verificações de dados obrigatorios - Caso seja necessário acrescentar mais algum dado essencial, 
+     * este campo será modificado.
+     * @param cpf
+     * @param nome
+     * @param date
+     */
+    //Encapsular a lógica do lançamento de exceções
+    private void apurarInformacoesEssenciais (String cpf, String nome, LocalDate date){
+        if (verificarCPFNulo(cpf)) {
+            throw new IllegalArgumentException("CPF do cliente não pode ser nulo, vazio ou inválido.");
+        }
+        if (verificarNomeNulo(nome)) {
+            throw new IllegalArgumentException("Nome do cliente não pode ser nulo ou vazio.");
+        }
+        if (verificarDataNascimento(dataNascimento)) {
+            throw new IllegalArgumentException("Data de nascimento do cliente não pode ser nula.");
+        }
     }
 
     /**

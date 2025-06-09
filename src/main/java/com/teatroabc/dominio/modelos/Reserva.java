@@ -26,6 +26,7 @@ public class Reserva {
      * @throws IllegalArgumentException Se qualquer parâmetro essencial for nulo ou inválido.
      */
     public Reserva(Cliente cliente, Peca peca, List<Assento> assentos, Turno turno) {
+
         if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para uma reserva.");
         if (peca == null) throw new IllegalArgumentException("Peça não pode ser nula para uma reserva.");
         if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("A lista de assentos não pode ser nula ou vazia para uma reserva.");
@@ -37,6 +38,8 @@ public class Reserva {
         this.assentos = Collections.unmodifiableList(new ArrayList<>(assentos));
         this.turno = turno;
     }
+
+    //encapsulamento das validacoe
 
     // --- Getters ---
     public Cliente getCliente() { return cliente; }
