@@ -31,11 +31,11 @@ public class ClienteServico implements IClienteServico {
      * @throws IllegalArgumentException se {@code clienteRepositorio} for nulo.
      */
     public ClienteServico(IClienteRepositorio clienteRepositorio) {
-        if (clienteRepositorio == null) {
+        if (verificarRepositorio(clienteRepositorio)) {
             throw new IllegalArgumentException("Repositório de clientes (IClienteRepositorio) não pode ser nulo.");
         }
         this.clienteRepositorio = clienteRepositorio;
-    }
+    }    
 
     /**
      * {@inheritDoc}
@@ -104,7 +104,8 @@ public class ClienteServico implements IClienteServico {
         }
         String cpfNormalizado = normalizarCpf(cpf);
         // Corrigido: clienteRepositorio.buscarPorCpf já retorna Optional<Cliente>
-        return clienteRepositorio.buscarPorCpf(cpfNormalizado); // será coadunado com a implementação concreta do repositório
+        // Adaptacao provisória - é necessário fazer a modificação 
+        return Optional.ofNullable(clienteRepositorio.buscarPorCpf(cpfNormalizado)); // será coadunado com a implementação concreta do repositório
     }
 
     /**
@@ -133,4 +134,16 @@ public class ClienteServico implements IClienteServico {
         }
         return cpf.replaceAll("[^0-9]", "");
     }
+
+    // encapsulamento das validações
+    /**
+     * Validação do repositório 
+     * @param repositorio
+     * @return true se o repositorio não tiver sido instanciado
+     */
+    public boolean verificarRepositorio (IClienteRepositorio repositorio){
+        return repositorio == null;
+    }
+
+    //public boolean verificarCPF
 }
