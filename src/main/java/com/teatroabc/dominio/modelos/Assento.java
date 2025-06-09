@@ -22,6 +22,7 @@ public class Assento {
         this.fileira = fileira;
         this.numero = numero;
         this.categoria = categoria; 
+        //é preciso modificar aqui  a atribuicao de dados pelo construtor no campo privado preco - comentario da IDE: DEPRECATED
         this.preco = preco.setScale(2, BigDecimal.ROUND_HALF_UP); // Armazena com 2 casas decimais
         this.status = StatusAssento.DISPONIVEL;
     }
