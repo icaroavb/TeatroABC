@@ -1,24 +1,36 @@
 ### IClienteServico \- Princípios SOLID
 
 * **SRP (Princípio da Responsabilidade Única):**  
-  A interface IClienteServico define um contrato coeso para as operações de negócio relacionadas à entidade Cliente. Cada método representa uma capacidade distinta do serviço (cadastrar, buscar, verificar existência).  
+
+  A interface IClienteServico define um contrato coeso para as operações de negócio relacionadas à entidade Cliente. Cada método representa uma capacidade distinta do serviço (cadastrar, buscar, verificar existência).
+
 * **OCP (Princípio Aberto/Fechado):**  
+
   A interface é aberta para implementação por diferentes classes de serviço (embora tenhamos apenas uma, ClienteServico). Se novas operações de cliente fossem necessárias, a interface poderia ser estendida (idealmente de forma não disruptiva) ou novas interfaces mais específicas poderiam ser criadas.  
+
 * **LSP (Princípio da Substituição de Liskov):**  
+
   Qualquer implementação de IClienteServico deve aderir ao contrato definido, garantindo que possa ser substituída sem quebrar a funcionalidade esperada pelos clientes da interface.  
+
 * **ISP (Princípio da Segregação de Interfaces):**  
+
   A interface é específica para os serviços de cliente. Se houvesse um número muito grande e variado de operações, poderia ser dividida, mas atualmente seus métodos são relacionados e formam um contrato lógico.  
+
 * **DIP (Princípio da Inversão de Dependência):**  
+
   Esta interface é uma abstração (uma "Porta de Entrada" na arquitetura hexagonal) da qual as camadas externas (como a UI ou controladores) dependerão, em vez de dependerem da implementação concreta ClienteServico.
 
 ### IClienteServico \- Bibliotecas Necessárias/Dependentes
 
 * com.teatroabc.dominio.modelos.Cliente:  
   Define o tipo de retorno para operações de busca e cadastro, representando a entidade de domínio Cliente.  
+
 * com.teatroabc.aplicacao.dto.DadosCadastroClienteDTO:  
   Especifica o Data Transfer Object usado como parâmetro para o método cadastrar, encapsulando os dados necessários para criar um novo cliente.  
+
 * com.teatroabc.aplicacao.excecoes.ClienteJaCadastradoException:  
   Define uma exceção específica que pode ser lançada pelo método cadastrar para indicar que um cliente com o CPF fornecido já existe.  
+  
 * java.util.Optional:  
   Utilizada como tipo de retorno para buscarPorCpf, indicando de forma clara que um cliente pode ou não ser encontrado, evitando a necessidade de retornos nulos.
 
