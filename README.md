@@ -1,3 +1,13 @@
+**O objetivo principal é que as classes da UI (suas Telas e Componentes Swing):**
+
+- Não contenham lógica de negócio.
+- Não acessem diretamente os repositórios ou o GerenciadorArquivos.
+- Interajam com o núcleo da aplicação exclusivamente através das interfaces de serviço (Portas de Entrada como IClienteServico, IPecaServico, IReservaServico).
+- Recebam as instâncias dos serviços via Injeção de Dependência.
+- Construam DTOs para enviar dados aos serviços.
+- Tratem exceções (de negócio e de validação) retornadas pelos serviços e apresentem feedback apropriado ao usuário.
+- Sejam responsáveis pela apresentação dos dados obtidos do domínio (ex: converter corFundoHex para java.awt.Color, usar FormatadorData, FormatadorMoeda).
+
 **O cerne da Arquitetura Hexagonal é proteger o Domínio de Negócio (o "hexágono") de influências e dependências de tecnologias externas (como UI, bancos de dados, frameworks específicos, etc.).**
 
 *O Domínio no Centro:*
