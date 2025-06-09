@@ -3,6 +3,7 @@ package com.teatroabc.dominio.modelos;
 import com.teatroabc.dominio.enums.CategoriaAssento;
 import com.teatroabc.dominio.enums.StatusAssento;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Objects;
 
 public class Assento {
@@ -22,8 +23,7 @@ public class Assento {
         this.fileira = fileira;
         this.numero = numero;
         this.categoria = categoria; 
-        //é preciso modificar aqui  a atribuicao de dados pelo construtor no campo privado preco - comentario da IDE: DEPRECATED
-        this.preco = preco.setScale(2, BigDecimal.ROUND_HALF_UP); // Armazena com 2 casas decimais
+        this.preco = preco.setScale(2, RoundingMode.HALF_UP); // Armazena com 2 casas decimais
         this.status = StatusAssento.DISPONIVEL;
     }
 
