@@ -71,7 +71,7 @@ public class Bilhete {
         this.id = id;
         this.codigoBarras = codigoBarras;
         this.peca = peca;
-        this.cliente = cliente;
+        this.cliente = cliente;codigoBarras == null || codigoBarras.trim().isEmpty()
         this.assentos = Collections.unmodifiableList(new ArrayList<>(assentos)); // Cópia defensiva imutável
         this.turno = turno;
         this.subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
@@ -79,6 +79,28 @@ public class Bilhete {
         this.valorTotal = valorTotal.setScale(2, RoundingMode.HALF_UP);
         this.dataHoraCompra = dataHoraCompra;
     }
+
+    //Encapsulamento das lógicas de validação
+    /**
+     * Validação do campo privado id para verificar se ele é nulo ou vazio
+     * @param id
+     * @return
+     */
+    private boolean verificarId (String id){
+        return id == null || id.trim().isEmpty();
+    }    
+    /**
+     * Validacao do campo de código de barras para verificar se ele é null ou estiver vazio
+     * @param codigoBarras
+     * @return
+     */
+    private boolean verificarCodigoBarras (String codigoBarras){
+        return codigoBarras == null || codigoBarras.trim().isEmpty();
+    }
+
+
+
+
 
     // --- Getters ---
     public String getId() { return id; }

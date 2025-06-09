@@ -114,8 +114,8 @@ public class Cliente {
     public PlanoFidelidade getPlanoFidelidade() { return planoFidelidade; }
 
     // --- Comportamentos Delegados à Estratégia de Fidelidade ---
-    public BigDecimal obterDescontoParaCompra(List<Assento> assentos) {
-        return this.planoFidelidade.calcularDesconto(assentos);
+    public BigDecimal getFatorDescontoPlano() {
+        return this.planoFidelidade.getFatorDesconto();
     }
 
     public String getNomePlanoFidelidade() {

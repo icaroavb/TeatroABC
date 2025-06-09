@@ -9,12 +9,12 @@ import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;   // Porta de Saída
 import com.teatroabc.aplicacao.excecoes.ReservaInvalidaException;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.infraestrutura.utilitarios_comuns.GeradorIdUtil;                   // Utilitário para IDs
+import com.teatroabc.infraestrutura.utilitarios_comuns.GeradorIdUtil; // Utilitário para IDs
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.Collections; // Para Collections.emptyList()
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -28,8 +28,6 @@ public class ReservaServico implements IReservaServico {
 
     private final IBilheteRepositorio bilheteRepositorio;
     private final IAssentoRepositorio assentoRepositorio;
-    // private final IValidadorDisponibilidadeAssento validadorDisponibilidade; 
-    // Exemplo de outra porta se a lógica fosse mais complexa
 
     /**
      * Construtor para ReservaServico.
@@ -55,7 +53,7 @@ public class ReservaServico implements IReservaServico {
     public Bilhete criarReserva(Peca peca, Cliente cliente, List<Assento> assentosSelecionados, Turno turno)
             throws ReservaInvalidaException, IllegalArgumentException {
 
-        // 1. Validações de parâmetros de entrada
+        // 1. Validações de parâmetros de entrada essenciais
         if (peca == null) throw new IllegalArgumentException("Peça não pode ser nula para criar reserva.");
         if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para criar reserva.");
         if (assentosSelecionados == null || assentosSelecionados.isEmpty()) {
@@ -67,67 +65,75 @@ public class ReservaServico implements IReservaServico {
         List<String> codigosAssentosSelecionados = assentosSelecionados.stream()
                 .map(Assento::getCodigo)
                 .collect(Collectors.toList());
-
+        
         if (!assentoRepositorio.verificarDisponibilidade(peca.getId(), turno, codigosAssentosSelecionados)) {
-            // Poderia obter os assentos específicos que falharam e incluí-los na mensagem
+            // Melhoria: Logar quais assentos não estão disponíveis ou retornar essa informação na exceção.
             throw new ReservaInvalidaException("Um ou mais assentos selecionados não estão mais disponíveis para este turno. Por favor, selecione outros.");
         }
 
-        // 3. Calcular valores financeiros
+        // 3. Calcular subtotal dos assentos selecionados
         BigDecimal subtotal = BigDecimal.ZERO;
         for (Assento assento : assentosSelecionados) {
-            // O preço do assento já é BigDecimal e está fixado no objeto Assento, conforme refatorado.
-            if (assento.getPreco() == null) { // Checagem extra de sanidade
-                throw new ReservaInvalidaException("Assento " + assento.getCodigo() + " com preço nulo encontrado.");
+            if (assento == null || assento.getPreco() == null) {
+                 // Isso não deveria acontecer se a lista de assentos for válida
+                 throw new ReservaInvalidaException("Encontrado assento inválido ou com preço nulo na seleção.");
             }
             subtotal = subtotal.add(assento.getPreco());
         }
+        // Arredondar subtotal para 2 casas decimais
+        subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
 
-        BigDecimal valorDesconto = cliente.obterDescontoParaCompra(assentosSelecionados); // Cliente delega para seu PlanoFidelidade
-
-        BigDecimal valorTotalFinal = subtotal.subtract(valorDesconto);
-        // Garante que o total não seja negativo e arredonda
+        // 4. Obter o fator de desconto do plano de fidelidade do cliente
+        BigDecimal fatorDesconto = cliente.getPlanoFidelidade().getFatorDesconto();
+        if (fatorDesconto == null || fatorDesconto.compareTo(BigDecimal.ZERO) < 0 || fatorDesconto.compareTo(BigDecimal.ONE) > 0) {
+            // Fator de desconto deve estar entre 0 e 1. Tratar como erro ou assumir 0.
+            System.err.println("Aviso: Fator de desconto inválido (" + fatorDesconto + ") retornado pelo plano " +
+                               cliente.getPlanoFidelidade().getNomePlano() + ". Assumindo 0% de desconto.");
+            fatorDesconto = BigDecimal.ZERO;
+        }
+        
+        // 5. Calcular o valor do desconto e o valor total final
+        BigDecimal valorDescontoCalculado = subtotal.multiply(fatorDesconto).setScale(2, RoundingMode.HALF_UP);
+        
+        BigDecimal valorTotalFinal = subtotal.subtract(valorDescontoCalculado);
+        // Garante que o total não seja negativo (embora com fator de desconto entre 0-1, não deveria ser,
+        // a menos que o subtotal fosse negativo, o que não deve ocorrer).
         if (valorTotalFinal.compareTo(BigDecimal.ZERO) < 0) {
             valorTotalFinal = BigDecimal.ZERO;
         }
+        // A entidade Bilhete também aplica setScale, mas é bom ter aqui para consistência.
         valorTotalFinal = valorTotalFinal.setScale(2, RoundingMode.HALF_UP);
 
-        // Subtotal e desconto também devem ter a escala correta se forem persistidos com precisão.
-        subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
-        valorDesconto = valorDesconto.setScale(2, RoundingMode.HALF_UP);
-
-
-        // 4. Gerar identificadores para o novo Bilhete
+        // 6. Gerar identificadores para o novo Bilhete
         String novoIdBilhete = GeradorIdUtil.gerarNovoId();
-        String novoCodigoBarras = GeradorIdUtil.gerarNovoCodigoBarras(); // Utilizar um método específico se a lógica for diferente
+        String novoCodigoBarras = GeradorIdUtil.gerarNovoCodigoBarras();
 
-        // 5. Obter data e hora da compra
+        // 7. Obter data e hora da compra
         LocalDateTime dataHoraCompra = LocalDateTime.now();
 
-        // 6. Criar a instância da entidade Bilhete (agora um portador de dados imutável)
+        // 8. Criar a instância da entidade Bilhete
         Bilhete bilhete = new Bilhete(
-                novoIdBilhete,
-                novoCodigoBarras,
-                peca,
-                cliente,
-                assentosSelecionados, // A lista de objetos Assento
-                turno,
-                subtotal,
-                valorDesconto,
-                valorTotalFinal,
-                dataHoraCompra
+            novoIdBilhete,
+            novoCodigoBarras,
+            peca,
+            cliente,
+            assentosSelecionados,
+            turno,
+            subtotal,                 // Subtotal calculado
+            valorDescontoCalculado,   // Desconto calculado
+            valorTotalFinal,          // Total final calculado
+            dataHoraCompra
         );
 
-        // 7. Persistir o bilhete (o repositório lida com a persistência e com a marcação dos assentos como ocupados)
+        // 9. Persistir o bilhete
         try {
-            bilheteRepositorio.salvar(bilhete, turno); // Passa o turno para o repositório também
+            bilheteRepositorio.salvar(bilhete, turno); // O repositório lida com a marcação de assentos
         } catch (Exception e) {
-            // Logar o erro original
-            // Em um sistema real, poderia haver lógica para tentar reverter a marcação de assentos se o salvamento falhar,
-            // ou usar um padrão de unidade de trabalho/transação.
+            // Em um sistema real, considerar estratégias de rollback ou compensação
+            // se a marcação de assentos e o salvamento do bilhete não forem atômicos.
             throw new ReservaInvalidaException("Falha crítica ao tentar salvar o bilhete: " + e.getMessage(), e);
         }
-
+        
         return bilhete;
     }
 
@@ -137,9 +143,9 @@ public class ReservaServico implements IReservaServico {
     @Override
     public List<Bilhete> buscarBilhetesCliente(String cpf) {
         if (cpf == null || cpf.trim().isEmpty()) {
-            return Collections.emptyList();
+            return Collections.emptyList(); // Retorna lista vazia imutável
         }
-        String cpfNormalizado = cpf.replaceAll("[^0-9]", ""); // Normalização aqui
+        String cpfNormalizado = cpf.replaceAll("[^0-9]", "");
         return bilheteRepositorio.listarPorCpfCliente(cpfNormalizado);
     }
 

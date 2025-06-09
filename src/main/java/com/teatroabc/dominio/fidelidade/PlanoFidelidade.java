@@ -26,12 +26,10 @@ public interface PlanoFidelidade {
     String getIdentificadorPlano();
 
     /**
-     * Calcula o valor do desconto a ser aplicado a uma lista de assentos selecionados.
-     * @param assentos A lista de assentos para a qual o desconto será calculado.
-     *                 O preço de cada assento já deve estar definido.
+     * Retorna o fator de Desconto.
      * @return O valor do desconto como BigDecimal. Nunca nulo, pode ser BigDecimal.ZERO.
      */
-    BigDecimal calcularDesconto(List<Assento> assentos);
+    BigDecimal getFatorDesconto();
 
     /**
      * Retorna uma descrição textual dos benefícios oferecidos por este plano.

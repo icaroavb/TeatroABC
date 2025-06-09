@@ -1,8 +1,7 @@
 package com.teatroabc.dominio.fidelidade;
 
-import com.teatroabc.dominio.modelos.Assento;
 import java.math.BigDecimal;
-import java.util.List;
+
 
 /**
  * Implementação do PlanoFidelidade para clientes sem nenhum plano especial.
@@ -24,10 +23,8 @@ public class SemFidelidade implements PlanoFidelidade {
         return IDENTIFICADOR;
     }
 
-    @Override
-    public BigDecimal calcularDesconto(List<Assento> assentos) {
-        // Clientes padrão não têm desconto.
-        return BigDecimal.ZERO;
+    public BigDecimal getFatorDesconto() {
+        return BigDecimal.ZERO; // 0% de desconto
     }
 
     @Override
