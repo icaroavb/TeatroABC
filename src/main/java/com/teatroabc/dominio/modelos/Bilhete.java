@@ -4,6 +4,7 @@ import com.teatroabc.dominio.enums.Turno;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,21 +45,19 @@ public class Bilhete {
      * @param dataHoraCompra A data e hora em que o bilhete foi comprado/emitido.
      * @throws IllegalArgumentException Se algum parâmetro essencial for nulo ou inválido, ou se os valores financeiros forem inconsistentes.
      */
-    public Bilhete(String id, String codigoBarras, Peca peca, Cliente cliente, List<Assento> assentos, Turno turno,
-                   BigDecimal subtotal, BigDecimal valorDesconto, BigDecimal valorTotal,
-                   LocalDateTime dataHoraCompra) {
+    public Bilhete( String id, 
+                    String codigoBarras, 
+                    Peca peca, 
+                    Cliente cliente, 
+                    List<Assento> assentos, 
+                    Turno turno,
+                    BigDecimal subtotal, 
+                    BigDecimal valorDesconto, 
+                    BigDecimal valorTotal,
+                    LocalDateTime dataHoraCompra) {
 
-        // Validações de nulidade e integridade
-        if (id == null || id.trim().isEmpty()) throw new IllegalArgumentException("ID do bilhete não pode ser nulo ou vazio.");
-        if (codigoBarras == null || codigoBarras.trim().isEmpty()) throw new IllegalArgumentException("Código de barras do bilhete não pode ser nulo ou vazio.");
-        if (peca == null) throw new IllegalArgumentException("Peça não pode ser nula para o bilhete.");
-        if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para o bilhete.");
-        if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia para o bilhete.");
-        if (turno == null) throw new IllegalArgumentException("Turno não pode ser nulo para o bilhete.");
-        if (subtotal == null || subtotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Subtotal do bilhete não pode ser nulo ou negativo.");
-        if (valorDesconto == null || valorDesconto.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor de desconto do bilhete não pode ser nulo ou negativo.");
-        if (valorTotal == null || valorTotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor total do bilhete não pode ser nulo ou negativo.");
-        if (dataHoraCompra == null) throw new IllegalArgumentException("Data e hora da compra do bilhete não podem ser nulos.");
+        // Encanspulamento das validações foi agora extraído para outro método - caso seja necessário não validar mais, basta comentar esta linha
+        apurarInformacoesEssenciais(id, codigoBarras, peca, cliente, assentos, turno, subtotal, valorDesconto, valorTotal, dataHoraCompra);                    
 
         // Validação de consistência financeira
         if (subtotal.subtract(valorDesconto).compareTo(valorTotal) != 0) {
@@ -97,10 +96,94 @@ public class Bilhete {
     private boolean verificarCodigoBarras (String codigoBarras){
         return codigoBarras == null || codigoBarras.trim().isEmpty();
     }
+    /**
+     * Validacao do campo privado peca para verificar se ele está null
+     * @param peca
+     * @return true se estiver null
+     */
+    private boolean verificarPeca (String peca){
+        return peca == null;
+    }
+    /**
+     * Validacao do campo privado cliente para verificar se ele está null
+     * @param cliente
+     * @return true se estiver null
+     */
+    private boolean verificarCliente (Cliente cliente){
+        return cliente == null;
+    }
+    /**
+     * Validacao do campo privado da lista de assentos -> verificar se está null ou se está vazio
+     * @param assento
+     * @return true se o valor for null ou se estiver vazio
+     */
+    private boolean verificarAssentos ( List <Assento> assento){
+        return assentos == null || assentos.isEmpty();
+    }
+    /**
+     * Validacao do campo privado turno
+     * @param turno
+     * @return true se ele for null;
+     */
+    private boolean verificarTurno (Turno turno){
+        return turno == null;
+    }
+    /**
+     * Validacao do campo subtotal 
+     * @param subtotal
+     * @return true se o valor for null ou se o valor for negativo
+     */
+    private boolean verificarSubtotal(BigDecimal subtotal){
+        return subtotal == null || subtotal.compareTo(BigDecimal.ZERO) < 0;
+    }
+    /**
+     * Validacao do campo desconto 
+     * @param desconto
+     * @return true se o valor for null ou se o valor for negativo
+     */
+    private boolean verificarDesconto (BigDecimal desconto){
+        return desconto == null || desconto.compareTo(BigDecimal.ZERO) < 0;
+    }
+    /**
+     * Validacao do campo subtotal 
+     * @param valorTotal
+     * @return true se o valor for null ou se o valor for negativo
+     */
+    private boolean verificarValorTotal (BigDecimal valorTotal){
+        return valorTotal == null || valorTotal.compareTo(BigDecimal.ZERO) < 0;
+    }
+    /**
+     * Validacao da hora e data de compra
+     * @param dateTime
+     * @return true se o valor for null
+     */
+    private boolean verificarDataHoraCompra (LocalDateTime dateTime){
+        return dataHoraCompra == null;
+    }
 
-    
-
-
+    //encapsulamento das validações - se for necessário acrescentar ou modificar uma validação, basta apenas acrescentar aqui
+    public void apurarInformacoesEssenciais (String id, 
+                                            String codigoBarras, 
+                                            Peca peca, 
+                                            Cliente cliente, 
+                                            List<Assento> assentos, 
+                                            Turno turno,
+                                            BigDecimal subtotal, 
+                                            BigDecimal valorDesconto, 
+                                            BigDecimal valorTotal,
+                                            LocalDateTime dataHoraCompra){
+        
+        if (verificarId(id)) throw new IllegalArgumentException("ID do bilhete não pode ser nulo ou vazio.");
+        if (verificarCodigoBarras(codigoBarras)) throw new IllegalArgumentException("Código de barras do bilhete não pode ser nulo ou vazio.");
+        if (verificarPeca(codigoBarras)) throw new IllegalArgumentException("Peça não pode ser nula para o bilhete.");
+        if (verificarCliente(cliente)) throw new IllegalArgumentException("Cliente não pode ser nulo para o bilhete.");
+        if (verificarAssentos(assentos)) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia para o bilhete.");
+        if (verificarTurno(turno)) throw new IllegalArgumentException("Turno não pode ser nulo para o bilhete.");
+        if (verificarSubtotal(subtotal)) throw new IllegalArgumentException("Subtotal do bilhete não pode ser nulo ou negativo.");
+        if (verificarDesconto(valorDesconto)) throw new IllegalArgumentException("Valor de desconto do bilhete não pode ser nulo ou negativo.");
+        if (verificarValorTotal(valorTotal)) throw new IllegalArgumentException("Valor total do bilhete não pode ser nulo ou negativo.");
+        if (verificarDataHoraCompra(dataHoraCompra)) throw new IllegalArgumentException("Data e hora da compra do bilhete não podem ser nulos.");
+    }
 
     // --- Getters ---
     public String getId() { return id; }

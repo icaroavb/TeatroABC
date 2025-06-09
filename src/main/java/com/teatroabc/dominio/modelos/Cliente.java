@@ -7,7 +7,6 @@ import com.teatroabc.dominio.fidelidade.MembroABCGold;     // Para o método isM
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Objects;
 
 /**

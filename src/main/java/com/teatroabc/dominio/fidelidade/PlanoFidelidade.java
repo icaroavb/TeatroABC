@@ -1,8 +1,6 @@
 package com.teatroabc.dominio.fidelidade;
 
-import com.teatroabc.dominio.modelos.Assento; // Para calcular com base nos itens da compra
 import java.math.BigDecimal;
-import java.util.List;
 
 /**
  * Interface que define o contrato para diferentes planos de fidelidade.
