@@ -1,6 +1,6 @@
 package com.teatroabc;
 
-import com.teatroabc.telas.TelaPrincipal;
+import com.teatroabc.infraestrutura.ui_swing.telas.TelaPrincipal;
 import javax.swing.*;
 
 public class TeatroABCApplication {
