@@ -1,0 +1,55 @@
+package com.teatroabc.dominio.fidelidade;
+
+import com.teatroabc.dominio.modelos.Assento; // Para calcular com base nos itens da compra
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * Interface que define o contrato para diferentes planos de fidelidade.
+ * Cada plano pode oferecer diferentes lógicas de desconto e benefícios.
+ */
+public interface PlanoFidelidade {
+
+    /**
+     * Retorna o nome amigável do plano de fidelidade.
+     * Ex: "Padrão", "ABC GOLD".
+     * @return O nome do plano.
+     */
+    String getNomePlano();
+
+    /**
+     * Retorna um identificador único em string para o plano.
+     * Usado principalmente para persistência e na factory para recriar o plano.
+     * Ex: "PADRAO", "GOLD".
+     * @return O identificador do plano.
+     */
+    String getIdentificadorPlano();
+
+    /**
+     * Calcula o valor do desconto a ser aplicado a uma lista de assentos selecionados.
+     * @param assentos A lista de assentos para a qual o desconto será calculado.
+     *                 O preço de cada assento já deve estar definido.
+     * @return O valor do desconto como BigDecimal. Nunca nulo, pode ser BigDecimal.ZERO.
+     */
+    BigDecimal calcularDesconto(List<Assento> assentos);
+
+    /**
+     * Retorna uma descrição textual dos benefícios oferecidos por este plano.
+     * @return A descrição dos benefícios.
+     */
+    String getDescricaoBeneficios();
+
+    /**
+     * Indica se este plano de fidelidade requer que o cliente forneça um número de telefone.
+     * (Exemplo de como o plano pode ditar regras para os dados do cliente)
+     * @return true se o telefone for obrigatório, false caso contrário.
+     */
+    // boolean requerTelefone(); // Descomentar e implementar se necessário
+
+    /**
+     * Indica se este plano de fidelidade requer que o cliente forneça um endereço de e-mail.
+     * (Exemplo de como o plano pode ditar regras para os dados do cliente)
+     * @return true se o e-mail for obrigatório, false caso contrário.
+     */
+    // boolean requerEmail(); // Descomentar e implementar se necessário
+}
