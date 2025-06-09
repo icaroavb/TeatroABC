@@ -60,11 +60,18 @@ public class ValidadorCPF {
             // Verifica se os dígitos calculados conferem com os dígitos informados.
             return verificacaoFinal(cpf, dig10, dig11);
             
-        } catch (Exception e) { // InputMismatchException é para Scanner, aqui seria mais IndexOutOfBounds ou similar
-            // Se ocorrer qualquer exceção durante o cálculo (ex: string não numérica, embora o regex já ajude),
-            // considera-se inválido.
-            // System.err.println("Erro ao validar CPF: " + cpf + " - " + e.getMessage());
+        } catch (IndexOutOfBoundsException e) {
+            // Captura exceção se o acesso a um índice da string falhar (embora as verificações iniciais já ajudem)
+            // Isso pode ocorrer se 'cpf' tiver um tamanho inesperado em tempo de execução
+            System.err.println("Quantidade de caracteres informados inválida.");
             return false;
+
+        } catch (NumberFormatException e) {
+            // Captura exceção se um caractere não puder ser convertido para um valor numérico válido.
+            // Embora o Javadoc diga que a entrada DEVE conter apenas dígitos, este catch garante robustez.
+            System.err.println("Não foi possível apurar a validade do número de CPF.");
+            return false;
+
         }
     }
 
@@ -89,7 +96,7 @@ public class ValidadorCPF {
     }
 
     /**
-     * Normaliza uma string de CPF, removendo caracteres não numéricos.
+     * Normaliza uma string de CPF, removendo caracteres não numéricos.r
      * @param cpf A string de CPF a ser normalizada.
      * @return O CPF contendo apenas dígitos, ou a string original se for nula.
      *         Retorna uma string vazia se o CPF original for uma string vazia após a remoção.
