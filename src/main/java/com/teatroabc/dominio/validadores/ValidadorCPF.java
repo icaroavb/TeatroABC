@@ -16,56 +16,76 @@ public class ValidadorCPF {
      *         ou contiver apenas dígitos repetidos.
      */
     public static boolean isValid(String cpf) {
-        // Considera-se CPF's formados por uma sequência de números iguais como inválidos.
-        if (cpf == null || cpf.length() != 11 || cpf.matches("(\\d)\\1{10}")) {
+        // Considera-se CPF's formados por uma sequência de números iguais como inválidos - lógica dessa verificação foi encapsulada
+        if (verificarDigitosRepetidos(cpf)) {
             return false;
         }
 
-        char dig10, dig11;
-        int sm, i, r, num, peso;
+        char dig10, dig11; //recebem o respectivo códiog ASCII
+        int soma, i, codigoASCI, num, peso; //variáveis auxiliares necessárias para fazer o cálculo
 
         try {
             // Calculo do 1o. Digito Verificador
-            sm = 0;
+            soma = 0;
             peso = 10;
             for (i = 0; i < 9; i++) {
                 num = (int)(cpf.charAt(i) - 48); // (48 é a posição de '0' na tabela ASCII)
-                sm = sm + (num * peso);
+                soma = soma + (num * peso);
                 peso = peso - 1;
             }
 
-            r = 11 - (sm % 11);
-            if ((r == 10) || (r == 11)) {
+            codigoASCI = 11 - (soma % 11);
+            if ((codigoASCI == 10) || (codigoASCI == 11)) {
                 dig10 = '0';
             } else {
-                dig10 = (char)(r + 48); // Converte no respectivo caractere numérico
+                dig10 = (char)(codigoASCI + 48); // Converte no respectivo caractere numérico
             }
 
             // Calculo do 2o. Digito Verificador
-            sm = 0;
+            soma = 0;
             peso = 11;
             for(i = 0; i < 10; i++) {
                 num = (int)(cpf.charAt(i) - 48);
-                sm = sm + (num * peso);
+                soma = soma + (num * peso);
                 peso = peso - 1;
             }
 
-            r = 11 - (sm % 11);
-            if ((r == 10) || (r == 11)) {
+            codigoASCI = 11 - (soma % 11);
+            if ((codigoASCI == 10) || (codigoASCI == 11)) {
                 dig11 = '0';
             } else {
-                dig11 = (char)(r + 48);
+                dig11 = (char)(codigoASCI + 48);
             }
 
             // Verifica se os dígitos calculados conferem com os dígitos informados.
-            return (dig10 == cpf.charAt(9)) && (dig11 == cpf.charAt(10));
-
+            return verificacaoFinal(cpf, dig10, dig11);
+            
         } catch (Exception e) { // InputMismatchException é para Scanner, aqui seria mais IndexOutOfBounds ou similar
             // Se ocorrer qualquer exceção durante o cálculo (ex: string não numérica, embora o regex já ajude),
             // considera-se inválido.
             // System.err.println("Erro ao validar CPF: " + cpf + " - " + e.getMessage());
             return false;
         }
+    }
+
+    /**
+     * Encapsulamento da verificacao final
+     * @param cpf
+     * @param decimoDigito
+     * @param decimoPrimeiroDigito
+     * @return true se os digitos dos parâmetros coincidirem com os digitos presentes no cpf informado
+     */
+    public static boolean verificacaoFinal(String cpf, char decimoDigito, char decimoPrimeiroDigito){
+        return decimoDigito == cpf.charAt(9) && decimoPrimeiroDigito == cpf.charAt(10);
+    } 
+
+    /**
+     * Encapsulamento da lógica do blacklist - CPFS que são formados números repetidos
+     * @param cpf
+     * @return true se detectar um cpf que seja, por exemplo, 111.111.111-11
+     */
+    public static boolean verificarDigitosRepetidos (String cpf){
+        return cpf == null || cpf.length() != 11 || cpf.matches("(\\d)\\1{10}");
     }
 
     /**
@@ -95,4 +115,5 @@ public class ValidadorCPF {
         }
         return cpfNormalizado; // Retorna original se não puder formatar
     }
+
 }
