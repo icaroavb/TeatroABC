@@ -124,9 +124,9 @@ public class BilheteRepositorio implements IBilheteRepositorio {
                 for (String codigoAssento : codigosAssentosStr) {
                     char prefixoCat = codigoAssento.charAt(0);
                     CategoriaAssento cat;
-                    if (prefixoCat == 'F') cat = CategoriaAssento.FRISAS;
+                    if (prefixoCat == 'F') cat = CategoriaAssento.FRISA;
                     else if (prefixoCat == 'B') cat = CategoriaAssento.BALCAO_NOBRE;
-                    else cat = CategoriaAssento.BALCAO;
+                    else cat = CategoriaAssento.BALCAO_NOBRE;
 
                     String[] partesCodigo = codigoAssento.substring(1).split("-");
                     int fileira = Integer.parseInt(partesCodigo[0]);

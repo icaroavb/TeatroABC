@@ -71,7 +71,7 @@ public class Bilhete {
         this.id = id;
         this.codigoBarras = codigoBarras;
         this.peca = peca;
-        this.cliente = cliente;codigoBarras == null || codigoBarras.trim().isEmpty()
+        this.cliente = cliente;
         this.assentos = Collections.unmodifiableList(new ArrayList<>(assentos)); // Cópia defensiva imutável
         this.turno = turno;
         this.subtotal = subtotal.setScale(2, RoundingMode.HALF_UP);
@@ -98,7 +98,7 @@ public class Bilhete {
         return codigoBarras == null || codigoBarras.trim().isEmpty();
     }
 
-
+    
 
 
 
