@@ -1,20 +1,25 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca; // Usado para exibir peças
+import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes; // Constantes de UI
-import com.teatroabc.dominio.modelos.Peca; // Modelo de Peca
-import com.teatroabc.aplicacao.interfaces.IClienteServico; // Interface do Serviço
-import com.teatroabc.aplicacao.interfaces.IPecaServico;   // Interface do Serviço
-import com.teatroabc.aplicacao.interfaces.IReservaServico; // Interface do Serviço
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
+import com.teatroabc.dominio.modelos.Peca;
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico;
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.List; // CERTIFIQUE-SE QUE É ESTE IMPORT E NÃO java.awt.List
+import java.util.Collections; // Para Collections.emptyList()
 
+/**
+ * Tela principal da aplicação, exibe as peças em cartaz e opções de navegação.
+ * Atua como um Adaptador Primário e ponto de partida para os fluxos do usuário.
+ */
 public class TelaPrincipal extends JPanel {
 
-    // Campos para armazenar os serviços injetados
     private final IClienteServico clienteServico;
     private final IPecaServico pecaServico;
     private final IReservaServico reservaServico;
@@ -24,27 +29,30 @@ public class TelaPrincipal extends JPanel {
      * @param clienteServico Serviço para operações de cliente.
      * @param pecaServico Serviço para operações de peça.
      * @param reservaServico Serviço para operações de reserva/bilhete.
+     * @throws IllegalArgumentException se algum dos serviços for nulo.
      */
     public TelaPrincipal(IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
-        // Validação das dependências injetadas
         if (clienteServico == null) {
-            throw new IllegalArgumentException("IClienteServico não pode ser nulo.");
+            throw new IllegalArgumentException("IClienteServico não pode ser nulo na TelaPrincipal.");
         }
         if (pecaServico == null) {
-            throw new IllegalArgumentException("IPecaServico não pode ser nulo.");
+            throw new IllegalArgumentException("IPecaServico não pode ser nulo na TelaPrincipal.");
         }
         if (reservaServico == null) {
-            throw new IllegalArgumentException("IReservaServico não pode ser nulo.");
+            throw new IllegalArgumentException("IReservaServico não pode ser nulo na TelaPrincipal.");
         }
 
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
 
-        configurarTelaVisual(); // Renomeado para clareza
+        configurarTelaVisual();
     }
 
-    private void configurarTelaVisual() { // Renomeado de configurarTela
+    /**
+     * Configura os componentes visuais da tela principal.
+     */
+    private void configurarTelaVisual() {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
@@ -52,112 +60,131 @@ public class TelaPrincipal extends JPanel {
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
 
-        JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.RIGHT)); // Logo à direita
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
+        painelLogo.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 30)); // Adiciona margem à direita e superior
         painelLogo.add(new LogoTeatro());
         containerPrincipal.add(painelLogo);
 
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        containerPrincipal.add(Box.createVerticalStrut(30)); // Reduzido espaço após logo
 
-        JPanel painelPecas = new JPanel(new GridLayout(1, 0, 30, 0)); // GridLayout com 0 colunas se ajusta ao número de componentes
+        // Cards das peças
+        JPanel painelPecas = new JPanel(new GridLayout(1, 0, 30, 0)); // 0 colunas para layout flexível
         painelPecas.setBackground(Constantes.AZUL_ESCURO);
-        painelPecas.setBorder(BorderFactory.createEmptyBorder(0, 50, 0, 50));
+        // Ajuste de borda para centralizar melhor os cards
+        int margemHorizontalCards = Math.max(50, (this.getWidth() - (3 * 350 + 2 * 30)) / 2); // Calcula margem dinâmica
+        painelPecas.setBorder(BorderFactory.createEmptyBorder(0, margemHorizontalCards, 0, margemHorizontalCards));
+        // painelPecas.setMaximumSize(new Dimension(1200, 460)); // Ajustar altura máxima se necessário
 
-        // Carregar e adicionar cards das peças USANDO O SERVIÇO
         adicionarCardsPecasDinamicamente(painelPecas);
-
         containerPrincipal.add(painelPecas);
-        containerPrincipal.add(Box.createVerticalStrut(80));
 
+        containerPrincipal.add(Box.createVerticalStrut(50)); // Reduzido espaço antes dos botões
+
+        // Botões
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 0));
         painelBotoes.setBackground(Constantes.AZUL_ESCURO);
 
         BotaoAnimado btnComprar = new BotaoAnimado("COMPRAR BILHETE",
-                Constantes.LARANJA, Constantes.AMARELO, new Dimension(450, 80));
+                Constantes.LARANJA, Constantes.AMARELO, new Dimension(400, 70)); // Tamanho ajustado
         btnComprar.setFont(Constantes.FONTE_BOTAO);
         btnComprar.addActionListener(e -> abrirSelecaoPeca());
 
         BotaoAnimado btnConsultar = new BotaoAnimado("CONSULTAR BILHETE",
                 Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(280, 60));
-        btnConsultar.setFont(new Font("Arial", Font.BOLD, 20));
+        btnConsultar.setFont(new Font("Arial", Font.BOLD, 18)); // Fonte ajustada
         btnConsultar.addActionListener(e -> abrirConsultaBilhete());
 
-        BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR",
-                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(200, 60));
-        btnCadastrar.setFont(new Font("Arial", Font.BOLD, 20));
-        btnCadastrar.addActionListener(e -> abrirCadastroCliente()); // Renomeado para clareza
+        BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR CLIENTE", // Texto mais específico
+                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(250, 60)); // Tamanho ajustado
+        btnCadastrar.setFont(new Font("Arial", Font.BOLD, 18)); // Fonte ajustada
+        btnCadastrar.addActionListener(e -> abrirCadastroCliente());
 
         painelBotoes.add(btnComprar);
         painelBotoes.add(btnConsultar);
         painelBotoes.add(btnCadastrar);
 
         containerPrincipal.add(painelBotoes);
+        containerPrincipal.add(Box.createVerticalStrut(30)); // Espaço no final
+
         add(containerPrincipal, BorderLayout.CENTER);
     }
 
     /**
-     * Busca as peças através do PecaServico e cria os CardPeca correspondentes.
-     * @param painel O JPanel onde os cards serão adicionados.
+     * Busca as peças através do IPecaServico injetado e cria os CardPeca correspondentes,
+     * adicionando-os ao painel fornecido.
+     * @param painel O JPanel onde os cards das peças serão adicionados.
      */
     private void adicionarCardsPecasDinamicamente(JPanel painel) {
-        // Limpa o painel antes de adicionar novos cards (caso seja chamado múltiplas vezes)
         painel.removeAll();
         
-        List <Peca> listaDePecas = this.pecaServico.buscarTodasPecas(); // USA O SERVIÇO INJETADO
+        // CORREÇÃO AQUI: Certificar que está usando java.util.List
+        List<Peca> listaDePecas = this.pecaServico.buscarTodasPecas();
         
-        if (listaDePecas.isEmpty()) {
-            // Tratar caso nenhuma peça seja encontrada, se necessário (ex: exibir mensagem)
+        if (listaDePecas == null || listaDePecas.isEmpty()) {
             JLabel lblSemPecas = new JLabel("Nenhuma peça em cartaz no momento.");
             lblSemPecas.setForeground(Color.WHITE);
             lblSemPecas.setFont(Constantes.FONTE_TEXTO);
             lblSemPecas.setHorizontalAlignment(SwingConstants.CENTER);
-            painel.add(lblSemPecas);
+            painel.setLayout(new BorderLayout()); // Mudar layout para centralizar a mensagem
+            painel.add(lblSemPecas, BorderLayout.CENTER);
         } else {
+            // Restaura o GridLayout se houver peças
+            painel.setLayout(new GridLayout(1, 0, 30, 0));
             for (Peca peca : listaDePecas) {
-                // CardPeca agora usa a Peca do domínio, que tem corFundoHex
-                // A conversão de corFundoHex para java.awt.Color deve ocorrer DENTRO de CardPeca
                 CardPeca card = new CardPeca(peca);
-                // Se o CardPeca precisasse interagir com serviços (ex: ao ser clicado para uma ação complexa),
-                // os serviços relevantes teriam que ser passados para o construtor do CardPeca.
-                // Para o comportamento atual (apenas visualização), passar Peca é suficiente.
+                // O CardPeca não precisa de serviços para ser exibido, apenas do objeto Peca.
+                // A ação de clique no CardPeca é tratada pela TelaSelecionarPeca, que já terá os serviços.
                 painel.add(card);
             }
         }
-        // Revalida e repinta o painel para mostrar os cards adicionados
         painel.revalidate();
         painel.repaint();
     }
 
-    // O método adicionarCardsPecas original foi substituído por adicionarCardsPecasDinamicamente
-    // private void adicionarCardsPecas(JPanel painel) { ... }
-
-
+    /**
+     * Navega para a tela de seleção de peças, passando os serviços necessários.
+     */
     private void abrirSelecaoPeca() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // Passe os serviços necessários para a próxima tela
+        // TelaSelecionarPeca precisa de todos os serviços para operar e/ou repassar
         frame.setContentPane(new TelaSelecionarPeca(this.pecaServico, this.clienteServico, this.reservaServico));
         frame.revalidate();
         frame.repaint();
     }
 
+    /**
+     * Navega para a tela de informar CPF para consulta de bilhetes, passando os serviços.
+     */
     private void abrirConsultaBilhete() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // TelaInformarCPF (modo consulta) precisa do clienteServico (para validar CPF)
-        // e do reservaServico (para buscar bilhetes após CPF informado).
-        // Os parâmetros Peca e List<Assento> são null pois não vêm do fluxo de compra.
-        frame.setContentPane(new TelaInformarCPF(true, null, null, this.clienteServico, this.reservaServico));
+        // TelaInformarCPF (modo consulta) precisa de clienteServico, pecaServico (para voltar), e reservaServico.
+        frame.setContentPane(new TelaInformarCPF(
+                true, // modoConsulta
+                null, // peca (não aplicável na consulta inicial)
+                null, // assentosSelecionados (não aplicável)
+                this.clienteServico,
+                this.pecaServico, // CORREÇÃO: Passando pecaServico
+                this.reservaServico
+        ));
         frame.revalidate();
         frame.repaint();
     }
 
-    private void abrirCadastroCliente() { // Renomeado de abrirCadastro
+    /**
+     * Navega para a tela de cadastro de cliente (cadastro avulso), passando os serviços.
+     */
+    private void abrirCadastroCliente() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // TelaCadastrar (modo cadastro avulso) precisa do clienteServico.
-        // Os outros serviços são passados como null ou podem ser necessários se o cadastro
-        // for parte de um fluxo de compra interrompido, mas para cadastro avulso,
-        // clienteServico é o principal.
-        // O construtor de TelaCadastrar precisa ser ajustado para aceitar os serviços.
-        frame.setContentPane(new TelaCadastrar(null, null, null, this.clienteServico, this.pecaServico, this.reservaServico)); // Passando null para CPF, Peca, Assentos
+        // TelaCadastrar (cadastro avulso) precisa dos três serviços.
+        frame.setContentPane(new TelaCadastrar(
+                null, // cpf (cadastro novo)
+                null, // peca (não aplicável em cadastro avulso inicial)
+                null, // assentosSelecionados (não aplicável)
+                this.clienteServico,
+                this.pecaServico,
+                this.reservaServico
+        ));
         frame.revalidate();
         frame.repaint();
     }

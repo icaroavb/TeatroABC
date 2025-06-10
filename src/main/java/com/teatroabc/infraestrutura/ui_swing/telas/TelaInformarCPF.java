@@ -5,72 +5,69 @@ import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.modelos.Cliente; // Para buscar o cliente
+import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.dominio.enums.Turno;
-import com.teatroabc.aplicacao.interfaces.IClienteServico; // Interface do Serviço
-import com.teatroabc.aplicacao.interfaces.IReservaServico; // Interface do Serviço
-import com.teatroabc.dominio.validadores.ValidadorCPF; // Se for usar para validação de formato
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico; // ADICIONADO IMPORT
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.dominio.validadores.ValidadorCPF;
+import com.teatroabc.aplicacao.excecoes.ClienteJaCadastradoException; // Para tratar no futuro se necessário
 
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.text.ParseException;
 import java.util.List;
-import java.util.Optional; // Para o resultado de buscarPorCpf
+import java.util.Optional;
 
 public class TelaInformarCPF extends JPanel {
     private final boolean modoConsulta;
-    private final Peca peca; // Pode ser null se modoConsulta for true
-    private final List<Assento> assentosSelecionados; // Pode ser null se modoConsulta for true
-    private final Turno turnoSelecionado; // Pode ser null se modoConsulta for true
+    private final Peca peca;
+    private final List<Assento> assentosSelecionados;
+    private Turno turnoSelecionado; // REMOVIDO FINAL para permitir setTurnoSelecionado
 
     private JFormattedTextField txtCPF;
 
     // Serviços injetados
     private final IClienteServico clienteServico;
-    private final IReservaServico reservaServico; // Necessário se esta tela levar a TelaListaBilhetes
-                                              // ou se precisar passar para TelaConfirmarPedido (embora TelaConfirmarPedido
-                                              // já receba do seu chamador, que seria TelaCadastrar ou esta tela).
+    private final IPecaServico pecaServico;       // ADICIONADO CAMPO
+    private final IReservaServico reservaServico;
 
     /**
      * Construtor para TelaInformarCPF.
-     *
-     * @param modoConsulta True se a tela for para consultar bilhetes, false se for para fluxo de compra.
-     * @param peca A peça selecionada (relevante no modo compra, pode ser null em modo consulta).
-     * @param assentosSelecionados Lista de assentos selecionados (relevante no modo compra, pode ser null em modo consulta).
-     * @param clienteServico Serviço para operações de cliente.
-     * @param reservaServico Serviço para operações de reserva/bilhete (usado para consulta ou para passar adiante).
+     * @param modoConsulta True para consulta, false para compra.
+     * @param peca Peça selecionada (null em modo consulta).
+     * @param assentosSelecionados Lista de assentos (null em modo consulta).
+     * @param clienteServico Serviço de cliente.
+     * @param pecaServico Serviço de peça (para repassar).
+     * @param reservaServico Serviço de reserva/bilhete.
      */
     public TelaInformarCPF(boolean modoConsulta, Peca peca, List<Assento> assentosSelecionados,
-                           IClienteServico clienteServico, IReservaServico reservaServico) {
-        if (clienteServico == null || reservaServico == null) {
+                           IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) { // ADICIONADO IPecaServico
+        if (clienteServico == null || pecaServico == null || reservaServico == null) {
             throw new IllegalArgumentException("Serviços não podem ser nulos em TelaInformarCPF.");
         }
         this.modoConsulta = modoConsulta;
         this.peca = peca;
         this.assentosSelecionados = assentosSelecionados;
-        this.turnoSelecionado = null; // Será definido por setTurnoSelecionado se aplicável
+        // this.turnoSelecionado é inicializado por setTurnoSelecionado
         this.clienteServico = clienteServico;
+        this.pecaServico = pecaServico; // ATRIBUIR
         this.reservaServico = reservaServico;
-        // Removida instanciação: this.clienteServico = new ClienteServico();
+        
         configurarTelaVisual();
     }
     
-    /**
-     * Define o turno selecionado, relevante para o fluxo de compra.
-     * @param turno O turno selecionado.
-     */
     public void setTurnoSelecionado(Turno turno) {
-        // Este método é chamado por quem cria esta tela (TelaSelecionarAssento)
-        // apenas se estiver no fluxo de compra (modoConsulta = false).
-        if (!this.modoConsulta && turno == null) {
-            System.err.println("Aviso: Turno nulo definido para TelaInformarCPF em modo de compra.");
+        if (!this.modoConsulta && turno == null && (this.peca != null || this.assentosSelecionados != null)) {
+             // Só emitir aviso se estiver claramente no fluxo de compra com dados de peça/assento
+            System.err.println("Aviso: Turno nulo definido para TelaInformarCPF em modo de compra com dados de pedido.");
         }
         this.turnoSelecionado = turno;
-        // System.out.println("TelaInformarCPF: Turno selecionado definido: " + (turno != null ? turno.getNome() : "null"));
     }
 
-    private void configurarTelaVisual() { // Renomeado de configurarTela
+    private void configurarTelaVisual() {
+        // ... (código da UI como antes, sem mudanças aqui) ...
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
@@ -78,7 +75,6 @@ public class TelaInformarCPF extends JPanel {
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
 
-        // ... (código do painelLogo, título, painelCPF como antes) ...
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.add(new LogoTeatro());
@@ -99,10 +95,9 @@ public class TelaInformarCPF extends JPanel {
             maskCPF.setPlaceholderCharacter('_');
             txtCPF = new JFormattedTextField(maskCPF);
         } catch (ParseException e) {
-            txtCPF = new JFormattedTextField(); // Fallback
+            txtCPF = new JFormattedTextField(); 
             System.err.println("Erro ao criar máscara de CPF: " + e.getMessage());
         }
-        // ... (configurações do txtCPF e FocusListener como antes) ...
         txtCPF.setPreferredSize(new Dimension(400, 50));
         txtCPF.setFont(new Font("Arial", Font.PLAIN, 24));
         txtCPF.setHorizontalAlignment(JTextField.CENTER);
@@ -113,7 +108,7 @@ public class TelaInformarCPF extends JPanel {
                 BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 2),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
-        txtCPF.setText("___.___.___-__"); // Placeholder inicial
+        txtCPF.setText("___.___.___-__"); 
         txtCPF.setForeground(Color.GRAY);
         txtCPF.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -146,7 +141,6 @@ public class TelaInformarCPF extends JPanel {
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         painelVoltar.setBackground(Constantes.AZUL_ESCURO);
         JButton btnVoltar = new JButton("VOLTAR");
-        // ... (configurações do btnVoltar como antes) ...
         btnVoltar.setFont(new Font("Arial", Font.PLAIN, 18));
         btnVoltar.setForeground(Constantes.AZUL_CLARO);
         btnVoltar.setBackground(Constantes.AZUL_ESCURO);
@@ -161,61 +155,52 @@ public class TelaInformarCPF extends JPanel {
 
     private void continuar() {
         String cpfInput = txtCPF.getText();
-        String cpfNormalizado = ValidadorCPF.normalizar(cpfInput); // Usar o normalizador
+        String cpfNormalizado = ValidadorCPF.normalizar(cpfInput);
 
         if (cpfNormalizado == null || cpfNormalizado.length() != 11) {
-            JOptionPane.showMessageDialog(this,
-                    "Por favor, informe um CPF com 11 dígitos!",
-                    "CPF Inválido",
-                    JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Por favor, informe um CPF com 11 dígitos!", "CPF Inválido", JOptionPane.WARNING_MESSAGE);
             return;
         }
-
-        if (!ValidadorCPF.isValid(cpfNormalizado)) { // Validar o CPF normalizado
-            JOptionPane.showMessageDialog(this,
-                    "CPF inválido! Por favor, verifique os dados.",
-                    "CPF Inválido",
-                    JOptionPane.ERROR_MESSAGE);
+        if (!ValidadorCPF.isValid(cpfNormalizado)) {
+            JOptionPane.showMessageDialog(this, "CPF inválido! Por favor, verifique os dados.", "CPF Inválido", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
         if (modoConsulta) {
-            // Para listar bilhetes, passamos o CPF e o reservaServico
-            frame.setContentPane(new TelaListaBilhetes(cpfNormalizado, this.reservaServico));
-        } else {
-            // Modo compra
+            // TelaListaBilhetes precisa do cpf, reservaServico, e os outros dois para poder voltar para TelaPrincipal
+            frame.setContentPane(new TelaListaBilhetes(cpfNormalizado, this.reservaServico, this.clienteServico, this.pecaServico));
+        } else { // Modo compra
             Optional<Cliente> clienteOpt = this.clienteServico.buscarPorCpf(cpfNormalizado);
             if (clienteOpt.isPresent()) {
                 Cliente clienteExistente = clienteOpt.get();
-                // Cliente existe, ir para confirmação de pedido
-                // TelaConfirmarPedido precisa de Peca, Cliente, List<Assento>, Turno e IReservaServico
+                // TelaConfirmarPedido precisa de Peca, Cliente, List<Assento>, Turno, e todos os serviços
+                // (embora só use reservaServico diretamente, os outros são para repassar)
                 TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(
                     this.peca,
                     clienteExistente,
                     this.assentosSelecionados,
-                    this.turnoSelecionado, // Passa o turno que foi setado
-                    this.reservaServico   // Passa o serviço de reserva
+                    this.turnoSelecionado,
+                    this.clienteServico, // Passando para poder voltar para TelaPrincipal
+                    this.pecaServico,    // Passando para poder voltar para TelaPrincipal
+                    this.reservaServico
                 );
                 frame.setContentPane(telaConfirmar);
             } else {
-                // Cliente não existe, ir para cadastro
-                // TelaCadastrar precisa do CPF informado, dados da compra (Peca, Assentos, Turno)
-                // e dos serviços para operar e para passar adiante.
+                // TelaCadastrar precisa do cpf, dados da compra (Peca, Assentos), e todos os serviços
                 TelaCadastrar telaCadastrar = new TelaCadastrar(
-                    cpfNormalizado, // Passa o CPF normalizado e validado
+                    cpfNormalizado,
                     this.peca,
                     this.assentosSelecionados,
                     this.clienteServico,
-                    this.pecaServico,   // Necessário se TelaCadastrar precisar listar peças (improvável) ou passar adiante
+                    this.pecaServico,
                     this.reservaServico
                 );
-                telaCadastrar.setTurnoSelecionado(this.turnoSelecionado); // Informa o turno para o fluxo de cadastro
+                telaCadastrar.setTurnoSelecionado(this.turnoSelecionado);
                 frame.setContentPane(telaCadastrar);
             }
         }
-
         frame.revalidate();
         frame.repaint();
     }
@@ -223,12 +208,9 @@ public class TelaInformarCPF extends JPanel {
     private void voltar() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         if (modoConsulta) {
-            // Ao voltar da consulta de CPF, vai para TelaPrincipal
-            // TelaPrincipal agora espera os serviços no construtor
             frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
         } else {
-            // Ao voltar do fluxo de compra (informar CPF), volta para TelaSelecionarAssento
-            // TelaSelecionarAssento espera Peca e os serviços
+            // TelaSelecionarAssento espera Peca e os 3 serviços
             frame.setContentPane(new TelaSelecionarAssento(this.peca, this.pecaServico, this.clienteServico, this.reservaServico));
         }
         frame.revalidate();
