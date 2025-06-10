@@ -10,19 +10,20 @@ import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import java.awt.*;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.*; // Para a lista de peças
 
 public class TelaSelecionarPeca extends JPanel {
     
-    //Implementação do padrão adapter! O adapter nada mais é do que um wrapper -> dependência de interfaces!
+    //Implementação do padrão adapter! O adapter nada mais é do que um wrapper -> dependência de interfaces! : D
     private final IPecaServico pecaServico;     
     private final IClienteServico clienteServico; 
     private final IReservaServico reservaServico; 
 
     private Peca pecaSelecionada;
     private BotaoAnimado btnContinuar;
-    private JPanel painelPecas; // Adicionado para poder limpar e recarregar os cards
+    private JPanel painelPecas; 
 
     /**
      * Construtor refatorado para aceitar os serviços via injeção de dependência.
@@ -83,41 +84,86 @@ public class TelaSelecionarPeca extends JPanel {
     }
 
     /**
-     * Busca as peças através do IPecaServico injetado e cria os CardPeca.
-     */
-    private void adicionarCardsPecasDinamicamente(JPanel painel) {
-        painel.removeAll(); // Limpa cards anteriores, se houver
+ * Busca as peças através do IPecaServico injetado e cria os CardPeca correspondentes,
+ * adicionando-os ao painel fornecido.
+ * Inclui tratamento para erros inesperados durante a busca de peças.
+ *
+ * @param painel O JPanel onde os cards das peças serão adicionados.
+ */
+private void adicionarCardsPecasDinamicamente(JPanel painel) {
+    painel.removeAll(); // Limpa cards anteriores, se houver
 
-        List<Peca> listaDePecas = this.pecaServico.buscarTodasPecas(); // USA O SERVIÇO INJETADO
+    List<Peca> listaDePecas = Collections.emptyList(); // Inicializa com lista vazia como fallback
 
-        if (listaDePecas.isEmpty()) {
-            JLabel lblSemPecas = new JLabel("Nenhuma peça disponível no momento.");
-            lblSemPecas.setForeground(Color.WHITE);
-            // lblSemPecas.setFont(Constantes.FONTE_TEXTO); // Se Constantes.FONTE_TEXTO estiver definido
-            painel.add(lblSemPecas);
-        } else {
-            for (Peca peca : listaDePecas) {
-                CardPeca card = new CardPeca(peca); // CardPeca lida com a conversão de cor internamente
-                card.setSelecao(true);
-                card.addActionListener(e -> {
-                    Peca pecaDoCard = ((CardPeca) e.getSource()).getPeca(); // Obtém a Peca do card clicado
-                    this.pecaSelecionada = pecaDoCard;
-                    this.btnContinuar.setEnabled(true);
+    try {
+        // Tenta buscar as peças usando o serviço injetado
+        listaDePecas = this.pecaServico.buscarTodasPecas();
 
-                    // Desmarcar outros cards
+    } catch (Exception e) { // Captura qualquer exceção inesperada durante a chamada ao serviço
+        System.err.println("Erro crítico ao buscar todas as peças: " + e.getMessage());
+        e.printStackTrace(); // Loga o stack trace para debug no console do desenvolvedor
+
+        // Prepara uma mensagem de erro para a UI
+        JLabel lblErro = new JLabel("Desculpe, ocorreu um erro ao carregar as peças. Tente novamente mais tarde.");
+        lblErro.setFont(Constantes.FONTE_TEXTO); // Supondo que você tenha Constantes.FONTE_TEXTO
+        lblErro.setForeground(Color.RED); // Cor de destaque para erro
+        lblErro.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Configura o painel para exibir a mensagem de erro centralizada
+        painel.setLayout(new BorderLayout());
+        painel.add(lblErro, BorderLayout.CENTER);
+        
+        // Revalida e repinta o painel para mostrar a mensagem de erro
+        painel.revalidate();
+        painel.repaint();
+        return; // Interrompe a execução do método, pois não há peças para exibir
+    }
+
+    // Prossegue se a busca de peças foi bem-sucedida
+    if (listaDePecas == null || listaDePecas.isEmpty()) { // Checagem adicional de nulidade, embora o serviço deva evitar retornar null
+        JLabel lblSemPecas = new JLabel("Nenhuma peça em cartaz no momento.");
+        lblSemPecas.setForeground(Color.WHITE);
+        lblSemPecas.setFont(Constantes.FONTE_TEXTO); // Supondo que você tenha Constantes.FONTE_TEXTO
+        lblSemPecas.setHorizontalAlignment(SwingConstants.CENTER);
+
+        // Configura o painel para exibir a mensagem centralizada
+        painel.setLayout(new BorderLayout());
+        painel.add(lblSemPecas, BorderLayout.CENTER);
+    } else {
+        // Restaura o layout de grade se houver peças para exibir
+        // O número de colunas (segundo argumento do GridLayout) é 0 para que se ajuste
+        // ao número de cards, ou você pode fixar (ex: 3 colunas).
+        painel.setLayout(new GridLayout(1, 0, 30, 0)); // 1 linha, colunas flexíveis, espaçamento de 30px
+
+        for (Peca peca : listaDePecas) {
+            CardPeca card = new CardPeca(peca); // CardPeca lida com a conversão de cor internamente
+            
+            // Se esta tela for TelaSelecionarPeca, o listener para seleção seria adicionado aqui:
+            if (this instanceof TelaSelecionarPeca) { // Verifica se é a instância correta para adicionar listener
+                final TelaSelecionarPeca estaTela = (TelaSelecionarPeca) this;
+                card.setSelecao(true); // Habilita o modo de seleção visual no card
+                card.addActionListener(actionEvent -> {
+                    Peca pecaDoCard = card.getPeca(); // Obtém a Peca do card que disparou o evento
+                    estaTela.pecaSelecionada = pecaDoCard; // Atualiza a peça selecionada na tela
+                    if (estaTela.btnContinuar != null) {
+                         estaTela.btnContinuar.setEnabled(true); // Habilita o botão de continuar
+                    }
+
+                    // Lógica para desmarcar visualmente outros cards
                     for (Component c : painel.getComponents()) {
                         if (c instanceof CardPeca && c != card) {
                             ((CardPeca) c).setSelecionado(false);
                         }
                     }
-                    card.setSelecionado(true); // Marcar o card clicado
+                    card.setSelecionado(true); // Marca visualmente o card clicado como selecionado
                 });
-                painel.add(card);
             }
+            painel.add(card);
         }
-        painel.revalidate();
-        painel.repaint();
     }
+    painel.revalidate();
+    painel.repaint();
+}
     
     // O método antigo adicionarCardsPecas(JPanel painel) que criava Pecas hardcoded
     // foi substituído por adicionarCardsPecasDinamicamente.

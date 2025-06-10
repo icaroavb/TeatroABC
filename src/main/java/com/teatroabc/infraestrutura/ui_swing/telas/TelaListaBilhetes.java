@@ -17,12 +17,10 @@ import java.util.List;
 import java.util.Collections; // Se precisar de Collections.emptyList()
 
 public class TelaListaBilhetes extends JPanel {
-    private final String cpfCliente; // Renomeado para clareza
+    private final String cpfCliente; 
 
-    // Serviço injetado
+    // Serviços injetados
     private final IReservaServico reservaServico;
-
-    // Serviços que podem precisar ser passados ao voltar para TelaPrincipal
     private final IClienteServico clienteServico; // Adicionado para repassar
     private final IPecaServico pecaServico;       // Adicionado para repassar
 
@@ -38,11 +36,12 @@ public class TelaListaBilhetes extends JPanel {
         if (cpf == null || cpf.trim().isEmpty() || reservaServico == null || clienteServico == null || pecaServico == null) {
             throw new IllegalArgumentException("CPF e Serviços não podem ser nulos em TelaListaBilhetes.");
         }
+
         this.cpfCliente = cpf;
         this.reservaServico = reservaServico;
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
-        // Removida instanciação: this.reservaServico = new ReservaServico();
+
         configurarTelaVisual();
     }
 
@@ -83,6 +82,7 @@ public class TelaListaBilhetes extends JPanel {
         painelConteudoBilhetes.setBorder(BorderFactory.createEmptyBorder(20, 80, 20, 80));
 
         // Busca os bilhetes usando o serviço injetado
+        
         List<Bilhete> listaDeBilhetes = this.reservaServico.buscarBilhetesCliente(this.cpfCliente);
 
         if (listaDeBilhetes == null || listaDeBilhetes.isEmpty()) { // Checagem de nulidade da lista também
@@ -119,8 +119,6 @@ public class TelaListaBilhetes extends JPanel {
     }
 
     // O método criarCardBilheteCompleto foi incorporado/substituído pela lógica
-    // de criação de CardBilhete dentro de configurarTelaVisual, e CardBilhete em si é o componente visual.
-
     private void voltarParaTelaPrincipal() { // Renomeado de voltar
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         // Ao voltar, recria TelaPrincipal passando os serviços

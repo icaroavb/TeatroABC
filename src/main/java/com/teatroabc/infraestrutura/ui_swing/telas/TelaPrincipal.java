@@ -118,26 +118,30 @@ public class TelaPrincipal extends JPanel {
     private void adicionarCardsPecasDinamicamente(JPanel painel) {
         painel.removeAll();
         
-        // CORREÇÃO AQUI: Certificar que está usando java.util.List
-        List<Peca> listaDePecas = this.pecaServico.buscarTodasPecas();
-        
-        if (listaDePecas == null || listaDePecas.isEmpty()) {
-            JLabel lblSemPecas = new JLabel("Nenhuma peça em cartaz no momento.");
-            lblSemPecas.setForeground(Color.WHITE);
-            lblSemPecas.setFont(Constantes.FONTE_TEXTO);
-            lblSemPecas.setHorizontalAlignment(SwingConstants.CENTER);
-            painel.setLayout(new BorderLayout()); // Mudar layout para centralizar a mensagem
-            painel.add(lblSemPecas, BorderLayout.CENTER);
-        } else {
-            // Restaura o GridLayout se houver peças
-            painel.setLayout(new GridLayout(1, 0, 30, 0));
-            for (Peca peca : listaDePecas) {
-                CardPeca card = new CardPeca(peca);
-                // O CardPeca não precisa de serviços para ser exibido, apenas do objeto Peca.
-                // A ação de clique no CardPeca é tratada pela TelaSelecionarPeca, que já terá os serviços.
-                painel.add(card);
-            }
+        List<Peca> listaDePecas;
+
+        try {
+            listaDePecas = this.pecaServico.buscarTodasPecas();            
+             // Restaura o GridLayout se houver peças
+             painel.setLayout(new GridLayout(1, 0, 30, 0));
+             for (Peca peca : listaDePecas) {
+                 CardPeca card = new CardPeca(peca);
+                 // O CardPeca não precisa de serviços para ser exibido, apenas do objeto Peca.
+                 // A ação de clique no CardPeca é tratada pela TelaSelecionarPeca, que já terá os serviços.
+                 painel.add(card);
+             }    
+        } catch (Exception e) {
+            System.err.println("Erro ao buscar todas as peças: " + e.getMessage());
+            e.printStackTrace();
+            // Adicionar uma mensagem de erro na UI
+            painel.removeAll(); // Limpa o painel de peças
+            JLabel lblErro = new JLabel("Erro ao carregar peças. Tente novamente mais tarde.");
+            // ... (configurar e adicionar lblErro ao painel)
+            painel.revalidate();
+            painel.repaint();
+            return; // Sai do método
         }
+        
         painel.revalidate();
         painel.repaint();
     }

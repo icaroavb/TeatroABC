@@ -10,6 +10,7 @@ import java.awt.Font;
  * o núcleo do domínio e serviços desacoplado de detalhes de UI.
  */
 public class Constantes {
+
     // Cores da UI
     public static final Color AZUL_ESCURO = new Color(23, 42, 58);
     public static final Color LARANJA = new Color(239, 125, 0);
@@ -20,26 +21,12 @@ public class Constantes {
     public static final Color BEGE = new Color(222, 184, 135);
     public static final Color CINZA_ESCURO = new Color(52, 73, 94);
 
-    // Cores dos Assentos (REMOVIDAS - a lógica de mapeamento de StatusAssento para Color
-    // deve residir nos componentes da UI que exibem os assentos,
-    // possivelmente usando as cores genéricas acima ou definindo cores específicas localmente)
-    // public static final Color ASSENTO_DISPONIVEL = AZUL_CLARO; // Exemplo de como era
-    // public static final Color ASSENTO_OCUPADO = BEGE;
-    // public static final Color ASSENTO_SELECIONADO = VERDE;
-
-    // Preços (REMOVIDOS - gerenciados pelo enum CategoriaAssento no domínio)
-
     // Fontes da UI
     public static final Font FONTE_TITULO = new Font("Arial", Font.BOLD, 56);
     public static final Font FONTE_SUBTITULO = new Font("Arial", Font.BOLD, 32);
     public static final Font FONTE_BOTAO = new Font("Arial", Font.BOLD, 24);
     public static final Font FONTE_TEXTO = new Font("Arial", Font.PLAIN, 18);
     public static final Font FONTE_LABEL = new Font("Arial", Font.PLAIN, 16);
-
-    // Formato de Data (REAVALIAR UTILIDADE OU NOMEAR MELHOR)
-    // Se for usado, deve ser para um formato específico da UI,
-    // e o FormatadorData.java já possui um padrão default.
-    // public static final String FORMATO_DATA_EXIBICAO_SIMPLES = "dd/MM/yyyy";
 
     private Constantes() {
         throw new IllegalStateException("Classe de constantes não deve ser instanciada.");
