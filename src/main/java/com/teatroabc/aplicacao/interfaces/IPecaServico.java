@@ -1,8 +1,11 @@
 package com.teatroabc.aplicacao.interfaces;
 
+
+import com.teatroabc.dominio.enums.Turno;
+import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.modelos.Peca;
-import java.util.List;
-import java.util.Optional;
+import java.util.List; // Novo import
+import java.util.Optional; 
 
 /**
  * Interface para o serviço de aplicação relacionado à entidade Peça.
@@ -24,4 +27,13 @@ public interface IPecaServico {
      *         Retorna Optional.empty() também se o ID fornecido for nulo ou vazio.
      */
     Optional<Peca> buscarPecaPorId(String id);
+
+    /**
+     * Busca todos os assentos para uma determinada peça e turno,
+     * com seus status de disponibilidade atualizados.
+     * @param idPeca O ID da peça.
+     * @param turno O turno da apresentação.
+     * @return Uma lista de objetos Assento.
+     */
+    List<Assento> buscarAssentosDaPecaPorTurno(String idPeca, Turno turno);    
 }

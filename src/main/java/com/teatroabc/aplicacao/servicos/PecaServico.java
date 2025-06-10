@@ -1,9 +1,11 @@
 package com.teatroabc.aplicacao.servicos;
 
-import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio; // Dependência da INTERFACE
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
-
+import com.teatroabc.dominio.enums.Turno;
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Peca;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -15,18 +17,21 @@ import java.util.Optional;
 public class PecaServico implements IPecaServico {
 
     private final IPecaRepositorio pecaRepositorio; // Dependência da Porta de Saída (Interface)
+    private final IAssentoRepositorio assentoRepositorio; // NOVA DEPENDÊNCIA
+
 
     /**
-     * Construtor que recebe a dependência do repositório de peças.
-     * Permite a injeção de dependência.
-     * @param pecaRepositorio Implementação da interface IPecaRepositorio. Não pode ser nulo.
-     * @throws IllegalArgumentException se pecaRepositorio for nulo.
+     * Construtor que recebe as dependências dos repositórios.
      */
-    public PecaServico(IPecaRepositorio pecaRepositorio) {
+    public PecaServico(IPecaRepositorio pecaRepositorio, IAssentoRepositorio assentoRepositorio) { // CONSTRUTOR ATUALIZADO
         if (pecaRepositorio == null) {
             throw new IllegalArgumentException("Repositório de peças não pode ser nulo.");
         }
+        if (assentoRepositorio == null) {
+            throw new IllegalArgumentException("Repositório de assentos não pode ser nulo.");
+        }
         this.pecaRepositorio = pecaRepositorio;
+        this.assentoRepositorio = assentoRepositorio; 
     }
 
     /**
@@ -53,5 +58,18 @@ public class PecaServico implements IPecaServico {
             return Optional.empty(); // Mantendo consistência com a interface
         }
         return pecaRepositorio.buscarPorId(id); // Delega para o repositório que já retorna Optional
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<Assento> buscarAssentosDaPecaPorTurno(String idPeca, Turno turno) { // IMPLEMENTAÇÃO DO NOVO MÉTODO
+        if (idPeca == null || idPeca.trim().isEmpty() || turno == null) {
+            // Ou lançar IllegalArgumentException
+            return Collections.emptyList();
+        }
+        // Delega a busca para o repositório de assentos
+        return assentoRepositorio.buscarTodosAssentosPorPecaETurno(idPeca, turno);
     }
 }

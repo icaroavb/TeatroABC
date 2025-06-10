@@ -1,26 +1,21 @@
 package com.teatroabc; // Pacote raiz da aplicação
 
 // Imports para as Interfaces de Repositório e Serviço
-import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-
-// Imports para as Implementações Concretas dos Repositórios e Serviços
-import com.teatroabc.infraestrutura.persistencia.implementacao.ClienteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.PecaRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.AssentoRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.BilheteRepositorio;
 import com.teatroabc.aplicacao.servicos.ClienteServico;
 import com.teatroabc.aplicacao.servicos.PecaServico;
 import com.teatroabc.aplicacao.servicos.ReservaServico;
-
-// Import da Tela Principal (já deve estar no pacote correto da UI)
+import com.teatroabc.infraestrutura.persistencia.implementacao.AssentoRepositorio;
+import com.teatroabc.infraestrutura.persistencia.implementacao.BilheteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.implementacao.ClienteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.implementacao.PecaRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
 import com.teatroabc.infraestrutura.ui_swing.telas.TelaPrincipal;
-
 import javax.swing.*;
 
 public class TeatroABCApplication {
@@ -48,7 +43,7 @@ public class TeatroABCApplication {
         // 2. Criar Instâncias dos Serviços Concretos, Injetando as Dependências dos Repositórios
         // (Serviços de Aplicação - Portas de Entrada)
         IClienteServico clienteServico = new ClienteServico(clienteRepositorio);
-        IPecaServico pecaServico = new PecaServico(pecaRepositorio);
+        IPecaServico pecaServico = new PecaServico(pecaRepositorio, assentoRepositorio);
         IReservaServico reservaServico = new ReservaServico(bilheteRepositorio, assentoRepositorio);
 
         // 3. Iniciar a Interface Gráfica (UI - Adaptador de Entrada)
