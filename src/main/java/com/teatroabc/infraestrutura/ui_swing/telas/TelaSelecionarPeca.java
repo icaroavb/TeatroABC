@@ -1,19 +1,17 @@
 // Caminho: TeatroABC-main/src/main/java/com/teatroabc/infraestrutura/ui_swing/telas/TelaSelecionarPeca.java
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-// import com.teatroabc.aplicacao.servicos.PecaServico; // ANTIGO: Instanciação direta
-import com.teatroabc.aplicacao.interfaces.IPecaServico;   // NOVO: Dependência da interface
-import com.teatroabc.aplicacao.interfaces.IClienteServico; // Para passar adiante
+import com.teatroabc.aplicacao.interfaces.IClienteServico;   // NOVO: Dependência da interface
+import com.teatroabc.aplicacao.interfaces.IPecaServico; // Para passar adiante
 import com.teatroabc.aplicacao.interfaces.IReservaServico; // Para passar adiante
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-
-import javax.swing.*;
 import java.awt.*;
-import java.util.List; // Para a lista de peças
+import java.util.List;
+import javax.swing.*; // Para a lista de peças
 
 public class TelaSelecionarPeca extends JPanel {
     

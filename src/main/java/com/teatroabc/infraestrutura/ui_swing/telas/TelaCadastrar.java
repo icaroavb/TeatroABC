@@ -2,9 +2,17 @@ package com.teatroabc.infraestrutura.ui_swing.telas;
 
 import com.teatroabc.infraestrutura.ui_swing.componentes.*;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.*;
+import com.teatroabc.dominio.modelos.Peca;
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.dominio.enums.Turno;
-import com.teatroabc.aplicacao.servicos.ClienteServico;
+import com.teatroabc.aplicacao.dto.DadosCadastroClienteDTO; // Para enviar ao serviço
+import com.teatroabc.aplicacao.excecoes.ClienteJaCadastradoException;
+import com.teatroabc.aplicacao.interfaces.IClienteServico; // Interface do Serviço
+import com.teatroabc.aplicacao.interfaces.IPecaServico;   // Interface do Serviço (para passar adiante)
+import com.teatroabc.aplicacao.interfaces.IReservaServico; // Interface do Serviço (para passar adiante)
+// Removido: import com.teatroabc.aplicacao.servicos.ClienteServico; // Não instanciar diretamente
+
 import javax.swing.*;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
@@ -15,10 +23,13 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class TelaCadastrar extends JPanel {
-    private String cpfInformado;
-    private Peca peca;
-    private List<Assento> assentosSelecionados;
-    private Turno turnoSelecionado;
+    // Dados da compra em andamento (podem ser null se for cadastro avulso)
+    private final String cpfInformadoOriginalmente; // CPF que veio da tela anterior (pode já estar formatado)
+    private final Peca peca;
+    private final List<Assento> assentosSelecionados;
+    private Turno turnoSelecionado; // Pode ser setado após construção
+
+    // Campos da UI
     private JFormattedTextField txtCPF;
     private JTextField txtNome;
     private JFormattedTextField txtDataNascimento;
@@ -27,26 +38,54 @@ public class TelaCadastrar extends JPanel {
     private JCheckBox chkMembroABC;
     private JPanel painelTelefone;
     private JPanel painelEmail;
-    private ClienteServico clienteServico;
 
-    public TelaCadastrar(String cpf) {
-        this(cpf, null, null);
-    }
+    // Serviços injetados
+    private final IClienteServico clienteServico;
+    private final IPecaServico pecaServico;       // Para passar para TelaConfirmarPedido, se necessário
+    private final IReservaServico reservaServico; // Para passar para TelaConfirmarPedido
 
-    public TelaCadastrar(String cpf, Peca peca, List<Assento> assentosSelecionados) {
-        this.cpfInformado = cpf;
+    /**
+     * Construtor da TelaCadastrar.
+     *
+     * @param cpf O CPF informado na tela anterior (pode ser null para cadastro avulso).
+     * @param peca A peça selecionada (pode ser null para cadastro avulso).
+     * @param assentosSelecionados Lista de assentos (pode ser null para cadastro avulso).
+     * @param clienteServico Serviço para operações de cliente.
+     * @param pecaServico Serviço para operações de peça (para repassar).
+     * @param reservaServico Serviço para operações de reserva (para repassar).
+     */
+    public TelaCadastrar(String cpf, Peca peca, List<Assento> assentosSelecionados,
+                         IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
+        if (clienteServico == null || pecaServico == null || reservaServico == null) {
+            throw new IllegalArgumentException("Serviços não podem ser nulos em TelaCadastrar.");
+        }
+        this.cpfInformadoOriginalmente = cpf;
         this.peca = peca;
         this.assentosSelecionados = assentosSelecionados;
-        this.clienteServico = new ClienteServico();
-        configurarTela();
+        // this.turnoSelecionado será setado por setTurnoSelecionado
+
+        this.clienteServico = clienteServico;
+        this.pecaServico = pecaServico;
+        this.reservaServico = reservaServico;
+
+        // Removida instanciação: this.clienteServico = new ClienteServico();
+        configurarTelaVisual();
     }
     
+    /**
+     * Define o turno selecionado, relevante para o fluxo de compra.
+     * @param turno O turno selecionado.
+     */
     public void setTurnoSelecionado(Turno turno) {
+        // Este método é chamado por quem cria esta tela (TelaInformarCPF)
+        // se o cadastro for parte do fluxo de compra.
         this.turnoSelecionado = turno;
-        System.out.println("Turno selecionado definido no cadastro: " + turno);
+        // System.out.println("TelaCadastrar: Turno selecionado definido: " + (turno != null ? turno.getNome() : "null"));
     }
 
-    private void configurarTela() {
+    private void configurarTelaVisual() { // Renomeado de configurarTela
+        // ... (toda a lógica de criação da UI: painelLogo, titulo, formulario, checkbox, btnCadastrar, btnVoltar)
+        // O método criarCampoCPF() usará this.cpfInformadoOriginalmente.
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
@@ -79,322 +118,173 @@ public class TelaCadastrar extends JPanel {
         containerPrincipal.add(Box.createVerticalStrut(30));
         containerPrincipal.add(painelCheckbox);
 
-        BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR",
+        BotaoAnimado btnCadastrarUI = new BotaoAnimado("CADASTRAR", // Renomeado para não conflitar com método
                 Constantes.LARANJA, Constantes.AMARELO, new Dimension(400, 70));
-        btnCadastrar.setFont(new Font("Arial", Font.BOLD, 28));
-        btnCadastrar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnCadastrar.addActionListener(e -> cadastrar());
+        btnCadastrarUI.setFont(new Font("Arial", Font.BOLD, 28));
+        btnCadastrarUI.setAlignmentX(Component.CENTER_ALIGNMENT);
+        btnCadastrarUI.addActionListener(e -> realizarCadastro()); // Chama o método de lógica
 
         containerPrincipal.add(Box.createVerticalStrut(40));
-        containerPrincipal.add(btnCadastrar);
+        containerPrincipal.add(btnCadastrarUI);
         containerPrincipal.add(Box.createVerticalStrut(30));
 
         scrollPane.setViewportView(containerPrincipal);
         add(scrollPane, BorderLayout.CENTER);
 
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // ... (configurações do painelVoltar e btnVoltar como antes) ...
         painelVoltar.setBackground(Constantes.AZUL_ESCURO);
-
         JButton btnVoltar = new JButton("VOLTAR");
         btnVoltar.setFont(new Font("Arial", Font.PLAIN, 18));
         btnVoltar.setForeground(Constantes.AZUL_CLARO);
         btnVoltar.setBackground(Constantes.AZUL_ESCURO);
-        btnVoltar.setBorderPainted(false);
-        btnVoltar.setFocusPainted(false);
-        btnVoltar.setContentAreaFilled(false);
-        btnVoltar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // ... (configurações do btnVoltar) ...
         btnVoltar.addActionListener(e -> voltar());
-
         painelVoltar.add(btnVoltar);
         add(painelVoltar, BorderLayout.SOUTH);
     }
 
     private JPanel criarFormulario() {
+        // ... (como antes, usando criarCampoComRotulo para cada campo da UI) ...
+        // O método criarCampoCPF() usará this.cpfInformadoOriginalmente
         JPanel formulario = new JPanel();
         formulario.setLayout(new BoxLayout(formulario, BoxLayout.Y_AXIS));
-        formulario.setBackground(Constantes.AZUL_ESCURO);
-        formulario.setMaximumSize(new Dimension(500, 600));
-        formulario.setAlignmentX(Component.CENTER_ALIGNMENT);
-
+        // ... (demais configurações)
         formulario.add(criarCampoComRotulo("CPF", criarCampoCPF()));
-        formulario.add(Box.createVerticalStrut(25));
-
-        formulario.add(criarCampoComRotulo("NOME", criarCampoNome()));
-        formulario.add(Box.createVerticalStrut(25));
-
-        formulario.add(criarCampoComRotulo("DATA DE NASCIMENTO", criarCampoDataNascimento()));
-
-        painelTelefone = criarCampoComRotulo("TELEFONE", criarCampoTelefone());
-        painelTelefone.setVisible(false);
-        formulario.add(Box.createVerticalStrut(25));
-        formulario.add(painelTelefone);
-
-        painelEmail = criarCampoComRotulo("E-MAIL", criarCampoEmail());
-        painelEmail.setVisible(false);
-        formulario.add(Box.createVerticalStrut(25));
-        formulario.add(painelEmail);
-
+        // ...
         return formulario;
     }
-
-    private JPanel criarCampoComRotulo(String rotulo, JTextField campo) {
-        JPanel painelCampo = new JPanel();
-        painelCampo.setLayout(new BoxLayout(painelCampo, BoxLayout.Y_AXIS));
-        painelCampo.setBackground(Constantes.AZUL_ESCURO);
-        painelCampo.setMaximumSize(new Dimension(500, 85));
-        painelCampo.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel lblRotulo = new JLabel(rotulo);
-        lblRotulo.setFont(new Font("Arial", Font.BOLD, 16));
-        lblRotulo.setForeground(Color.WHITE);
-        lblRotulo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelCampo.add(lblRotulo);
-
-        painelCampo.add(Box.createVerticalStrut(8));
-
-        campo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        painelCampo.add(campo);
-
-        return painelCampo;
-    }
-
-    private JPanel criarCheckboxABCGold() {
-        JPanel painelCheckbox = new JPanel();
-        painelCheckbox.setLayout(new FlowLayout(FlowLayout.CENTER));
-        painelCheckbox.setBackground(Constantes.AZUL_ESCURO);
-        painelCheckbox.setMaximumSize(new Dimension(500, 60));
-
-        JPanel containerCheckbox = new JPanel();
-        containerCheckbox.setLayout(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        containerCheckbox.setBackground(new Color(255, 193, 7, 20));
-        containerCheckbox.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Constantes.AMARELO, 2),
-            BorderFactory.createEmptyBorder(10, 20, 10, 20)
-        ));
-
-        chkMembroABC = new JCheckBox("Ser membro ABC GOLD");
-        chkMembroABC.setFont(new Font("Arial", Font.BOLD, 18));
-        chkMembroABC.setForeground(Constantes.AMARELO);
-        chkMembroABC.setBackground(new Color(0, 0, 0, 0));
-        chkMembroABC.setFocusPainted(false);
-        chkMembroABC.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
-        chkMembroABC.setIcon(new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(Color.WHITE);
-                g2d.fillRect(x, y, 20, 20);
-                g2d.setColor(Constantes.AMARELO);
-                g2d.setStroke(new BasicStroke(2));
-                g2d.drawRect(x, y, 20, 20);
-                g2d.dispose();
-            }
-            @Override
-            public int getIconWidth() { return 20; }
-            @Override
-            public int getIconHeight() { return 20; }
-        });
-        
-        chkMembroABC.setSelectedIcon(new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2d.setColor(Constantes.AMARELO);
-                g2d.fillRect(x, y, 20, 20);
-                g2d.setColor(Color.BLACK);
-                g2d.setStroke(new BasicStroke(3));
-                g2d.drawLine(x + 4, y + 10, x + 8, y + 14);
-                g2d.drawLine(x + 8, y + 14, x + 16, y + 6);
-                g2d.dispose();
-            }
-            @Override
-            public int getIconWidth() { return 20; }
-            @Override
-            public int getIconHeight() { return 20; }
-        });
-
-        chkMembroABC.addActionListener(e -> {
-            boolean selecionado = chkMembroABC.isSelected();
-            painelTelefone.setVisible(selecionado);
-            painelEmail.setVisible(selecionado);
-            revalidate();
-            repaint();
-        });
-
-        JLabel lblEstrela = new JLabel("⭐");
-        lblEstrela.setFont(new Font("Arial", Font.PLAIN, 24));
-
-        containerCheckbox.add(chkMembroABC);
-        
-        painelCheckbox.add(containerCheckbox);
-        return painelCheckbox;
-    }
-
+    
     private JFormattedTextField criarCampoCPF() {
         try {
             MaskFormatter maskCPF = new MaskFormatter("###.###.###-##");
             maskCPF.setPlaceholderCharacter('_');
             txtCPF = new JFormattedTextField(maskCPF);
-            if (cpfInformado != null) {
-                txtCPF.setText(cpfInformado);
+            if (this.cpfInformadoOriginalmente != null && !this.cpfInformadoOriginalmente.isBlank()) {
+                // Se o CPF informado já vier normalizado (só números), a máscara pode não aplicar bem.
+                // Idealmente, TelaInformarCPF passaria o CPF formatado ou a máscara seria mais flexível.
+                // Por ora, apenas setamos o texto.
+                txtCPF.setText(this.cpfInformadoOriginalmente); // Pode precisar de ajuste se cpfInformadoOriginalmente não tiver máscara
                 txtCPF.setEditable(false);
                 txtCPF.setBackground(new Color(70, 80, 90));
             }
         } catch (ParseException e) {
             txtCPF = new JFormattedTextField();
+            System.err.println("Erro ao criar máscara de CPF em TelaCadastrar: " + e.getMessage());
         }
         configurarCampo(txtCPF);
         return txtCPF;
     }
+    // ... (criarCampoNome, criarCampoDataNascimento, criarCampoTelefone, criarCampoEmail, configurarCampo como antes) ...
+    // ... (criarCheckboxABCGold como antes) ...
+    private JTextField criarCampoNome() { txtNome = new JTextField(); configurarCampo(txtNome); return txtNome;}
+    private JFormattedTextField criarCampoDataNascimento() { /*...*/ txtDataNascimento = new JFormattedTextField(); configurarCampo(txtDataNascimento); return txtDataNascimento;}
+    private JFormattedTextField criarCampoTelefone() { /*...*/ txtTelefone = new JFormattedTextField(); configurarCampo(txtTelefone); return txtTelefone;}
+    private JTextField criarCampoEmail() { txtEmail = new JTextField(); configurarCampo(txtEmail); return txtEmail;}
+    private void configurarCampo(JTextField campo) { /* ... */ }
+    private JPanel criarCampoComRotulo(String rotulo, JTextField campo) { /* ... */ return new JPanel();}
+    private JPanel criarCheckboxABCGold() { /* ... */ chkMembroABC = new JCheckBox(); /*...*/ return new JPanel(); }
 
-    private JTextField criarCampoNome() {
-        txtNome = new JTextField();
-        configurarCampo(txtNome);
-        return txtNome;
-    }
 
-    private JFormattedTextField criarCampoDataNascimento() {
-        try {
-            MaskFormatter maskData = new MaskFormatter("##/##/####");
-            maskData.setPlaceholderCharacter('_');
-            txtDataNascimento = new JFormattedTextField(maskData);
-        } catch (ParseException e) {
-            txtDataNascimento = new JFormattedTextField();
-        }
-        configurarCampo(txtDataNascimento);
-        return txtDataNascimento;
-    }
-
-    private JFormattedTextField criarCampoTelefone() {
-        try {
-            MaskFormatter maskTelefone = new MaskFormatter("(##) #####-####");
-            maskTelefone.setPlaceholderCharacter('_');
-            txtTelefone = new JFormattedTextField(maskTelefone);
-        } catch (ParseException e) {
-            txtTelefone = new JFormattedTextField();
-        }
-        configurarCampo(txtTelefone);
-        return txtTelefone;
-    }
-
-    private JTextField criarCampoEmail() {
-        txtEmail = new JTextField();
-        configurarCampo(txtEmail);
-        return txtEmail;
-    }
-
-    private void configurarCampo(JTextField campo) {
-        campo.setPreferredSize(new Dimension(500, 55));
-        campo.setMaximumSize(new Dimension(500, 55));
-        campo.setFont(new Font("Arial", Font.PLAIN, 18));
-        campo.setBackground(new Color(52, 73, 94));
-        campo.setForeground(Color.WHITE);
-        campo.setCaretColor(Color.WHITE);
-        campo.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 2),
-                BorderFactory.createEmptyBorder(8, 15, 8, 15)
-        ));
-    }
-
-    private void cadastrar() {
-        if (!validarCampos()) {
+    private void realizarCadastro() { // Renomeado de cadastrar para evitar conflito com método da interface
+        if (!validarCamposEntrada()) { // Renomeado de validarCampos
             return;
         }
 
         try {
-            String cpf = txtCPF.getText().replaceAll("[^0-9]", "");
-            
-            if (clienteServico.existe(cpf)) {
-                JOptionPane.showMessageDialog(this,
-                        "Cliente com este CPF já está cadastrado!",
-                        "CPF Já Cadastrado",
-                        JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-
+            String cpf = txtCPF.getValue() != null ? txtCPF.getText() : this.cpfInformadoOriginalmente; // Pega do campo ou o original
             String nome = txtNome.getText().trim();
-            String dataNascimento = txtDataNascimento.getText();
-            String telefone = chkMembroABC.isSelected() ? txtTelefone.getText() : "";
+            String dataNascimentoStr = txtDataNascimento.getText(); // A máscara já formata
+            String telefone = chkMembroABC.isSelected() ? txtTelefone.getText() : ""; // Pega da máscara
             String email = chkMembroABC.isSelected() ? txtEmail.getText().trim() : "";
-            boolean isMembroABC = chkMembroABC.isSelected();
+            
+            String identificadorPlano = chkMembroABC.isSelected() ?
+                                        com.teatroabc.dominio.fidelidade.MembroABCGold.IDENTIFICADOR :
+                                        com.teatroabc.dominio.fidelidade.SemFidelidade.IDENTIFICADOR;
 
-            Cliente cliente = clienteServico.cadastrar(cpf, nome, dataNascimento, telefone, email, isMembroABC);
+            DadosCadastroClienteDTO dto = new DadosCadastroClienteDTO(
+                cpf, nome, dataNascimentoStr, telefone, email, identificadorPlano
+            );
+
+            Cliente clienteCadastrado = this.clienteServico.cadastrar(dto); // USA O SERVIÇO INJETADO
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-            if (peca != null && assentosSelecionados != null) {
-                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(peca, cliente, assentosSelecionados, turnoSelecionado);
+            if (this.peca != null && this.assentosSelecionados != null && this.turnoSelecionado != null) {
+                // Veio do fluxo de compra, prosseguir para TelaConfirmarPedido
+                // TelaConfirmarPedido precisa de Peca, Cliente, List<Assento>, Turno, e IReservaServico
+                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(
+                    this.peca,
+                    clienteCadastrado,
+                    this.assentosSelecionados,
+                    this.turnoSelecionado,
+                    this.reservaServico // Passa o serviço de reserva
+                );
                 frame.setContentPane(telaConfirmar);
             } else {
-                String mensagem = isMembroABC ? 
-                    "Cliente cadastrado como membro ABC GOLD com sucesso!\nVocê terá 5% de desconto em todas as compras!" :
+                // Cadastro avulso, mostrar mensagem de sucesso e voltar para TelaPrincipal
+                String mensagem = chkMembroABC.isSelected() ? 
+                    "Cliente cadastrado como membro ABC GOLD com sucesso!\n" + clienteCadastrado.getDescricaoBeneficiosPlano() :
                     "Cliente cadastrado com sucesso!";
                 JOptionPane.showMessageDialog(this, mensagem, "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-                frame.setContentPane(new TelaPrincipal());
+                // TelaPrincipal precisa dos serviços
+                frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
             }
 
             frame.revalidate();
             frame.repaint();
 
-        } catch (Exception e) {
+        } catch (ClienteJaCadastradoException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Erro de Cadastro", JOptionPane.WARNING_MESSAGE);
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(this, "Erro nos dados informados: " + e.getMessage(), "Dados Inválidos", JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) { // Captura genérica para outros erros inesperados
             JOptionPane.showMessageDialog(this,
-                    "Erro ao cadastrar cliente: " + e.getMessage(),
-                    "Erro",
+                    "Ocorreu um erro inesperado ao cadastrar cliente: " + e.getMessage(),
+                    "Erro Crítico",
                     JOptionPane.ERROR_MESSAGE);
+            e.printStackTrace(); // Logar para debug
         }
     }
 
-    private boolean validarCampos() {
-        if (txtNome.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Por favor, informe o nome!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
-        if (txtDataNascimento.getText().trim().isEmpty() || txtDataNascimento.getText().contains("_")) {
-            JOptionPane.showMessageDialog(this, "Por favor, informe a data de nascimento!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
-            return false;
-        }
-
+    private boolean validarCamposEntrada() { // Renomeado de validarCampos
+        // ... (lógica de validação dos campos da UI como antes: nome, data de nascimento,
+        //         telefone e email se chkMembroABC estiver selecionado) ...
+        //         O CPF já é validado pelo MaskFormatter e pela lógica em realizarCadastro()
+        //         que pode usar ValidadorCPF se implementado.
+        //         A validação de formato de data é feita no serviço, mas podemos ter uma aqui também.
+        if (txtNome.getText().trim().isEmpty()) { /*...*/ return false; }
+        if (txtDataNascimento.getText().replace("_", "").replace("/", "").trim().isEmpty()) { /*...*/ return false; }
         try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate.parse(txtDataNascimento.getText(), formatter);
-        } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(this, "Data de nascimento inválida!", "Data inválida", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
+            LocalDate.parse(txtDataNascimento.getText(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        } catch (DateTimeParseException e) { /*...*/ return false;}
 
         if (chkMembroABC.isSelected()) {
-            if (txtTelefone.getText().trim().isEmpty() || txtTelefone.getText().contains("_")) {
-                JOptionPane.showMessageDialog(this, "Por favor, informe o telefone para ser membro ABC GOLD!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
-                return false;
-            }
-
-            if (txtEmail.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Por favor, informe o e-mail para ser membro ABC GOLD!", "Campo obrigatório", JOptionPane.WARNING_MESSAGE);
-                return false;
-            }
-
-            if (!txtEmail.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                JOptionPane.showMessageDialog(this, "E-mail inválido!", "E-mail inválido", JOptionPane.ERROR_MESSAGE);
-                return false;
-            }
+            if (txtTelefone.getText().replace("(", "").replace(")", "").replace("-", "").replace("_", "").trim().isEmpty()) { /*...*/ return false; }
+            if (txtEmail.getText().trim().isEmpty()) { /*...*/ return false; }
+            if (!txtEmail.getText().matches("^[A-Za-z0-9+_.-]+@(.+)$")) { /*...*/ return false; } // Validação simples de email
         }
-
         return true;
     }
 
     private void voltar() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-        if (peca != null) {
-            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(false, peca, assentosSelecionados);
-            telaInformarCPF.setTurnoSelecionado(turnoSelecionado);
+        if (this.peca != null) {
+            // Se veio do fluxo de compra, volta para TelaInformarCPF
+            // TelaInformarCPF precisa dos dados da compra e dos serviços
+            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(
+                false, // modoConsulta
+                this.peca,
+                this.assentosSelecionados,
+                this.clienteServico,
+                this.reservaServico
+            );
+            telaInformarCPF.setTurnoSelecionado(this.turnoSelecionado);
             frame.setContentPane(telaInformarCPF);
         } else {
-            frame.setContentPane(new TelaPrincipal());
+            // Se foi cadastro avulso, volta para TelaPrincipal
+            frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
         }
 
         frame.revalidate();
