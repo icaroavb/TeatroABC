@@ -57,7 +57,7 @@ public class Bilhete {
                     LocalDateTime dataHoraCompra) {
 
         // Encanspulamento das validações foi agora extraído para outro método - caso seja necessário não validar mais, basta comentar esta linha
-        apurarInformacoesEssenciais(id, codigoBarras, peca, cliente, assentos, turno, subtotal, valorDesconto, valorTotal, dataHoraCompra);                    
+        //apurarInformacoesEssenciais(id, codigoBarras, peca, cliente, assentos, turno, subtotal, valorDesconto, valorTotal, dataHoraCompra);                    
 
         // Validação de consistência financeira
         if (subtotal.subtract(valorDesconto).compareTo(valorTotal) != 0) {

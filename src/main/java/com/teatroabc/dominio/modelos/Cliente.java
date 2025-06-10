@@ -38,7 +38,7 @@ public class Cliente {
                    String telefone, String email, PlanoFidelidade planoFidelidade) {
         
         //lógica dos dados essenciais agora está encapsulada, caso seja necessário modificar ou retirar o lançamento de excecoes, basta comentar esta linha
-        apurarInformacoesEssenciais(cpf, nome, dataNascimento);
+        //apurarInformacoesEssenciais(cpf, nome, dataNascimento);
 
         this.cpf = cpf.replaceAll("[^0-9]", ""); // Normaliza CPF para apenas dígitos
         this.nome = nome;

@@ -28,7 +28,7 @@ public class Reserva {
     public Reserva(Cliente cliente, Peca peca, List<Assento> assentos, Turno turno) {
 
         //validacao dos dados essencial encapsulada - comentar caso não seja mais interessante fazer a validacao
-        apurarInformacoesEssenciais(cliente, peca, assentos, turno);
+        //apurarInformacoesEssenciais(cliente, peca, assentos, turno);
 
         this.cliente = cliente;
         this.peca = peca;        

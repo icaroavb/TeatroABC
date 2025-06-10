@@ -17,7 +17,7 @@ public class Assento {
     public Assento(String codigo, int fileira, int numero, CategoriaAssento categoria, BigDecimal preco) {
         
         //encapsulamento das validaçoes - caso não seja mais necessario fazer validacao qualquer, basta comentar esta linha
-        apurarInformacoesEssenciais(codigo, categoria, preco); 
+        //apurarInformacoesEssenciais(codigo, categoria, preco); 
 
         this.codigo = codigo;
         this.fileira = fileira;

@@ -19,7 +19,7 @@ public class Peca {
                 String corFundoHex, String caminhoImagem, LocalDateTime dataHora) {
 
         //logica de validacao encapsulada, caso não seja necessário validar os dados, basta apenas comentar esta linha
-        apurarInformacoesEssenciais(id, titulo, corFundoHex, dataHora);
+        //apurarInformacoesEssenciais(id, titulo, corFundoHex, dataHora);
 
         this.id = id;
         this.titulo = titulo;
