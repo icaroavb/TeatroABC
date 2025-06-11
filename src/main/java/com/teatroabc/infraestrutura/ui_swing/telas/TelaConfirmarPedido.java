@@ -2,19 +2,18 @@ package com.teatroabc.infraestrutura.ui_swing.telas;
 
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.componentes.PainelCodigoBarras; // Se for usar um componente separado
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.enums.Turno;
-import com.teatroabc.aplicacao.interfaces.IClienteServico; // Para repassar
-import com.teatroabc.aplicacao.interfaces.IPecaServico;   // Para repassar
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
 import com.teatroabc.aplicacao.excecoes.ReservaInvalidaException;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
-import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData; // Para exibir data da peça, se desejado
+import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,39 +28,25 @@ import java.util.stream.Collectors;
  * Atua como um Adaptador Primário, interagindo com o IReservaServico.
  */
 public class TelaConfirmarPedido extends JPanel {
-    // Dados do pedido recebidos via construtor
     private final Peca peca;
     private final Cliente cliente;
     private final List<Assento> assentos;
     private final Turno turnoSelecionado;
 
-    // Serviços injetados
-    private final IClienteServico clienteServico; // Para repassar ao voltar para TelaPrincipal
-    private final IPecaServico pecaServico;       // Para repassar ao voltar para TelaPrincipal
-    private final IReservaServico reservaServico; // Para efetivar a reserva
+    private final IClienteServico clienteServico;
+    private final IPecaServico pecaServico;
+    private final IReservaServico reservaServico;
 
-    /**
-     * Construtor da TelaConfirmarPedido.
-     *
-     * @param peca A peça selecionada para a compra.
-     * @param cliente O cliente que está realizando a compra.
-     * @param assentos A lista de assentos selecionados pelo cliente.
-     * @param turno O turno escolhido para a apresentação da peça.
-     * @param clienteServico Serviço para operações de cliente (usado para repassar na navegação).
-     * @param pecaServico Serviço para operações de peça (usado para repassar na navegação).
-     * @param reservaServico Serviço para efetivar a reserva/criação do bilhete.
-     * @throws IllegalArgumentException se algum dos parâmetros essenciais for nulo ou inválido.
-     */
     public TelaConfirmarPedido(Peca peca, Cliente cliente, List<Assento> assentos, Turno turno,
                                IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
         
         if (peca == null) throw new IllegalArgumentException("Peca não pode ser nula para TelaConfirmarPedido.");
         if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para TelaConfirmarPedido.");
-        if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia para TelaConfirmarPedido.");
-        if (turno == null) throw new IllegalArgumentException("Turno não pode ser nulo para TelaConfirmarPedido.");
-        if (clienteServico == null) throw new IllegalArgumentException("IClienteServico não pode ser nulo.");
-        if (pecaServico == null) throw new IllegalArgumentException("IPecaServico não pode ser nulo.");
-        if (reservaServico == null) throw new IllegalArgumentException("IReservaServico não pode ser nulo.");
+        if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia.");
+        if (turno == null) throw new IllegalArgumentException("Turno não pode ser nulo.");
+        if (clienteServico == null || pecaServico == null || reservaServico == null) {
+            throw new IllegalArgumentException("Serviços não podem ser nulos.");
+        }
         
         this.peca = peca;
         this.cliente = cliente;
@@ -74,9 +59,6 @@ public class TelaConfirmarPedido extends JPanel {
         configurarTelaVisual();
     }
 
-    /**
-     * Configura os componentes visuais e o layout da tela.
-     */
     private void configurarTelaVisual() {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
@@ -86,41 +68,39 @@ public class TelaConfirmarPedido extends JPanel {
         containerPrincipal.setOpaque(false);
         containerPrincipal.setBorder(BorderFactory.createEmptyBorder(20,30,20,30));
 
-
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelLogo.setOpaque(false);
         painelLogo.add(new LogoTeatro());
         containerPrincipal.add(painelLogo);
-        containerPrincipal.add(Box.createVerticalStrut(30)); // Espaçamento reduzido
+        containerPrincipal.add(Box.createVerticalStrut(30));
 
         JLabel titulo = new JLabel("CONFIRMAR PEDIDO");
-        titulo.setFont(Constantes.FONTE_TITULO.deriveFont(42f)); // Fonte ajustada
+        titulo.setFont(Constantes.FONTE_TITULO.deriveFont(42f));
         titulo.setForeground(Color.WHITE);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
         containerPrincipal.add(titulo);
-        containerPrincipal.add(Box.createVerticalStrut(30)); // Espaçamento reduzido
+        containerPrincipal.add(Box.createVerticalStrut(30));
 
-        JPanel painelDetalhes = criarPainelDetalhesDoPedido(); // Nome mais descritivo
-        painelDetalhes.setAlignmentX(Component.CENTER_ALIGNMENT); // Centraliza o painel de detalhes
+        JPanel painelDetalhes = criarPainelDetalhesDoPedido();
+        painelDetalhes.setAlignmentX(Component.CENTER_ALIGNMENT);
         containerPrincipal.add(painelDetalhes);
         containerPrincipal.add(Box.createVerticalStrut(40));
 
-        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0)); // Espaçamento ajustado
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         painelBotoes.setOpaque(false);
         BotaoAnimado btnVoltarUI = new BotaoAnimado("VOLTAR",
-                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO.darker(), new Dimension(180, 55)); // Cores e tamanho ajustados
+                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO.darker(), new Dimension(180, 55));
         btnVoltarUI.setFont(new Font("Arial", Font.BOLD, 18));
         btnVoltarUI.addActionListener(e -> navegarParaTelaAnterior());
-        BotaoAnimado btnConfirmarUI = new BotaoAnimado("FINALIZAR COMPRA", // Texto mais claro
-                Constantes.LARANJA, Constantes.AMARELO.darker(), new Dimension(260, 55)); // Tamanho ajustado
+        BotaoAnimado btnConfirmarUI = new BotaoAnimado("FINALIZAR COMPRA",
+                Constantes.LARANJA, Constantes.AMARELO.darker(), new Dimension(260, 55));
         btnConfirmarUI.setFont(new Font("Arial", Font.BOLD, 18));
         btnConfirmarUI.addActionListener(e -> processarConfirmacaoDaCompra());
         painelBotoes.add(btnVoltarUI);
         painelBotoes.add(btnConfirmarUI);
         containerPrincipal.add(painelBotoes);
-        containerPrincipal.add(Box.createVerticalStrut(20)); // Espaçamento final
+        containerPrincipal.add(Box.createVerticalStrut(20));
 
-        // Envolve o container principal em um JScrollPane para o caso de conteúdo extenso
         JScrollPane scrollPane = new JScrollPane(containerPrincipal);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setOpaque(false);
@@ -130,43 +110,34 @@ public class TelaConfirmarPedido extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    /**
-     * Cria o painel que exibe os detalhes do pedido para confirmação do usuário.
-     * Calcula e exibe subtotal, desconto (se aplicável) e total com base nos dados atuais.
-     * Estes valores são para *exibição*; o cálculo final é feito pelo {@link IReservaServico}.
-     * @return JPanel com os detalhes do pedido.
-     */
     private JPanel criarPainelDetalhesDoPedido() {
         JPanel painel = new JPanel();
-        painel.setBackground(Constantes.CINZA_ESCURO); // Usando constante
+        painel.setBackground(Constantes.CINZA_ESCURO);
         painel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(Constantes.AZUL_CLARO.darker(), 1),
             BorderFactory.createEmptyBorder(20, 30, 20, 30))
         );
         painel.setLayout(new GridBagLayout());
-        painel.setMaximumSize(new Dimension(650, 480)); // Ajustar conforme necessidade
+        painel.setMaximumSize(new Dimension(650, 480));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(8, 15, 8, 15); // Padding ajustado
-        int linhaAtual = 0; // Renomeado de 'linha'
+        gbc.insets = new Insets(8, 15, 8, 15);
+        int linhaAtual = 0;
 
-        // Cálculos para exibição
         BigDecimal subtotalExibicao = calcularSubtotalParaExibicao();
         BigDecimal fatorDesconto = this.cliente.getPlanoFidelidade().getFatorDesconto();
         BigDecimal descontoExibicao = subtotalExibicao.multiply(fatorDesconto).setScale(2, RoundingMode.HALF_UP);
         BigDecimal totalExibicao = calcularTotalParaExibicao(subtotalExibicao, descontoExibicao);
 
-        // Badge de Membro (se aplicável)
         if (this.cliente.isMembroGold()) {
             gbc.gridx = 0; gbc.gridy = linhaAtual++; gbc.gridwidth = 2; gbc.anchor = GridBagConstraints.CENTER;
-            gbc.insets = new Insets(0, 0, 15, 0); // Espaçamento abaixo do badge
+            gbc.insets = new Insets(0, 0, 15, 0);
             painel.add(criarBadgeABCGoldVisual(), gbc);
             gbc.gridwidth = 1; gbc.anchor = GridBagConstraints.WEST;
-            gbc.insets = new Insets(8, 15, 8, 15); // Restaura insets padrão
+            gbc.insets = new Insets(8, 15, 8, 15);
         }
 
-        // Detalhes do Pedido
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Peça:", this.peca.getTitulo());
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Data:", FormatadorData.formatar(this.peca.getDataHora()));
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Turno:", this.turnoSelecionado.toString());
@@ -174,14 +145,12 @@ public class TelaConfirmarPedido extends JPanel {
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Assentos:", assentosStr);
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Cliente:", this.cliente.getNome());
 
-        // Linha separadora antes dos valores
         gbc.gridx = 0; gbc.gridy = linhaAtual++; gbc.gridwidth = 2; gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(15, 0, 10, 0); // Espaçamento para a linha
+        gbc.insets = new Insets(15, 0, 10, 0);
         painel.add(new JSeparator(SwingConstants.HORIZONTAL), gbc);
         gbc.fill = GridBagConstraints.NONE; gbc.gridwidth = 1;
-        gbc.insets = new Insets(8, 15, 8, 15); // Restaura insets padrão
+        gbc.insets = new Insets(8, 15, 8, 15);
 
-        // Valores Financeiros
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Subtotal:", FormatadorMoeda.formatar(subtotalExibicao));
         if (descontoExibicao.compareTo(BigDecimal.ZERO) > 0) {
             JLabel lblDescRotulo = criarLabelDetalhe("Desconto (" + this.cliente.getNomePlanoFidelidade() + "):");
@@ -192,37 +161,76 @@ public class TelaConfirmarPedido extends JPanel {
         }
 
         JLabel lblTotalRotulo = criarLabelDetalhe("TOTAL A PAGAR:");
-        lblTotalRotulo.setFont(new Font("Arial", Font.BOLD, 20)); // Fonte ajustada
+        lblTotalRotulo.setFont(new Font("Arial", Font.BOLD, 20));
         JLabel lblTotalValor = criarLabelValor(FormatadorMoeda.formatar(totalExibicao));
-        lblTotalValor.setFont(new Font("Arial", Font.BOLD, 22)); // Fonte ajustada
+        lblTotalValor.setFont(new Font("Arial", Font.BOLD, 22));
         if (this.cliente.isMembroGold()) {
             lblTotalValor.setForeground(Constantes.AMARELO);
         }
-        adicionarLinhaComponentes(painel, gbc, linhaAtual++, lblTotalRotulo, lblTotalValor);
+        adicionarLinhaComponentes(painel, gbc, linhaAtual, lblTotalRotulo, lblTotalValor);
 
         return painel;
     }
     
-    private BigDecimal calcularSubtotalParaExibicao() { /* ... como antes ... */ return BigDecimal.ZERO; }
-    private BigDecimal calcularTotalParaExibicao(BigDecimal subtotal, BigDecimal desconto) { /* ... como antes ... */ return BigDecimal.ZERO; }
-    private void adicionarLinhaDetalhe(JPanel painel, GridBagConstraints gbc, int linha, String rotulo, String valor) { /* ... como antes ... */ }
-    private void adicionarLinhaComponentes(JPanel painel, GridBagConstraints gbc, int linha, Component comp1, Component comp2) { /* ... como antes ... */ }
-    private JLabel criarLabelDetalhe(String texto) { /* ... como antes ... */ return new JLabel(texto); }
-    private JLabel criarLabelValor(String texto) { /* ... como antes ... */ return new JLabel(texto); }
-    private JPanel criarBadgeABCGoldVisual() { /* ... como antes ... */ return new JPanel(); }
+    private BigDecimal calcularSubtotalParaExibicao() {
+        return this.assentos.stream()
+                .map(Assento::getPreco)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+    
+    private BigDecimal calcularTotalParaExibicao(BigDecimal subtotal, BigDecimal desconto) {
+        BigDecimal total = subtotal.subtract(desconto);
+        return total.compareTo(BigDecimal.ZERO) < 0 ? BigDecimal.ZERO : total.setScale(2, RoundingMode.HALF_UP);
+    }
 
-    /**
-     * Processa a confirmação do pedido, chamando o serviço de reserva para criar o bilhete.
-     * Exibe uma mensagem de sucesso ou erro ao usuário.
-     * Em caso de sucesso, navega para a TelaPrincipal.
-     */
-    private void processarConfirmacaoDaCompra() { // Renomeado de processarConfirmacao
+    private void adicionarLinhaDetalhe(JPanel painel, GridBagConstraints gbc, int linha, String rotulo, String valor) {
+        gbc.gridx = 0; gbc.gridy = linha;
+        painel.add(criarLabelDetalhe(rotulo), gbc);
+        gbc.gridx = 1;
+        painel.add(criarLabelValor(valor), gbc);
+    }
+    
+    private void adicionarLinhaComponentes(JPanel painel, GridBagConstraints gbc, int linha, Component comp1, Component comp2) {
+        gbc.gridx = 0; gbc.gridy = linha;
+        painel.add(comp1, gbc);
+        gbc.gridx = 1;
+        painel.add(comp2, gbc);
+    }
+
+    private JLabel criarLabelDetalhe(String texto) {
+        JLabel label = new JLabel(texto);
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JLabel criarLabelValor(String texto) {
+        JLabel label = new JLabel(texto);
+        label.setFont(new Font("Arial", Font.PLAIN, 16));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
+
+    private JPanel criarBadgeABCGoldVisual() {
+        JPanel badge = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        badge.setOpaque(false);
+        JLabel estrela = new JLabel("⭐");
+        estrela.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 16));
+        JLabel texto = new JLabel("MEMBRO ABC GOLD");
+        texto.setFont(new Font("Arial", Font.BOLD, 16));
+        texto.setForeground(Constantes.AMARELO);
+        badge.add(estrela);
+        badge.add(texto);
+        return badge;
+    }
+
+    private void processarConfirmacaoDaCompra() {
         try {
             Bilhete bilheteCriado = this.reservaServico.criarReserva(
                 this.peca, this.cliente, this.assentos, this.turnoSelecionado
             );
 
-            // Monta a mensagem de sucesso detalhada
             StringBuilder mensagem = new StringBuilder("<html><body style='width: 350px;'>");
             mensagem.append("<h2>Compra Realizada com Sucesso!</h2>");
             mensagem.append("<p><b>Peça:</b> ").append(bilheteCriado.getPeca().getTitulo()).append("</p>");
@@ -257,12 +265,8 @@ public class TelaConfirmarPedido extends JPanel {
         }
     }
 
-    /**
-     * Navega de volta para a tela de seleção de assentos, passando os dados e serviços necessários.
-     */
-    private void navegarParaTelaAnterior() { // Renomeado de voltarParaSelecaoAssentos
+    private void navegarParaTelaAnterior() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // TelaSelecionarAssento espera Peca, Turno e os 3 serviços
         frame.setContentPane(new TelaSelecionarAssento(this.peca, this.turnoSelecionado, this.pecaServico, this.clienteServico, this.reservaServico));
         frame.revalidate();
         frame.repaint();
