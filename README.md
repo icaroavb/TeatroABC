@@ -1,3 +1,46 @@
+**Tudo aponta para o centro.**
+
+Infraestrutura → Aplicação → Domínio
+
+O seu núcleo (Domínio + Aplicação) nunca deve depender de nada na camada de Infraestrutura. Ou seja, uma classe em com.teatroabc.dominio nunca deve ter um import com.teatroabc.infraestrutura.ui_swing.BotaoAssento;.
+
+**Agora, vamos analisar o seu caso:**
+Onde estão os Enums? Em com.teatroabc.dominio.enums (Turno, StatusAssento, etc.). Eles são parte do Núcleo do Domínio.
+Onde eles são usados? Em com.teatroabc.infraestrutura.ui_swing.telas e componentes. Eles são parte da Camada de Infraestrutura (um Adaptador Primário).
+Qual a direção da dependência? A sua UI (Infraestrutura) está importando e usando algo do Domínio.
+A seta de dependência está apontando para dentro (Infraestrutura → Domínio), o que está perfeitamente alinhado com a regra.
+Por que isso não é uma Violação?
+Pense nas Portas e Adaptadores. O seu domínio define um "contrato" ou uma "linguagem". Os enums fazem parte dessa linguagem de negócio.
+Enums como Vocabulário do Domínio: StatusAssento com seus valores DISPONIVEL, OCUPADO, SELECIONADO é o vocabulário que o seu negócio usa para descrever o estado de um assento. É uma regra de negócio que um assento só pode ter esses três estados.
+O Adaptador Precisa Entender a Linguagem: A sua UI (BotaoAssento) é um Adaptador. Sua função é "adaptar" o estado do seu domínio para uma representação que o usuário final possa entender (neste caso, cores em um botão). Para fazer essa adaptação, o BotaoAssento precisa entender o vocabulário do domínio. Ele precisa ser capaz de perguntar: "Qual é o seu status?" e entender a resposta (StatusAssento.OCUPADO) para poder pintar a si mesmo da cor correta.
+
+A violação ocorreria no sentido inverso. Se o seu enum StatusAssento tivesse um método como este:
+
+	// EXEMPLO DE VIOLAÇÃO! NÃO FAÇA ISSO!
+	public enum StatusAssento {
+	    DISPONIVEL, OCUPADO, SELECIONADO;
+	    
+	    public java.awt.Color getCorParaSwingUI() {
+	        switch (this) {
+	            case DISPONIVEL: return Constantes.AZUL_CLARO;
+	            case OCUPADO: return Constantes.BEGE;
+	            case SELECIONADO: return Constantes.VERDE;
+	            default: return Color.BLACK;
+	        }
+	    }
+	}
+
+Neste caso, o seu Domínio (StatusAssento) passaria a ter uma dependência (java.awt.Color) da Infraestrutura (a tecnologia de UI Swing). A seta de dependência estaria apontando para fora, quebrando completamente o isolamento do núcleo.
+
+Sua abordagem atual está correta: a lógica de mapeamento StatusAssento → Color está dentro do BotaoAssento.paintComponent(), que é exatamente onde um adaptador deve fazer seu trabalho de tradução.
+
+**Quando isso poderia ser um Problema? (Cenário Avançado)**
+
+A única situação em que o uso direto de enums do domínio poderia ser questionado é em sistemas extremamente grandes e complexos com múltiplos adaptadores muito diferentes (ex: uma UI Swing, uma API REST para um app mobile, e um conector para um sistema legado).
+
+Se o enum do domínio (Turno, por exemplo) mudasse (ex: adicionando um turno MATINE), todos os adaptadores que o usam diretamente teriam que ser recompilados e, possivelmente, atualizados para lidar com o novo valor.
+Nesse cenário hipercomplexo, algumas equipes optam por criar DTOs (Data Transfer Objects) na fronteira da camada de aplicação. O serviço retornaria um TurnoDTO em vez do enum Turno. Cada adaptador, então, dependeria apenas do DTO.
+
 **O objetivo principal é que as classes da UI (suas Telas e Componentes Swing):**
 
 - Não contenham lógica de negócio.
