@@ -3,7 +3,7 @@
  */
 package com.teatroabc.infraestrutura.config;
 
-import com.teatroabc.dominio.enums.CategoriaAssento;
+import com.teatroabc.dominio.enums.CategoriaAssento; //puxa dados financeiros do enumerador
 
 public class SecaoConfig {
     private final String nomeDaSecao;

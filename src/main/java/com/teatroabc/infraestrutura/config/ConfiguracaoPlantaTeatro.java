@@ -35,8 +35,6 @@ public class ConfiguracaoPlantaTeatro {
         // Balcão Nobre: 50 -> Modelado como 5 fileiras de 10 assentos
         secoes.add(new SecaoConfig("Balcão Nobre", CategoriaAssento.BALCAO_NOBRE, 5, 10));
 
-        // OBS: A seção "Balcão" do código antigo foi removida pois não consta nos requisitos.
-
         LAYOUT_PADRAO = new TeatroLayoutConfig(List.of(
             // Definindo a ordem visual de renderização
             new SecaoConfig("Plateia A", CategoriaAssento.PLATEIA_A, 5, 5),
