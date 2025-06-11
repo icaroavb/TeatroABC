@@ -12,11 +12,9 @@ import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-
 import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
 import com.teatroabc.infraestrutura.config.SecaoConfig;
 import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
-
 import com.teatroabc.dominio.enums.CategoriaAssento;
 
 import javax.swing.*;
@@ -28,23 +26,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Tela responsável por permitir ao usuário selecionar assentos para uma peça e turno específicos.
- * Atua como um Adaptador Primário, sendo "burra" em relação à lógica de layout.
- * Ela renderiza a planta do teatro dinamicamente com base nos dados recebidos do serviço
- * e nas configurações de layout centralizadas.
- */
 public class TelaSelecionarAssento extends JPanel {
     private final Peca pecaSelecionada;
     private final Turno turnoEscolhido;
 
-    // Serviços injetados
     private final IPecaServico pecaServico;
     private final IClienteServico clienteServico;
     private final IReservaServico reservaServico;
 
-    // Estado da UI
-    private final List<Assento> assentosDaPlanta; // Lista completa de assentos para o turno.
+    private final List<Assento> assentosDaPlanta;
     private final List<Assento> assentosSelecionadosPeloUsuario;
     private JLabel lblTotal;
     private BotaoAnimado btnConfirmar;
@@ -61,59 +51,54 @@ public class TelaSelecionarAssento extends JPanel {
         this.clienteServico = clienteServico;
         this.reservaServico = reservaServico;
         this.assentosSelecionadosPeloUsuario = new ArrayList<>();
-        
-        // Carrega a lista completa de assentos para este turno UMA VEZ.
         this.assentosDaPlanta = carregarAssentosParaTurno();
-
         configurarTelaVisual();
     }
 
     private List<Assento> carregarAssentosParaTurno() {
         try {
-            // Usa o serviço para buscar os assentos, que por sua vez usa o repositório refatorado.
             List<Assento> assentos = pecaServico.buscarAssentosDaPecaPorTurno(pecaSelecionada.getId(), this.turnoEscolhido);
             return assentos != null ? assentos : Collections.emptyList();
         } catch (Exception e) {
             System.err.println("Erro crítico ao carregar assentos: " + e.getMessage());
             e.printStackTrace();
-            // Em uma aplicação real, poderia mostrar um JOptionPane de erro aqui.
             return Collections.emptyList();
         }
     }
-    
+
     private void configurarTelaVisual() {
-        setLayout(new BorderLayout()); 
+        setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
-        JPanel containerPrincipal = new JPanel(new BorderLayout(0,15)); 
+        JPanel containerPrincipal = new JPanel(new BorderLayout(0, 15));
         containerPrincipal.setOpaque(false);
         containerPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        
+
         containerPrincipal.add(criarCabecalhoDaTela(), BorderLayout.NORTH);
 
         JPanel painelConteudoTeatro = new JPanel();
         painelConteudoTeatro.setLayout(new BoxLayout(painelConteudoTeatro, BoxLayout.Y_AXIS));
-        painelConteudoTeatro.setOpaque(false); 
-        painelConteudoTeatro.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        painelConteudoTeatro.setOpaque(false);
+        painelConteudoTeatro.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel palco = new JPanel(); 
+        JPanel palco = new JPanel();
         palco.setBackground(Constantes.BEGE.darker());
-        palco.setPreferredSize(new Dimension(600, 40)); 
+        palco.setPreferredSize(new Dimension(600, 40));
         palco.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         JLabel lblPalco = new JLabel("PALCO");
         lblPalco.setFont(new Font("Arial", Font.BOLD, 20));
         lblPalco.setForeground(Color.WHITE);
         palco.add(lblPalco);
-        painelConteudoTeatro.add(palco); 
+        painelConteudoTeatro.add(palco);
         painelConteudoTeatro.add(Box.createVerticalStrut(20));
 
-        this.painelSecoes = new JPanel(); 
+        this.painelSecoes = new JPanel();
         this.painelSecoes.setOpaque(false);
         this.painelSecoes.setAlignmentX(Component.CENTER_ALIGNMENT);
-        painelConteudoTeatro.add(this.painelSecoes); 
+        painelConteudoTeatro.add(this.painelSecoes);
         painelConteudoTeatro.add(Box.createVerticalStrut(20));
-        
-        painelConteudoTeatro.add(criarLegendaVisual()); 
+
+        painelConteudoTeatro.add(criarLegendaVisual());
         painelConteudoTeatro.add(Box.createVerticalStrut(10));
 
         JScrollPane scrollTeatro = new JScrollPane(painelConteudoTeatro);
@@ -123,8 +108,8 @@ public class TelaSelecionarAssento extends JPanel {
         scrollTeatro.getVerticalScrollBar().setUnitIncrement(16);
         scrollTeatro.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-        containerPrincipal.add(scrollTeatro, BorderLayout.CENTER); 
-        
+        containerPrincipal.add(scrollTeatro, BorderLayout.CENTER);
+
         add(containerPrincipal, BorderLayout.CENTER);
         add(criarRodapeDeControles(), BorderLayout.SOUTH);
 
@@ -132,8 +117,79 @@ public class TelaSelecionarAssento extends JPanel {
         atualizarTotalDaCompra();
     }
     
+    private void atualizarVisualizacaoDasSecoes() {
+        painelSecoes.removeAll();
+        painelSecoes.setLayout(new BoxLayout(painelSecoes, BoxLayout.Y_AXIS));
+
+        Map<CategoriaAssento, List<Assento>> assentosAgrupados =
+            this.assentosDaPlanta.stream().collect(Collectors.groupingBy(Assento::getCategoria));
+
+        TeatroLayoutConfig layoutConfig = ConfiguracaoPlantaTeatro.getLayout();
+
+        for (SecaoConfig secaoConfig : layoutConfig.getSecoes()) {
+            CategoriaAssento categoriaAtual = secaoConfig.getCategoria();
+            
+            if (assentosAgrupados.containsKey(categoriaAtual)) {
+                List<Assento> assentosParaRenderizar = assentosAgrupados.get(categoriaAtual);
+                JPanel painelDaSecao = criarPainelDeSecao(secaoConfig, assentosParaRenderizar);
+                painelSecoes.add(painelDaSecao);
+                painelSecoes.add(Box.createVerticalStrut(25));
+            }
+        }
+
+        painelSecoes.revalidate();
+        painelSecoes.repaint();
+    }
+
+    /**
+     * MÉTODO CORRIGIDO: Agora usa as dimensões da configuração para criar o GridLayout.
+     */
+    private JPanel criarPainelDeSecao(SecaoConfig config, List<Assento> assentosDaSecao) {
+        JPanel painelWrapper = new JPanel(new BorderLayout(5, 10));
+        painelWrapper.setOpaque(false);
+        // Opcional: Adiciona um fundo para agrupar visualmente as seções
+        painelWrapper.setBackground(new Color(255, 255, 255, 10)); 
+        painelWrapper.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+
+        JLabel lblTituloSecao = new JLabel(config.getNomeDaSecao(), SwingConstants.CENTER);
+        lblTituloSecao.setFont(new Font("Arial", Font.BOLD, 18));
+        lblTituloSecao.setForeground(Constantes.AMARELO);
+        painelWrapper.add(lblTituloSecao, BorderLayout.NORTH);
+
+        // *** A CORREÇÃO PRINCIPAL ESTÁ AQUI ***
+        // O GridLayout agora é criado usando as dimensões exatas da nossa configuração.
+        JPanel painelGridAssentos = new JPanel(new GridLayout(
+            config.getNumeroDeFileiras(),
+            config.getAssentosPorFileira(),
+            5, 5 // Espaçamento
+        ));
+        painelGridAssentos.setOpaque(false);
+
+        // A lista de assentos já está na ordem correta vinda do repositório.
+        // Apenas iteramos e criamos os botões.
+        for (Assento assento : assentosDaSecao) {
+            BotaoAssento botao = new BotaoAssento(assento);
+            botao.addActionListener(e -> {
+                if (assento.getStatus() == StatusAssento.DISPONIVEL) {
+                    assento.setStatus(StatusAssento.SELECIONADO);
+                    assentosSelecionadosPeloUsuario.add(assento);
+                } else if (assento.getStatus() == StatusAssento.SELECIONADO) {
+                    assento.setStatus(StatusAssento.DISPONIVEL);
+                    assentosSelecionadosPeloUsuario.remove(assento);
+                }
+                botao.atualizarInteratividadeBaseadaNoStatus();
+                atualizarTotalDaCompra();
+            });
+            painelGridAssentos.add(botao);
+        }
+        
+        painelWrapper.add(painelGridAssentos, BorderLayout.CENTER);
+        return painelWrapper;
+    }
+    
+    // O restante da classe (métodos de UI e navegação) permanece o mesmo.
+    // ... (criarCabecalhoDaTela, criarLegendaVisual, criarRodapeDeControles, etc.)
     private JPanel criarCabecalhoDaTela() {
-        // ... (Implementação como na sua versão)
         JPanel cabecalho = new JPanel(new BorderLayout());
         cabecalho.setOpaque(false);
         cabecalho.setBorder(BorderFactory.createEmptyBorder(10, 0, 20, 0));
@@ -152,133 +208,7 @@ public class TelaSelecionarAssento extends JPanel {
         return cabecalho;
     }
 
-    /**
-     * CONSTRUÇÃO DINÂMICA DA PLANTA DO TEATRO.
-     * Este método é a implementação final da refatoração.
-     * Ele lê a configuração e os dados dos assentos para renderizar a UI.
-     */
-    private void atualizarVisualizacaoDasSecoes() {
-        painelSecoes.removeAll();
-        painelSecoes.setLayout(new BoxLayout(painelSecoes, BoxLayout.Y_AXIS));
-
-        // 1. Agrupar os assentos recebidos do serviço por sua categoria.
-        Map<CategoriaAssento, List<Assento>> assentosAgrupados =
-            this.assentosDaPlanta.stream().collect(Collectors.groupingBy(Assento::getCategoria));
-
-        // 2. Obter a configuração de layout da fonte única de verdade.
-        TeatroLayoutConfig layoutConfig = ConfiguracaoPlantaTeatro.getLayout();
-
-        // 3. Iterar sobre a CONFIGURAÇÃO para manter a ORDEM VISUAL correta.
-        for (SecaoConfig secaoConfig : layoutConfig.getSecoes()) {
-            CategoriaAssento categoriaAtual = secaoConfig.getCategoria();
-            
-            if (assentosAgrupados.containsKey(categoriaAtual)) {
-                List<Assento> assentosParaRenderizar = assentosAgrupados.get(categoriaAtual);
-                
-                // Agrupa as unidades (ex: cada frisa ou camarote é uma "unidade")
-                // Para seções contínuas como plateia, haverá apenas uma unidade.
-                // A chave do mapa é o número da fileira/unidade.
-                Map<Integer, List<Assento>> unidadesAgrupadas = assentosParaRenderizar.stream()
-                        .collect(Collectors.groupingBy(Assento::getFileira));
-
-                JPanel painelDaSecao = criarPainelDeSecao(secaoConfig, unidadesAgrupadas);
-                
-                painelSecoes.add(painelDaSecao);
-                painelSecoes.add(Box.createVerticalStrut(25));
-            }
-        }
-
-        painelSecoes.revalidate();
-        painelSecoes.repaint();
-    }
-
-    /**
-     * Novo método genérico para criar o painel de uma seção (ex: "FRISAS", "PLATEIA A").
-     * Renderiza cada unidade (fileira, frisa, camarote) dentro da seção.
-     */
-    private JPanel criarPainelDeSecao(SecaoConfig config, Map<Integer, List<Assento>> unidadesDaSecao) {
-        JPanel painelWrapper = new JPanel(new BorderLayout(5, 10));
-        painelWrapper.setOpaque(false);
-
-        JLabel lblTituloSecao = new JLabel(config.getNomeDaSecao(), SwingConstants.CENTER);
-        lblTituloSecao.setFont(new Font("Arial", Font.BOLD, 18));
-        lblTituloSecao.setForeground(Constantes.AMARELO);
-        painelWrapper.add(lblTituloSecao, BorderLayout.NORTH);
-
-        // Painel que conterá as unidades (fileiras, frisas, etc.)
-        JPanel painelContainerUnidades = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        painelContainerUnidades.setOpaque(false);
-
-        // Itera sobre as unidades agrupadas (ex: Fileira 1, Fileira 2, etc.)
-        unidadesDaSecao.keySet().stream().sorted().forEach(numeroUnidade -> {
-            List<Assento> assentosDaUnidade = unidadesDaSecao.get(numeroUnidade);
-            
-            JPanel painelDaUnidade = new JPanel(new GridLayout(1, assentosDaUnidade.size(), 5, 5));
-            painelDaUnidade.setOpaque(false);
-
-            for (Assento assento : assentosDaUnidade) {
-                BotaoAssento botao = new BotaoAssento(assento);
-                botao.addActionListener(e -> {
-                    if (assento.getStatus() == StatusAssento.DISPONIVEL) {
-                        assento.setStatus(StatusAssento.SELECIONADO);
-                        assentosSelecionadosPeloUsuario.add(assento);
-                    } else if (assento.getStatus() == StatusAssento.SELECIONADO) {
-                        assento.setStatus(StatusAssento.DISPONIVEL);
-                        assentosSelecionadosPeloUsuario.remove(assento);
-                    }
-                    botao.atualizarInteratividadeBaseadaNoStatus();
-                    atualizarTotalDaCompra();
-                });
-                painelDaUnidade.add(botao);
-            }
-            painelContainerUnidades.add(painelDaUnidade);
-        });
-        
-        painelWrapper.add(new JScrollPane(painelContainerUnidades), BorderLayout.CENTER);
-        return painelWrapper;
-    }
-
-
-    private void atualizarTotalDaCompra() {
-        // ... (Implementação como na sua versão)
-        BigDecimal total = assentosSelecionadosPeloUsuario.stream()
-                .map(Assento::getPreco)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        lblTotal.setText("TOTAL: " + FormatadorMoeda.formatar(total));
-        btnConfirmar.setEnabled(!assentosSelecionadosPeloUsuario.isEmpty());
-    }
-
-    private void confirmarSelecaoEAvancar() {
-        // ... (Implementação como na sua versão)
-        if (!assentosSelecionadosPeloUsuario.isEmpty()) {
-            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(
-                false, 
-                this.pecaSelecionada,
-                new ArrayList<>(this.assentosSelecionadosPeloUsuario),
-                this.clienteServico,
-                this.pecaServico,
-                this.reservaServico
-            );
-            telaInformarCPF.setTurnoSelecionado(this.turnoEscolhido);
-            
-            frame.setContentPane(telaInformarCPF);
-            frame.revalidate();
-            frame.repaint();
-        }
-    }
-
-    private void voltarParaSelecaoDeTurno() {
-        // ... (Implementação como na sua versão)
-        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        frame.setContentPane(new TelaSelecionarTurno(this.pecaSelecionada, this.pecaServico, this.clienteServico, this.reservaServico));
-        frame.revalidate();
-        frame.repaint();
-    }
-    
-    // --- MÉTODOS VISUAIS AUXILIARES (sem alteração de lógica) ---
-    private JPanel criarLegendaVisual() {
-        // ... (Implementação como na sua versão)
+     private JPanel criarLegendaVisual() {
         JPanel legenda = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
         legenda.setOpaque(false);
         adicionarItemLegenda(legenda, "Disponível", Constantes.AZUL_CLARO);
@@ -288,19 +218,32 @@ public class TelaSelecionarAssento extends JPanel {
     }
 
     private void adicionarItemLegenda(JPanel painel, String texto, Color cor) {
-        // ... (Implementação como na sua versão)
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         item.setOpaque(false);
-        // ...
+        JPanel circulo = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2d.setColor(cor);
+                g2d.fillOval(0, 0, 18, 18);
+                g2d.setColor(cor.darker());
+                g2d.drawOval(0,0,18,18);
+                g2d.dispose();
+            }
+        };
+        circulo.setPreferredSize(new Dimension(18, 18));
+        circulo.setOpaque(false);
         JLabel label = new JLabel(texto);
         label.setForeground(Color.WHITE);
-        item.add(new JLabel(new ImageIcon())); // Placeholder for circle
+        label.setFont(Constantes.FONTE_LABEL);
+        item.add(circulo);
         item.add(label);
         painel.add(item);
     }
-    
+
     private JPanel criarRodapeDeControles() {
-        // ... (Implementação como na sua versão)
         JPanel rodape = new JPanel(new BorderLayout());
         rodape.setOpaque(false);
         rodape.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
@@ -338,5 +281,39 @@ public class TelaSelecionarAssento extends JPanel {
         rodape.add(painelDireita, BorderLayout.EAST);
 
         return rodape;
+    }
+
+     private void atualizarTotalDaCompra() {
+        BigDecimal total = assentosSelecionadosPeloUsuario.stream()
+                .map(Assento::getPreco)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        lblTotal.setText("TOTAL: " + FormatadorMoeda.formatar(total));
+        btnConfirmar.setEnabled(!assentosSelecionadosPeloUsuario.isEmpty());
+    }
+
+    private void confirmarSelecaoEAvancar() {
+        if (!assentosSelecionadosPeloUsuario.isEmpty()) {
+            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(
+                false, 
+                this.pecaSelecionada,
+                new ArrayList<>(this.assentosSelecionadosPeloUsuario),
+                this.clienteServico,
+                this.pecaServico,
+                this.reservaServico
+            );
+            telaInformarCPF.setTurnoSelecionado(this.turnoEscolhido);
+            
+            frame.setContentPane(telaInformarCPF);
+            frame.revalidate();
+            frame.repaint();
+        }
+    }
+
+    private void voltarParaSelecaoDeTurno() {
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        frame.setContentPane(new TelaSelecionarTurno(this.pecaSelecionada, this.pecaServico, this.clienteServico, this.reservaServico));
+        frame.revalidate();
+        frame.repaint();
     }
 }

@@ -15,6 +15,7 @@ public class ConfiguracaoPlantaTeatro {
     private static final TeatroLayoutConfig LAYOUT_PADRAO;
 
     static {
+        // A lista de seções agora será construída com os valores corretos.
         List<SecaoConfig> secoes = new ArrayList<>();
 
         // REQUISITOS DO PDF:
@@ -24,25 +25,20 @@ public class ConfiguracaoPlantaTeatro {
         // Plateia B: 100 -> Modelado como 10 fileiras de 10 assentos
         secoes.add(new SecaoConfig("Plateia B", CategoriaAssento.PLATEIA_B, 10, 10));
 
-        // Frisa: 5 por frisa. Assumindo 8 frisas no total (baseado na imagem de exemplo).
-        // Modelado como 8 "fileiras" (unidades) de 5 assentos cada.
-        secoes.add(new SecaoConfig("Frisa", CategoriaAssento.FRISA, 8, 5));
+        // Frisa: 5 por frisa. Total de 6 frisas (3 de cada lado).
+        // Modelado como 6 "fileiras" (unidades) de 5 assentos cada.
+        secoes.add(new SecaoConfig("Frisa", CategoriaAssento.FRISA, 6, 5)); // <-- MUDANÇA AQUI de 8 para 6
 
-        // Camarote: 10 por camarote. Assumindo 4 camarotes no total.
+        // Camarote: 10 por camarote. Assumindo 4 camarotes no total (baseado na imagem).
         // Modelado como 4 "fileiras" (unidades) de 10 assentos cada.
         secoes.add(new SecaoConfig("Camarote", CategoriaAssento.CAMAROTE, 4, 10));
         
         // Balcão Nobre: 50 -> Modelado como 5 fileiras de 10 assentos
         secoes.add(new SecaoConfig("Balcão Nobre", CategoriaAssento.BALCAO_NOBRE, 5, 10));
 
-        LAYOUT_PADRAO = new TeatroLayoutConfig(List.of(
-            // Definindo a ordem visual de renderização
-            new SecaoConfig("Plateia A", CategoriaAssento.PLATEIA_A, 5, 5),
-            new SecaoConfig("Plateia B", CategoriaAssento.PLATEIA_B, 10, 10),
-            new SecaoConfig("Frisa", CategoriaAssento.FRISA, 8, 5),
-            new SecaoConfig("Camarote", CategoriaAssento.CAMAROTE, 4, 10),
-            new SecaoConfig("Balcão Nobre", CategoriaAssento.BALCAO_NOBRE, 5, 10)
-        ));
+        // A lista final é criada com os objetos já configurados.
+        // O `List.of` aqui apenas garante a imutabilidade, a configuração em si já foi feita.
+        LAYOUT_PADRAO = new TeatroLayoutConfig(secoes);
     }
 
     /**
