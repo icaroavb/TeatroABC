@@ -4,6 +4,9 @@ import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.enums.CategoriaAssento;
 import com.teatroabc.dominio.enums.StatusAssento;
 import com.teatroabc.dominio.enums.Turno;
+import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
+import com.teatroabc.infraestrutura.config.SecaoConfig;
+import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio; // Implementar
 import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
 
@@ -11,53 +14,34 @@ import java.util.*;
 
 public class AssentoRepositorio implements IAssentoRepositorio {
 
-    @Override
+     @Override
     public List<Assento> buscarTodosAssentosPorPecaETurno(String idPeca, Turno turno) {
         if (idPeca == null || turno == null) {
-            // Ou lançar IllegalArgumentException
             return Collections.emptyList();
         }
 
         List<Assento> todosAssentos = new ArrayList<>();
-        // Usa o GerenciadorArquivos para saber quais códigos de assento estão ocupados
-        // para a peça e turno específicos.
-        Set<String> codigosOcupadosRegistrados = GerenciadorArquivos.buscarAssentosOcupados(idPeca, turno.name());
+        Set<String> codigosOcupados = GerenciadorArquivos.buscarAssentosOcupados(idPeca, turno.name());
 
-        // Frisas
-        for (int f = 1; f <= 3; f++) {
-            for (int a = 1; a <= 8; a++) {
-                String codigo = "F" + f + "-" + a;
-                CategoriaAssento cat = CategoriaAssento.FRISA;
-                // O preço é o precoBase da categoria, conforme definido no Assento construtor
-                Assento assento = new Assento(codigo, f, a, cat, cat.getPrecoBase());
-                if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
-                    assento.setStatus(StatusAssento.OCUPADO);
+        // Busca a configuração da planta do teatro da nossa fonte única de verdade
+        TeatroLayoutConfig layout = ConfiguracaoPlantaTeatro.getLayout();
+
+        // Itera sobre a configuração para gerar os assentos
+        for (SecaoConfig secao : layout.getSecoes()) {
+            char prefixo = secao.getNomeDaSecao().charAt(0); // Ex: 'F' para Frisa, 'P' para Plateia
+            
+            for (int f = 1; f <= secao.getNumeroDeFileiras(); f++) {
+                for (int a = 1; a <= secao.getAssentosPorFileira(); a++) {
+                    String codigo = String.format("%c%d-%d", prefixo, f, a);
+                    CategoriaAssento categoria = secao.getCategoria();
+                    
+                    Assento assento = new Assento(codigo, f, a, categoria, categoria.getPrecoBase());
+                    
+                    if (codigosOcupados.contains(codigo)) {
+                        assento.setStatus(StatusAssento.OCUPADO);
+                    }
+                    todosAssentos.add(assento);
                 }
-                todosAssentos.add(assento);
-            }
-        }
-        // Balcão Nobre
-        for (int f = 1; f <= 4; f++) {
-            for (int a = 1; a <= 10; a++) {
-                String codigo = "B" + f + "-" + a;
-                CategoriaAssento cat = CategoriaAssento.BALCAO_NOBRE;
-                Assento assento = new Assento(codigo, f, a, cat, cat.getPrecoBase());
-                if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
-                    assento.setStatus(StatusAssento.OCUPADO);
-                }
-                todosAssentos.add(assento);
-            }
-        }
-        // Balcão
-        for (int f = 1; f <= 4; f++) {
-            for (int a = 1; a <= 10; a++) {
-                String codigo = "C" + f + "-" + a;
-                CategoriaAssento cat = CategoriaAssento.BALCAO_NOBRE;
-                Assento assento = new Assento(codigo, f, a, cat, cat.getPrecoBase());
-                if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
-                    assento.setStatus(StatusAssento.OCUPADO);
-                }
-                todosAssentos.add(assento);
             }
         }
         return todosAssentos;
