@@ -1,37 +1,35 @@
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
 import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio; // Implementar
-import com.teatroabc.infraestrutura.utilitarios_comuns.GeradorIdUtil;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
 import java.util.*;
 import java.time.LocalDateTime;
 
 public class PecaRepositorio implements IPecaRepositorio {
-    private static final List<Peca> pecasDB = new ArrayList<>(); // Renomeado para clareza
+    private static final List<Peca> pecasDB = new ArrayList<>();
 
     static {
-        // Inicialização como antes, usando GeradorIdUtil e cores Hex.
-        // O Peca construtor agora espera o ID como primeiro argumento.
+        // IDs agora são fixos para corresponder aos dados dos arquivos.
+        // Use os IDs corretos do seu ambiente. Estes são exemplos.
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
+                "ee4ef3e1-38d8-4456-9773-3160b7f70479", // ID exemplo, use os seus
                 "WICKEDONIA", "A PARÓDIA MUSICAL", "Uma paródia hilária do famoso musical",
                 "#3CB371", "imagens/wickedonia.png", LocalDateTime.of(2024, 4, 25, 20, 0)
         ));
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
-                "HERMANOTEU", "", "Comédia com os personagens mais queridos do humor",
-                "#EF7D00", "imagens/hermanoteu.png", LocalDateTime.of(2024, 5, 2, 21, 0)
+                "0c22d34c-bf3b-4250-b536-53cbf276114d", // ID exemplo, use os seus
+                "HERMANOTEU", "NA TERRA DE GODAH", "Comédia com os personagens mais queridos do humor",
+                "#EF7D00", "imagens/hermanoteu.png", LocalDateTime.of(2025, 6, 5, 20, 0)
         ));
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
+                "27460ed2-aa6d-4bb4-b68a-46938b6b242e", // ID exemplo, use os seus
                 "MORTE E VIDA SEVERINA", "", "Clássico de João Cabral de Melo Neto",
-                "#E53935", "imagens/morte_vida_severina.jpg", LocalDateTime.of(2024, 5, 10, 19, 30)
+                "#E53935", "imagens/morte_vida_severina.jpg", LocalDateTime.of(2025, 6, 6, 19, 30)
         ));
     }
 
     @Override
     public List<Peca> listarTodas() {
-        // Retorna uma nova lista (cópia superficial) para proteger a lista interna de modificações externas.
         return new ArrayList<>(pecasDB);
     }
 
