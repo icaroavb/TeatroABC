@@ -12,16 +12,19 @@ import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.infraestrutura.config.Alinhamento;
 import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
 import com.teatroabc.infraestrutura.config.SecaoConfig;
 import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
 import com.teatroabc.dominio.enums.CategoriaAssento;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,11 +32,9 @@ import java.util.stream.Collectors;
 public class TelaSelecionarAssento extends JPanel {
     private final Peca pecaSelecionada;
     private final Turno turnoEscolhido;
-
     private final IPecaServico pecaServico;
     private final IClienteServico clienteServico;
     private final IReservaServico reservaServico;
-
     private final List<Assento> assentosDaPlanta;
     private final List<Assento> assentosSelecionadosPeloUsuario;
     private JLabel lblTotal;
@@ -43,7 +44,7 @@ public class TelaSelecionarAssento extends JPanel {
     public TelaSelecionarAssento(Peca peca, Turno turno,
                                  IPecaServico pecaServico, IClienteServico clienteServico, IReservaServico reservaServico) {
         if (peca == null || turno == null || pecaServico == null || clienteServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Peca, Turno e Serviços não podem ser nulos em TelaSelecionarAssento.");
+            throw new IllegalArgumentException("Peca, Turno e Serviços não podem ser nulos.");
         }
         this.pecaSelecionada = peca;
         this.turnoEscolhido = turno;
@@ -60,7 +61,6 @@ public class TelaSelecionarAssento extends JPanel {
             List<Assento> assentos = pecaServico.buscarAssentosDaPecaPorTurno(pecaSelecionada.getId(), this.turnoEscolhido);
             return assentos != null ? assentos : Collections.emptyList();
         } catch (Exception e) {
-            System.err.println("Erro crítico ao carregar assentos: " + e.getMessage());
             e.printStackTrace();
             return Collections.emptyList();
         }
@@ -70,125 +70,183 @@ public class TelaSelecionarAssento extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
-        JPanel containerPrincipal = new JPanel(new BorderLayout(0, 15));
-        containerPrincipal.setOpaque(false);
-        containerPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.getViewport().setBackground(Constantes.AZUL_ESCURO);
 
-        containerPrincipal.add(criarCabecalhoDaTela(), BorderLayout.NORTH);
+        JPanel painelConteudoPrincipal = new JPanel(new BorderLayout(0, 15));
+        painelConteudoPrincipal.setBackground(Constantes.AZUL_ESCURO);
+        painelConteudoPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        JPanel painelConteudoTeatro = new JPanel();
-        painelConteudoTeatro.setLayout(new BoxLayout(painelConteudoTeatro, BoxLayout.Y_AXIS));
-        painelConteudoTeatro.setOpaque(false);
-        painelConteudoTeatro.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        painelConteudoPrincipal.add(criarCabecalhoDaTela(), BorderLayout.NORTH);
+
+        JPanel painelCentral = new JPanel();
+        painelCentral.setLayout(new BoxLayout(painelCentral, BoxLayout.Y_AXIS));
+        painelCentral.setOpaque(false);
 
         JPanel palco = new JPanel();
         palco.setBackground(Constantes.BEGE.darker());
-        palco.setPreferredSize(new Dimension(600, 40));
         palco.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         JLabel lblPalco = new JLabel("PALCO");
         lblPalco.setFont(new Font("Arial", Font.BOLD, 20));
         lblPalco.setForeground(Color.WHITE);
         palco.add(lblPalco);
-        painelConteudoTeatro.add(palco);
-        painelConteudoTeatro.add(Box.createVerticalStrut(20));
+        painelCentral.add(palco);
+        painelCentral.add(Box.createVerticalStrut(20));
 
-        this.painelSecoes = new JPanel();
+        this.painelSecoes = new JPanel(new GridBagLayout());
         this.painelSecoes.setOpaque(false);
-        this.painelSecoes.setAlignmentX(Component.CENTER_ALIGNMENT);
-        painelConteudoTeatro.add(this.painelSecoes);
-        painelConteudoTeatro.add(Box.createVerticalStrut(20));
-
-        painelConteudoTeatro.add(criarLegendaVisual());
-        painelConteudoTeatro.add(Box.createVerticalStrut(10));
-
-        JScrollPane scrollTeatro = new JScrollPane(painelConteudoTeatro);
-        scrollTeatro.setBorder(BorderFactory.createEmptyBorder());
-        scrollTeatro.getViewport().setOpaque(false);
-        scrollTeatro.setOpaque(false);
-        scrollTeatro.getVerticalScrollBar().setUnitIncrement(16);
-        scrollTeatro.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
-        containerPrincipal.add(scrollTeatro, BorderLayout.CENTER);
-
-        add(containerPrincipal, BorderLayout.CENTER);
+        painelCentral.add(this.painelSecoes);
+        
+        painelConteudoPrincipal.add(painelCentral, BorderLayout.CENTER);
+        painelConteudoPrincipal.add(criarLegendaVisual(), BorderLayout.SOUTH);
+        
+        scrollPane.setViewportView(painelConteudoPrincipal);
+        
+        add(scrollPane, BorderLayout.CENTER);
         add(criarRodapeDeControles(), BorderLayout.SOUTH);
 
         atualizarVisualizacaoDasSecoes();
         atualizarTotalDaCompra();
     }
-    
+
     private void atualizarVisualizacaoDasSecoes() {
         painelSecoes.removeAll();
-        painelSecoes.setLayout(new BoxLayout(painelSecoes, BoxLayout.Y_AXIS));
 
-        Map<CategoriaAssento, List<Assento>> assentosAgrupados =
-            this.assentosDaPlanta.stream().collect(Collectors.groupingBy(Assento::getCategoria));
+        Map<CategoriaAssento, List<Assento>> assentosPorCategoria = this.assentosDaPlanta.stream()
+            .collect(Collectors.groupingBy(Assento::getCategoria));
 
         TeatroLayoutConfig layoutConfig = ConfiguracaoPlantaTeatro.getLayout();
-
+        
+        JPanel painelEsquerda = createColumnPanel();
+        JPanel painelCentro = createColumnPanel();
+        JPanel painelDireita = createColumnPanel();
+        
         for (SecaoConfig secaoConfig : layoutConfig.getSecoes()) {
-            CategoriaAssento categoriaAtual = secaoConfig.getCategoria();
-            
-            if (assentosAgrupados.containsKey(categoriaAtual)) {
-                List<Assento> assentosParaRenderizar = assentosAgrupados.get(categoriaAtual);
+            if (secaoConfig.getCategoria() == CategoriaAssento.FRISA) {
+                // Pula a renderização das frisas aqui, pois serão tratadas separadamente.
+                continue;
+            }
+            // Renderiza as seções centrais
+            List<Assento> assentosParaRenderizar = assentosPorCategoria.getOrDefault(secaoConfig.getCategoria(), Collections.emptyList());
+            if (!assentosParaRenderizar.isEmpty()) {
                 JPanel painelDaSecao = criarPainelDeSecao(secaoConfig, assentosParaRenderizar);
-                painelSecoes.add(painelDaSecao);
-                painelSecoes.add(Box.createVerticalStrut(25));
+                painelCentro.add(painelDaSecao);
+                painelCentro.add(Box.createVerticalStrut(20));
             }
         }
+        
+        // ** LÓGICA CORRIGIDA PARA AS FRISAS **
+        // Pega todos os assentos da categoria FRISA.
+        List<Assento> todasAsFrisas = assentosPorCategoria.getOrDefault(CategoriaAssento.FRISA, Collections.emptyList());
+        // Garante uma ordem consistente antes de dividir a lista.
+        todasAsFrisas.sort(Comparator.comparing(Assento::getCodigo));
+        
+        int metade = todasAsFrisas.size() / 2;
+        List<Assento> frisasEsquerda = todasAsFrisas.subList(0, metade);
+        List<Assento> frisasDireita = todasAsFrisas.subList(metade, todasAsFrisas.size());
+
+        if (!frisasEsquerda.isEmpty()) {
+            criarBlocosDeFrisa(painelEsquerda, frisasEsquerda, "Frisas Ímpares");
+        }
+        if (!frisasDireita.isEmpty()) {
+            criarBlocosDeFrisa(painelDireita, frisasDireita, "Frisas Pares");
+        }
+        
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.fill = GridBagConstraints.VERTICAL;
+
+        gbc.gridx = 0; gbc.weightx = 0.25; painelSecoes.add(painelEsquerda, gbc);
+        gbc.gridx = 1; gbc.weightx = 0.5;  painelSecoes.add(painelCentro, gbc);
+        gbc.gridx = 2; gbc.weightx = 0.25; painelSecoes.add(painelDireita, gbc);
 
         painelSecoes.revalidate();
         painelSecoes.repaint();
     }
+    
+    private void criarBlocosDeFrisa(JPanel painelColuna, List<Assento> frisas, String titulo) {
+        JPanel painelWrapper = new JPanel();
+        painelWrapper.setLayout(new BoxLayout(painelWrapper, BoxLayout.Y_AXIS));
+        painelWrapper.setOpaque(false);
+        painelWrapper.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(80,100,120)), titulo, 
+            TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14), Constantes.AMARELO));
 
-    /**
-     * MÉTODO CORRIGIDO: Agora usa as dimensões da configuração para criar o GridLayout.
-     */
+        Map<Integer, List<Assento>> frisasAgrupadas = frisas.stream()
+            .collect(Collectors.groupingBy(Assento::getFileira));
+        
+        frisasAgrupadas.keySet().stream().sorted().forEach(numFrisa -> {
+            List<Assento> assentosDaFrisa = frisasAgrupadas.get(numFrisa);
+            JPanel painelDaFrisa = new JPanel(new GridLayout(0, 2, 4, 4)); // 0 linhas, 2 colunas
+            painelDaFrisa.setOpaque(false);
+
+            for (Assento assento : assentosDaFrisa) {
+                BotaoAssento botao = new BotaoAssento(assento);
+                botao.addActionListener(e -> onAssentoClicked(assento, botao));
+                
+                JPanel wrapperDoBotao = new JPanel(new GridBagLayout());
+                wrapperDoBotao.setOpaque(false);
+                wrapperDoBotao.add(botao);
+
+                painelDaFrisa.add(wrapperDoBotao);
+            }
+            painelWrapper.add(painelDaFrisa);
+            painelWrapper.add(Box.createVerticalStrut(15));
+        });
+        painelColuna.add(painelWrapper);
+    }
+
     private JPanel criarPainelDeSecao(SecaoConfig config, List<Assento> assentosDaSecao) {
         JPanel painelWrapper = new JPanel(new BorderLayout(5, 10));
         painelWrapper.setOpaque(false);
-        // Opcional: Adiciona um fundo para agrupar visualmente as seções
-        painelWrapper.setBackground(new Color(255, 255, 255, 10)); 
-        painelWrapper.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-
-        JLabel lblTituloSecao = new JLabel(config.getNomeDaSecao(), SwingConstants.CENTER);
-        lblTituloSecao.setFont(new Font("Arial", Font.BOLD, 18));
-        lblTituloSecao.setForeground(Constantes.AMARELO);
-        painelWrapper.add(lblTituloSecao, BorderLayout.NORTH);
-
-        // *** A CORREÇÃO PRINCIPAL ESTÁ AQUI ***
-        // O GridLayout agora é criado usando as dimensões exatas da nossa configuração.
+        painelWrapper.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(new Color(80,100,120)), config.getNomeDaSecao(), 
+            TitledBorder.CENTER, TitledBorder.TOP, new Font("Arial", Font.BOLD, 14), Constantes.AMARELO));
+        
         JPanel painelGridAssentos = new JPanel(new GridLayout(
-            config.getNumeroDeFileiras(),
-            config.getAssentosPorFileira(),
-            5, 5 // Espaçamento
+            config.getNumeroDeFileiras(), config.getAssentosPorFileira(), 5, 5
         ));
         painelGridAssentos.setOpaque(false);
 
-        // A lista de assentos já está na ordem correta vinda do repositório.
-        // Apenas iteramos e criamos os botões.
         for (Assento assento : assentosDaSecao) {
             BotaoAssento botao = new BotaoAssento(assento);
-            botao.addActionListener(e -> {
-                if (assento.getStatus() == StatusAssento.DISPONIVEL) {
-                    assento.setStatus(StatusAssento.SELECIONADO);
-                    assentosSelecionadosPeloUsuario.add(assento);
-                } else if (assento.getStatus() == StatusAssento.SELECIONADO) {
-                    assento.setStatus(StatusAssento.DISPONIVEL);
-                    assentosSelecionadosPeloUsuario.remove(assento);
-                }
-                botao.atualizarInteratividadeBaseadaNoStatus();
-                atualizarTotalDaCompra();
-            });
-            painelGridAssentos.add(botao);
+            botao.addActionListener(e -> onAssentoClicked(assento, botao));
+
+            JPanel wrapperDoBotao = new JPanel(new GridBagLayout());
+            wrapperDoBotao.setOpaque(false);
+            wrapperDoBotao.add(botao);
+
+            painelGridAssentos.add(wrapperDoBotao);
         }
         
         painelWrapper.add(painelGridAssentos, BorderLayout.CENTER);
         return painelWrapper;
     }
+
+    private void onAssentoClicked(Assento assento, BotaoAssento botao) {
+        if (assento.getStatus() == StatusAssento.DISPONIVEL) {
+            assento.setStatus(StatusAssento.SELECIONADO);
+            assentosSelecionadosPeloUsuario.add(assento);
+        } else if (assento.getStatus() == StatusAssento.SELECIONADO) {
+            assento.setStatus(StatusAssento.DISPONIVEL);
+            assentosSelecionadosPeloUsuario.remove(assento);
+        }
+        botao.atualizarInteratividadeBaseadaNoStatus();
+        atualizarTotalDaCompra();
+    }
     
-    // O restante da classe (métodos de UI e navegação) permanece o mesmo.
-    // ... (criarCabecalhoDaTela, criarLegendaVisual, criarRodapeDeControles, etc.)
+    // --- MÉTODOS VISUAIS AUXILIARES E DE NAVEGAÇÃO (sem alterações) ---
+
+    private JPanel createColumnPanel() {
+        JPanel panel = new JPanel();
+        panel.setOpaque(false);
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        return panel;
+    }
+    
     private JPanel criarCabecalhoDaTela() {
         JPanel cabecalho = new JPanel(new BorderLayout());
         cabecalho.setOpaque(false);
@@ -208,9 +266,16 @@ public class TelaSelecionarAssento extends JPanel {
         return cabecalho;
     }
 
-     private JPanel criarLegendaVisual() {
+    private JPanel criarLegendaVisual() {
         JPanel legenda = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 5));
         legenda.setOpaque(false);
+        legenda.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Constantes.AMARELO),
+            "LEGENDA",
+            TitledBorder.CENTER, TitledBorder.TOP,
+            new Font("Arial", Font.BOLD, 14), Constantes.AMARELO
+        ));
+
         adicionarItemLegenda(legenda, "Disponível", Constantes.AZUL_CLARO);
         adicionarItemLegenda(legenda, "Ocupado", Constantes.BEGE);
         adicionarItemLegenda(legenda, "Selecionado", Constantes.VERDE);
@@ -220,6 +285,7 @@ public class TelaSelecionarAssento extends JPanel {
     private void adicionarItemLegenda(JPanel painel, String texto, Color cor) {
         JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         item.setOpaque(false);
+        
         JPanel circulo = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -235,23 +301,27 @@ public class TelaSelecionarAssento extends JPanel {
         };
         circulo.setPreferredSize(new Dimension(18, 18));
         circulo.setOpaque(false);
+        
         JLabel label = new JLabel(texto);
         label.setForeground(Color.WHITE);
         label.setFont(Constantes.FONTE_LABEL);
+        
         item.add(circulo);
         item.add(label);
         painel.add(item);
     }
-
+    
     private JPanel criarRodapeDeControles() {
         JPanel rodape = new JPanel(new BorderLayout());
-        rodape.setOpaque(false);
-        rodape.setBorder(BorderFactory.createEmptyBorder(15, 0, 10, 0));
+        rodape.setBackground(Constantes.AZUL_ESCURO);
+        rodape.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(1, 0, 0, 0, new Color(80,100,120)),
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
 
         JButton btnVoltarUI = new JButton("<< Voltar para Seleção de Turno");
         btnVoltarUI.setFont(new Font("Arial", Font.PLAIN, 16));
         btnVoltarUI.setForeground(Constantes.AZUL_CLARO);
-        btnVoltarUI.setOpaque(false);
         btnVoltarUI.setContentAreaFilled(false);
         btnVoltarUI.setBorderPainted(false);
         btnVoltarUI.setCursor(new Cursor(Cursor.HAND_CURSOR));
@@ -283,7 +353,7 @@ public class TelaSelecionarAssento extends JPanel {
         return rodape;
     }
 
-     private void atualizarTotalDaCompra() {
+    private void atualizarTotalDaCompra() {
         BigDecimal total = assentosSelecionadosPeloUsuario.stream()
                 .map(Assento::getPreco)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
