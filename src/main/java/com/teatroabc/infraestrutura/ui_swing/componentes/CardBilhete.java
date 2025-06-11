@@ -4,128 +4,125 @@ import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
+
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Componente visual customizado para exibir um resumo das informações de um Bilhete
+ * em uma lista, como na tela "Meus Bilhetes".
+ * 
+ * Na Arquitetura Hexagonal, esta classe é um Adaptador de UI. Ela recebe um objeto
+ * de domínio (Bilhete) e é responsável por sua formatação e apresentação visual
+ * de forma concisa.
+ */
 public class CardBilhete extends JPanel {
+    private final Bilhete bilhete;
     private ActionListener actionListener;
-    private Bilhete bilhete;
 
     public CardBilhete(Bilhete bilhete) {
+        if (bilhete == null) {
+            throw new IllegalArgumentException("O objeto Bilhete não pode ser nulo.");
+        }
         this.bilhete = bilhete;
-        setLayout(new BorderLayout());
-        setBackground(new Color(52, 73, 94));
-        setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
-        setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
         
-        configurarCard();
+        configurarLayoutECores();
+        adicionarComponentesVisuais();
+    }
+
+    private void configurarLayoutECores() {
+        setLayout(new BorderLayout(20, 0));
+        setBackground(Constantes.CINZA_ESCURO);
+        setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Constantes.AZUL_ESCURO.brighter()),
+            BorderFactory.createEmptyBorder(15, 25, 15, 25)
+        ));
+        setMaximumSize(new Dimension(Integer.MAX_VALUE, 130)); 
+    }
+
+    private void adicionarComponentesVisuais() {
+        add(criarPainelDeInformacoes(), BorderLayout.CENTER);
+        add(criarPainelDoBotao(), BorderLayout.EAST);
     }
     
-    private void configurarCard() {
+    private JPanel criarPainelDeInformacoes() {
         JPanel painelInfo = new JPanel(new GridBagLayout());
-        painelInfo.setBackground(new Color(52, 73, 94));
+        painelInfo.setOpaque(false);
         
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(3, 0, 3, 30);
+        gbc.insets = new Insets(2, 0, 2, 20);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
+        gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
         JLabel lblTituloPeca = new JLabel(bilhete.getPeca().getTitulo());
         lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 20));
         lblTituloPeca.setForeground(Color.WHITE);
         painelInfo.add(lblTituloPeca, gbc);
 
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.gridheight = 4;
-        gbc.fill = GridBagConstraints.VERTICAL;
-        JPanel miniCodigoBarras = criarMiniCodigoBarras(bilhete.getCodigoBarras());
-        painelInfo.add(miniCodigoBarras, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.gridheight = 1;
-        gbc.fill = GridBagConstraints.NONE;
-        JLabel lblData = new JLabel("Data");
-        lblData.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblData.setForeground(Color.LIGHT_GRAY);
-        painelInfo.add(lblData, gbc);
-
+        gbc.gridy = 1; gbc.gridwidth = 1;
+        painelInfo.add(criarLabelDeRotulo("Data"), gbc);
+        
         gbc.gridy = 2;
-        JLabel lblDataValor = new JLabel(FormatadorData.formatar(bilhete.getPeca().getDataHora()));
-        lblDataValor.setFont(new Font("Arial", Font.BOLD, 16));
-        lblDataValor.setForeground(Color.WHITE);
+        painelInfo.add(criarLabelDeRotulo("Assentos"), gbc);
+        
+        gbc.gridx = 1; gbc.gridy = 1;
+        JLabel lblDataValor = criarLabelDeValor(FormatadorData.formatar(bilhete.getPeca().getDataHora()));
         painelInfo.add(lblDataValor, gbc);
 
-        gbc.gridy = 3;
-        JLabel lblAssentos = new JLabel("Assentos");
-        lblAssentos.setFont(new Font("Arial", Font.PLAIN, 14));
-        lblAssentos.setForeground(Color.LIGHT_GRAY);
-        painelInfo.add(lblAssentos, gbc);
-
-        gbc.gridy = 4;
-        List<Assento> assentos = bilhete.getAssentos();
-        String assentosTexto = assentos.isEmpty() ? "N/A" : 
-            assentos.stream()
-                .map(a -> a.getCodigo())
-                .reduce((a, b) -> a + ", " + b)
-                .orElse("N/A");
-        JLabel lblAssentosValor = new JLabel(assentosTexto);
-        lblAssentosValor.setFont(new Font("Arial", Font.BOLD, 16));
-        lblAssentosValor.setForeground(Color.WHITE);
+        gbc.gridy = 2;
+        String assentosTexto = bilhete.getAssentos().stream()
+            .map(Assento::getCodigo)
+            .collect(Collectors.joining(", "));
+        JLabel lblAssentosValor = criarLabelDeValor(assentosTexto);
         painelInfo.add(lblAssentosValor, gbc);
 
-        add(painelInfo, BorderLayout.CENTER);
+        return painelInfo;
+    }
+    
+    private JLabel criarLabelDeRotulo(String texto) {
+        JLabel label = new JLabel(texto);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        label.setForeground(Color.LIGHT_GRAY);
+        return label;
+    }
+    
+    private JLabel criarLabelDeValor(String texto) {
+        JLabel label = new JLabel(texto);
+        label.setFont(new Font("Arial", Font.BOLD, 16));
+        label.setForeground(Color.WHITE);
+        return label;
+    }
 
-        JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        painelBotao.setBackground(new Color(52, 73, 94));
-        
+    /**
+     * Cria o painel que contém o botão de ação "Visualizar".
+     * @return JPanel com o botão.
+     */
+    private JPanel criarPainelDoBotao() {
+        JPanel painelBotao = new JPanel(new GridBagLayout());
+        painelBotao.setOpaque(false);
+
         BotaoAnimado btnVisualizar = new BotaoAnimado("VISUALIZAR",
             Constantes.AZUL_CLARO, new Color(70, 130, 180), new Dimension(120, 40));
         btnVisualizar.setFont(new Font("Arial", Font.BOLD, 14));
+        
+        // Adiciona um listener que repassa o evento para o listener externo.
         btnVisualizar.addActionListener(e -> {
             if (actionListener != null) {
-                actionListener.actionPerformed(e);
+                // **CORREÇÃO APLICADA AQUI**
+                // Cria um novo ActionEvent, mas agora a fonte (o primeiro argumento)
+                // é o próprio CardBilhete (this), e não o botão que foi clicado.
+                // Isso permite que a tela que ouve este evento faça o cast para CardBilhete
+                // sem erro e obtenha os dados do bilhete correto.
+                ActionEvent eventoDoCard = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
+                actionListener.actionPerformed(eventoDoCard);
             }
         });
         
         painelBotao.add(btnVisualizar);
-        add(painelBotao, BorderLayout.EAST);
-    }
-
-    private JPanel criarMiniCodigoBarras(String codigo) {
-        JPanel painelBarras = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2d = (Graphics2D) g.create();
-                
-                int x = 5;
-                int larguraBarra = 2;
-                int espacamento = 1;
-                
-                g2d.setColor(Color.WHITE);
-                
-                for (int i = 0; i < 15 && x < getWidth() - 10; i++) {
-                    char c = codigo.charAt(i % codigo.length());
-                    int altura = 20 + (c % 10);
-                    
-                    g2d.fillRect(x, (getHeight() - altura) / 2, larguraBarra, altura);
-                    x += larguraBarra + espacamento;
-                }
-                
-                g2d.dispose();
-            }
-        };
-        
-        painelBarras.setPreferredSize(new Dimension(60, 60));
-        painelBarras.setBackground(Color.BLACK);
-        painelBarras.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        
-        return painelBarras;
+        return painelBotao;
     }
 
     public void addActionListener(ActionListener listener) {
