@@ -25,18 +25,35 @@ import java.util.stream.Collectors;
 /**
  * Tela responsável por exibir os detalhes finais de um pedido de compra de ingressos
  * e permitir que o usuário confirme a operação, resultando na criação de um Bilhete.
- * Atua como um Adaptador Primário, interagindo com o IReservaServico.
+ * 
+ * Na Arquitetura Hexagonal, atua como um Adaptador Primário. Sua principal função
+ * é apresentar um resumo claro do pedido ao usuário e, mediante confirmação,
+ * invocar o serviço IReservaServico para efetivar a transação.
  */
 public class TelaConfirmarPedido extends JPanel {
+    // Contexto do pedido recebido via construtor
     private final Peca peca;
     private final Cliente cliente;
     private final List<Assento> assentos;
     private final Turno turnoSelecionado;
 
-    private final IClienteServico clienteServico;
-    private final IPecaServico pecaServico;
-    private final IReservaServico reservaServico;
+    // Serviços injetados
+    private final IClienteServico clienteServico; // Para repassar na navegação
+    private final IPecaServico pecaServico;       // Para repassar na navegação
+    private final IReservaServico reservaServico; // Para efetivar a reserva
 
+    /**
+     * Construtor da TelaConfirmarPedido.
+     *
+     * @param peca A peça selecionada para a compra.
+     * @param cliente O cliente que está realizando a compra.
+     * @param assentos A lista de assentos selecionados pelo cliente.
+     * @param turno O turno escolhido para a apresentação da peça.
+     * @param clienteServico Serviço para operações de cliente.
+     * @param pecaServico Serviço para operações de peça.
+     * @param reservaServico Serviço para efetivar a reserva/criação do bilhete.
+     * @throws IllegalArgumentException se algum dos parâmetros essenciais for nulo ou inválido.
+     */
     public TelaConfirmarPedido(Peca peca, Cliente cliente, List<Assento> assentos, Turno turno,
                                IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
         
@@ -59,6 +76,9 @@ public class TelaConfirmarPedido extends JPanel {
         configurarTelaVisual();
     }
 
+    /**
+     * Configura os componentes visuais e o layout da tela.
+     */
     private void configurarTelaVisual() {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
@@ -110,6 +130,12 @@ public class TelaConfirmarPedido extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    /**
+     * Cria o painel que exibe o resumo do pedido para confirmação do usuário.
+     * Os valores financeiros aqui são para *exibição*; o cálculo final e autoritativo
+     * é sempre realizado pelo {@link IReservaServico} no backend.
+     * @return JPanel com os detalhes do pedido.
+     */
     private JPanel criarPainelDetalhesDoPedido() {
         JPanel painel = new JPanel();
         painel.setBackground(Constantes.CINZA_ESCURO);
@@ -225,6 +251,12 @@ public class TelaConfirmarPedido extends JPanel {
         return badge;
     }
 
+    /**
+     * Delega a ação de finalização da compra para o serviço de reserva.
+     * Trata as exceções de negócio (ex: assento indisponível) e de sistema,
+     * exibindo feedback apropriado ao usuário.
+     * Em caso de sucesso, navega para a tela principal.
+     */
     private void processarConfirmacaoDaCompra() {
         try {
             Bilhete bilheteCriado = this.reservaServico.criarReserva(
@@ -265,6 +297,10 @@ public class TelaConfirmarPedido extends JPanel {
         }
     }
 
+    /**
+     * Navega de volta para a tela de seleção de assentos, permitindo ao usuário
+     * alterar sua escolha.
+     */
     private void navegarParaTelaAnterior() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         frame.setContentPane(new TelaSelecionarAssento(this.peca, this.turnoSelecionado, this.pecaServico, this.clienteServico, this.reservaServico));

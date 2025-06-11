@@ -12,7 +12,6 @@ import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.infraestrutura.config.Alinhamento;
 import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
 import com.teatroabc.infraestrutura.config.SecaoConfig;
 import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
