@@ -63,9 +63,9 @@ public class TelaSelecionarSessao extends JPanel {
         IClienteServico clienteServico, 
         IReservaServico reservaServico) 
         {
-        if (peca == null || sessaoServico == null || pecaServico == null || clienteServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Peça e Serviços não podem ser nulos para TelaSelecionarSessao.");
-        }
+        //encapsulamento da validacao
+        validacaoServicos(peca, clienteServico, pecaServico, reservaServico, sessaoServico);
+
         this.pecaSelecionada = peca;
         this.sessaoServico = sessaoServico;
         this.pecaServico = pecaServico;
@@ -74,6 +74,35 @@ public class TelaSelecionarSessao extends JPanel {
         this.sessaoEscolhida = null;
 
         configurarTelaVisual();
+    }
+
+    //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
+    private boolean verificarPeca (Peca peca){
+        return peca == null;
+    }
+    private boolean verificarClienteServicoNull (IClienteServico clienteServico){
+        return clienteServico == null;
+    }
+    private boolean verificarPecaServicoNull (IPecaServico pecaServico){
+        return pecaServico == null;
+    }
+    private boolean verificarReservaServicoNull (IReservaServico reservaServico){
+        return reservaServico == null;
+    }
+    private boolean verificarSessaoServicoNull (ISessaoServico sessaoServico){
+        return sessaoServico == null;
+    }
+    //Encapsular a lógica de validação total dos serviços - todos os serviços injetados são essenciais!
+    private void validacaoServicos (
+                                    Peca peca,
+                                    IClienteServico clienteServico, 
+                                    IPecaServico pecaServico, 
+                                    IReservaServico reservaServico, 
+                                    ISessaoServico sessaoServico
+                                    ){
+        if (verificarClienteServicoNull(clienteServico) || verificarPecaServicoNull(pecaServico) || verificarReservaServicoNull(reservaServico) || verificarSessaoServicoNull(sessaoServico)) {
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
+        }
     }
 
     /**

@@ -25,11 +25,15 @@ public class TelaPrincipal extends JPanel {
     private final IReservaServico reservaServico;
     private final ISessaoServico sessaoServico;
 
-    public TelaPrincipal(IClienteServico clienteServico, IPecaServico pecaServico, 
-                         IReservaServico reservaServico, ISessaoServico sessaoServico) {
-        if (clienteServico == null || pecaServico == null || reservaServico == null || sessaoServico == null) {
-            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
-        }
+    public TelaPrincipal(
+                        IClienteServico clienteServico, 
+                        IPecaServico pecaServico, 
+                        IReservaServico reservaServico, 
+                        ISessaoServico sessaoServico
+                        ){
+        //lógica da validação de serviços 
+        validacaoServicos(clienteServico, pecaServico, reservaServico, sessaoServico);
+        
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
@@ -39,7 +43,30 @@ public class TelaPrincipal extends JPanel {
     }
 
     //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
-
+    private boolean verificarClienteServicoNull (IClienteServico clienteServico){
+        return clienteServico == null;
+    }
+    private boolean verificarPecaServicoNull (IPecaServico pecaServico){
+        return pecaServico == null;
+    }
+    private boolean verificarReservaServicoNull (IReservaServico reservaServico){
+        return reservaServico == null;
+    }
+    private boolean verificarSessaoServicoNull (ISessaoServico sessaoServico){
+        return sessaoServico == null;
+    }
+    //Encapsular a lógica de validação total dos serviços - todos os serviços injetados são essenciais!
+    private void validacaoServicos (
+                                    IClienteServico clienteServico, 
+                                    IPecaServico pecaServico, 
+                                    IReservaServico reservaServico, 
+                                    ISessaoServico sessaoServico
+                                    ){
+        if (verificarClienteServicoNull(clienteServico) || verificarPecaServicoNull(pecaServico) || verificarReservaServicoNull(reservaServico) || verificarSessaoServicoNull(sessaoServico)) {
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
+        }
+    }
+    
     /**
      * Configura os componentes visuais e o layout da tela principal.
      * A lógica de criação dos botões foi movida para o componente PainelNavegacaoPrincipal.

@@ -42,11 +42,15 @@ public class TelaSelecionarPeca extends JPanel {
      * @param sessaoServico Serviço de sessão.
      * @throws IllegalArgumentException se algum dos serviços for nulo.
      */
-    public TelaSelecionarPeca(IPecaServico pecaServico, IClienteServico clienteServico, 
-                              IReservaServico reservaServico, ISessaoServico sessaoServico) {
-        if (pecaServico == null || clienteServico == null || reservaServico == null || sessaoServico == null) {
-            throw new IllegalArgumentException("Os serviços injetados não podem ser nulos em TelaSelecionarPeca.");
-        }
+    public TelaSelecionarPeca(
+                            IPecaServico pecaServico, 
+                            IClienteServico clienteServico, 
+                            IReservaServico reservaServico, 
+                            ISessaoServico sessaoServico
+                            ){
+        //lógica da validação de serviços 
+        validacaoServicos(clienteServico, pecaServico, reservaServico, sessaoServico);
+        
         this.pecaServico = pecaServico;
         this.clienteServico = clienteServico;
         this.reservaServico = reservaServico;
@@ -54,6 +58,31 @@ public class TelaSelecionarPeca extends JPanel {
         this.pecaSelecionada = null;
 
         configurarTelaVisual();
+    }
+
+    //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
+    private boolean verificarClienteServicoNull (IClienteServico clienteServico){
+        return clienteServico == null;
+    }
+    private boolean verificarPecaServicoNull (IPecaServico pecaServico){
+        return pecaServico == null;
+    }
+    private boolean verificarReservaServicoNull (IReservaServico reservaServico){
+        return reservaServico == null;
+    }
+    private boolean verificarSessaoServicoNull (ISessaoServico sessaoServico){
+        return sessaoServico == null;
+    }
+    //Encapsular a lógica de validação total dos serviços - todos os serviços injetados são essenciais!
+    private void validacaoServicos (
+                                    IClienteServico clienteServico, 
+                                    IPecaServico pecaServico, 
+                                    IReservaServico reservaServico, 
+                                    ISessaoServico sessaoServico
+                                    ){
+        if (verificarClienteServicoNull(clienteServico) || verificarPecaServicoNull(pecaServico) || verificarReservaServicoNull(reservaServico) || verificarSessaoServicoNull(sessaoServico)) {
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
+        }
     }
 
     /**
