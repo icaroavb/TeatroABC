@@ -47,8 +47,8 @@ public class Bilhete {
                    BigDecimal valorTotal, LocalDateTime dataHoraCompra) {
 
         // A lógica de validação foi encapsulada para maior clareza.
-        apurarInformacoesEssenciais(id, codigoBarras, sessao, cliente, assentos, 
-                                     subtotal, valorDesconto, valorTotal, dataHoraCompra);
+        //apurarInformacoesEssenciais(id, codigoBarras, sessao, cliente, assentos, 
+                                     //subtotal, valorDesconto, valorTotal, dataHoraCompra);
 
         // Validação de consistência financeira.
         if (subtotal.subtract(valorDesconto).compareTo(valorTotal) != 0) {
