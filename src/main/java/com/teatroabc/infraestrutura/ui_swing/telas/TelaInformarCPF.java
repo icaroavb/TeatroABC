@@ -1,25 +1,22 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Sessao; // MUDANÇA: Agora usa Sessao
-import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; // MUDANÇA: Inclui o novo serviço
+import com.teatroabc.aplicacao.interfaces.ISessaoServico; // MUDANÇA: Agora usa Sessao
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Cliente;
+import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.dominio.validadores.ValidadorCPF;
-
-import javax.swing.*;
-import javax.swing.text.MaskFormatter;
+import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
+import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro; // MUDANÇA: Inclui o novo serviço
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import javax.swing.*;
+import javax.swing.text.MaskFormatter;
 
 /**
  * Tela para o usuário informar o CPF. Atua como um roteador de fluxos.

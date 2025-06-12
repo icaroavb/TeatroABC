@@ -1,7 +1,6 @@
 package com.teatroabc.dominio.modelos;
 
-import java.time.LocalDateTime; // Este import não é mais necessário aqui.
-import java.util.Objects;
+import java.util.Objects; // Este import não é mais necessário aqui.
 
 /**
  * Representa uma Peça de teatro como uma obra artística.
@@ -17,8 +16,6 @@ public class Peca {
     private final String descricao;
     private final String corFundoHex;
     private final String caminhoImagem;
-    // O campo dataHora foi REMOVIDO daqui.
-    // private final LocalDateTime dataHora;
 
     /**
      * Construtor principal da entidade Peça.

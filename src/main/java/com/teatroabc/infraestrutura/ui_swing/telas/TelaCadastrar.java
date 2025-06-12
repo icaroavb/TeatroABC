@@ -1,41 +1,37 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.dominio.enums.Turno;
 import com.teatroabc.aplicacao.dto.DadosCadastroClienteDTO;
 import com.teatroabc.aplicacao.excecoes.ClienteJaCadastradoException;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
-import com.teatroabc.aplicacao.interfaces.IPecaServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico; // MUDANÇA: Usa Sessao
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-
-import javax.swing.*;
-import javax.swing.text.MaskFormatter;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Cliente;
+import com.teatroabc.dominio.modelos.Sessao;
+import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
+import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes; // MUDANÇA: Inclui o novo serviço
 import java.awt.*;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import javax.swing.*;
+import javax.swing.text.MaskFormatter;
 
 /**
- * Tela responsável por coletar os dados de um novo cliente para cadastro no sistema.
- * Esta tela é acionada tanto pelo fluxo de compra (quando um CPF não é encontrado)
- * quanto pela opção de cadastro direto na tela principal.
- * 
- * Na Arquitetura Hexagonal, atua como um Adaptador Primário, coletando a entrada do
- * usuário, montando um DTO (Data Transfer Object) e interagindo com o IClienteServico.
+ * Tela responsável por coletar os dados de um novo cliente para cadastro.
+ * Refatorada para trabalhar com o conceito de Sessao, que encapsula peça, data e turno.
  */
 public class TelaCadastrar extends JPanel {
+    // Contexto da navegação
     private final String cpfInformadoOriginalmente;
-    private final Peca peca;
+    private final Sessao sessao; // MUDANÇA: Armazena Sessao em vez de Peca e Turno
     private final List<Assento> assentosSelecionados;
-    private Turno turnoSelecionado;
 
+    // Componentes da UI
     private JFormattedTextField txtCPF;
     private JTextField txtNome;
     private JFormattedTextField txtDataNascimento;
@@ -45,27 +41,39 @@ public class TelaCadastrar extends JPanel {
     private JPanel painelTelefone;
     private JPanel painelEmail;
 
+    // Serviços injetados
     private final IClienteServico clienteServico;
     private final IPecaServico pecaServico;
     private final IReservaServico reservaServico;
+    private final ISessaoServico sessaoServico;
 
-    public TelaCadastrar(String cpf, Peca peca, List<Assento> assentosSelecionados,
-                         IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
-        if (clienteServico == null || pecaServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Serviços não podem ser nulos em TelaCadastrar.");
+    /**
+     * Construtor refatorado da TelaCadastrar.
+     * @param cpf O CPF informado na tela anterior (pode ser nulo para cadastro avulso).
+     * @param sessao A sessão selecionada (nula para cadastro avulso).
+     * @param assentosSelecionados Lista de assentos (nula para cadastro avulso).
+     * @param clienteServico Serviço para operações de cliente.
+     * @param pecaServico Serviço para operações de peça.
+     * @param reservaServico Serviço para operações de reserva.
+     * @param sessaoServico Serviço para operações de sessão.
+     */
+    public TelaCadastrar(String cpf, Sessao sessao, List<Assento> assentosSelecionados,
+                         IClienteServico clienteServico, IPecaServico pecaServico, 
+                         IReservaServico reservaServico, ISessaoServico sessaoServico) {
+        if (clienteServico == null || pecaServico == null || reservaServico == null || sessaoServico == null) {
+            throw new IllegalArgumentException("Serviços não podem ser nulos.");
         }
         this.cpfInformadoOriginalmente = cpf;
-        this.peca = peca;
+        this.sessao = sessao;
         this.assentosSelecionados = assentosSelecionados;
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
+        this.sessaoServico = sessaoServico;
         configurarTelaVisual();
     }
     
-    public void setTurnoSelecionado(Turno turno) {
-        this.turnoSelecionado = turno;
-    }
+    // O método setTurnoSelecionado() foi removido por ser obsoleto.
 
     private void configurarTelaVisual() {
         setLayout(new BorderLayout());
@@ -74,6 +82,7 @@ public class TelaCadastrar extends JPanel {
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        scrollPane.getViewport().setBackground(Constantes.AZUL_ESCURO);
 
         JPanel containerPrincipal = new JPanel();
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
@@ -126,7 +135,7 @@ public class TelaCadastrar extends JPanel {
         painelVoltar.add(btnVoltar);
         add(painelVoltar, BorderLayout.SOUTH);
     }
-
+    
     private JPanel criarFormulario() {
         JPanel formulario = new JPanel();
         formulario.setLayout(new BoxLayout(formulario, BoxLayout.Y_AXIS));
@@ -154,22 +163,20 @@ public class TelaCadastrar extends JPanel {
     
         return formulario;
     }
-    
+
     private void configurarCampo(JTextField campo) { 
         campo.setPreferredSize(new Dimension(500, 55));
         campo.setMaximumSize(new Dimension(500, 55));
         campo.setFont(new Font("Arial", Font.PLAIN, 18));
         campo.setBackground(new Color(52, 73, 94));
         campo.setForeground(Color.WHITE);
-        campo.setCaretColor(Color.WHITE);
+        campo.setCaretColor(Constantes.AMARELO);
         campo.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 2),
+                BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 1),
                 BorderFactory.createEmptyBorder(8, 15, 8, 15)
         ));
     }
     
-    // --- IMPLEMENTAÇÃO COMPLETA DOS MÉTODOS DE CRIAÇÃO ---
-
     private JFormattedTextField criarCampoCPF() {
         try {
             MaskFormatter maskCPF = new MaskFormatter("###.###.###-##");
@@ -288,8 +295,8 @@ public class TelaCadastrar extends JPanel {
             return false;
         }
         String dataNascStr = txtDataNascimento.getText().replaceAll("[_/]", "").trim();
-        if (dataNascStr.isEmpty() || dataNascStr.length() != 8) {
-            JOptionPane.showMessageDialog(this, "O campo Data de Nascimento é obrigatório e deve ser preenchido completamente.", "Campo Inválido", JOptionPane.WARNING_MESSAGE);
+        if (dataNascStr.length() != 8) {
+            JOptionPane.showMessageDialog(this, "O campo Data de Nascimento deve ser preenchido completamente.", "Campo Inválido", JOptionPane.WARNING_MESSAGE);
             return false;
         }
         try {
@@ -300,12 +307,8 @@ public class TelaCadastrar extends JPanel {
         }
 
         if (chkMembroABC.isSelected()) {
-            if (txtTelefone.getText().replaceAll("[()_ -]", "").trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Telefone é obrigatório para Membros GOLD.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
-                return false;
-            }
-            if (txtEmail.getText().trim().isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Email é obrigatório para Membros GOLD.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
+            if (txtTelefone.getText().replaceAll("[()_ -]", "").trim().length() < 10) {
+                JOptionPane.showMessageDialog(this, "Telefone é obrigatório e deve ser completo para Membros GOLD.", "Campo Obrigatório", JOptionPane.WARNING_MESSAGE);
                 return false;
             }
             if (!txtEmail.getText().trim().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
@@ -317,12 +320,10 @@ public class TelaCadastrar extends JPanel {
     }
     
     private void realizarCadastro() {
-        if (!validarCamposEntrada()) {
-            return;
-        }
+        if (!validarCamposEntrada()) return;
 
         try {
-            String cpfFinal = (this.cpfInformadoOriginalmente != null && !this.cpfInformadoOriginalmente.isBlank()) ?
+            String cpfFinal = (this.cpfInformadoOriginalmente != null) ?
                                this.cpfInformadoOriginalmente :
                                txtCPF.getText().replaceAll("[^0-9]","");
 
@@ -331,35 +332,31 @@ public class TelaCadastrar extends JPanel {
                                         com.teatroabc.dominio.fidelidade.SemFidelidade.IDENTIFICADOR;
 
             DadosCadastroClienteDTO dto = new DadosCadastroClienteDTO(
-                cpfFinal,
-                txtNome.getText().trim(),
-                txtDataNascimento.getText(),
+                cpfFinal, txtNome.getText().trim(), txtDataNascimento.getText(),
                 chkMembroABC.isSelected() ? txtTelefone.getText().replaceAll("[^0-9]", "") : "",
                 chkMembroABC.isSelected() ? txtEmail.getText().trim() : "",
                 identificadorPlano
             );
 
             Cliente clienteCadastrado = this.clienteServico.cadastrar(dto);
-
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
 
-            if (this.peca != null && this.assentosSelecionados != null && this.turnoSelecionado != null) {
-                TelaConfirmarPedido telaConfirmar = new TelaConfirmarPedido(
-                    this.peca, clienteCadastrado, this.assentosSelecionados, this.turnoSelecionado,
-                    this.clienteServico, this.pecaServico, this.reservaServico
-                );
-                frame.setContentPane(telaConfirmar);
+            if (this.sessao != null && this.assentosSelecionados != null) {
+                // Navega para a TelaConfirmarPedido com o construtor correto
+                frame.setContentPane(new TelaConfirmarPedido(
+                    clienteCadastrado, this.sessao, this.assentosSelecionados,
+                    this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
+                ));
             } else {
                 String mensagem = chkMembroABC.isSelected() ? 
                     "Cliente cadastrado como membro ABC GOLD!\n" + clienteCadastrado.getDescricaoBeneficiosPlano() :
                     "Cliente cadastrado com sucesso!";
                 JOptionPane.showMessageDialog(this, mensagem, "Cadastro Realizado", JOptionPane.INFORMATION_MESSAGE);
-                frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
+                frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico));
             }
 
             frame.revalidate();
             frame.repaint();
-
         } catch (ClienteJaCadastradoException e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Erro de Cadastro", JOptionPane.WARNING_MESSAGE);
         } catch (IllegalArgumentException e) {
@@ -372,18 +369,15 @@ public class TelaCadastrar extends JPanel {
 
     private void voltar() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-
-        if (this.peca != null) {
-            TelaInformarCPF telaInformarCPF = new TelaInformarCPF(
-                false, this.peca, this.assentosSelecionados,
-                this.clienteServico, this.pecaServico, this.reservaServico
-            );
-            telaInformarCPF.setTurnoSelecionado(this.turnoSelecionado);
-            frame.setContentPane(telaInformarCPF);
+        if (this.sessao != null) {
+            // Navega para a TelaInformarCPF com o construtor correto
+            frame.setContentPane(new TelaInformarCPF(
+                false, this.sessao, this.assentosSelecionados,
+                this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
+            ));
         } else {
-            frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
+            frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico));
         }
-
         frame.revalidate();
         frame.repaint();
     }

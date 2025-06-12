@@ -1,19 +1,17 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico;
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.aplicacao.interfaces.IClienteServico;
-import com.teatroabc.aplicacao.interfaces.IPecaServico;
-import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; // NOVO IMPORT
-
-import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.Collections;
+import javax.swing.*;
 
 /**
  * Tela principal da aplicação, que serve como ponto de partida para os fluxos do usuário.
@@ -30,11 +28,11 @@ public class TelaPrincipal extends JPanel {
     private final IClienteServico clienteServico;
     private final IPecaServico pecaServico;
     private final IReservaServico reservaServico;
-    private final ISessaoServico sessaoServico; 
+    private final ISessaoServico sessaoServico;
 
     /**
-     * Construtor atualizado da TelaPrincipal. Recebe as dependências de todos os serviços
-     * necessários para operar e para repassar para as telas subsequentes.
+     * Construtor da TelaPrincipal. Recebe as dependências de todos os serviços
+     * necessários para operar e para repassar para as telas subsequentes do fluxo.
      *
      * @param clienteServico Serviço para operações de cliente.
      * @param pecaServico Serviço para operações de peça.
@@ -45,12 +43,12 @@ public class TelaPrincipal extends JPanel {
     public TelaPrincipal(IClienteServico clienteServico, IPecaServico pecaServico, 
                          IReservaServico reservaServico, ISessaoServico sessaoServico) {
         if (clienteServico == null || pecaServico == null || reservaServico == null || sessaoServico == null) {
-            throw new IllegalArgumentException("Os serviços injetados na TelaPrincipal não podem ser nulos.");
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
         }
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
-        this.sessaoServico = sessaoServico; // Atribui o novo serviço.
+        this.sessaoServico = sessaoServico;
 
         configurarTelaVisual();
     }
@@ -62,10 +60,12 @@ public class TelaPrincipal extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
 
+        // Container principal que organiza os elementos verticalmente
         JPanel containerPrincipal = new JPanel();
         containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
 
+        // Seção do cabeçalho com a logo
         JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         painelLogo.setBackground(Constantes.AZUL_ESCURO);
         painelLogo.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 30));
@@ -74,6 +74,7 @@ public class TelaPrincipal extends JPanel {
 
         containerPrincipal.add(Box.createVerticalStrut(30));
 
+        // Seção para exibir os cards das peças em cartaz
         JPanel painelPecas = new JPanel(new GridLayout(1, 0, 30, 0));
         painelPecas.setBackground(Constantes.AZUL_ESCURO);
         adicionarCardsPecasDinamicamente(painelPecas);
@@ -81,6 +82,7 @@ public class TelaPrincipal extends JPanel {
 
         containerPrincipal.add(Box.createVerticalStrut(50));
 
+        // Seção dos botões de ação principais
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 0));
         painelBotoes.setBackground(Constantes.AZUL_ESCURO);
 
@@ -109,21 +111,40 @@ public class TelaPrincipal extends JPanel {
         add(containerPrincipal, BorderLayout.CENTER);
     }
 
+    /**
+     * Busca as peças através do IPecaServico e cria os componentes {@link CardPeca}.
+     * @param painel O JPanel onde os cards das peças serão adicionados.
+     */
     private void adicionarCardsPecasDinamicamente(JPanel painel) {
         painel.removeAll();
+        
         try {
             List<Peca> listaDePecas = this.pecaServico.buscarTodasPecas();
-            if (listaDePecas.isEmpty()) {
-                // Tratamento para caso não haja peças
+            
+            if (listaDePecas == null || listaDePecas.isEmpty()) {
+                JLabel lblSemPecas = new JLabel("Nenhuma peça em cartaz no momento.");
+                lblSemPecas.setFont(Constantes.FONTE_TEXTO);
+                lblSemPecas.setForeground(Color.WHITE);
+                painel.setLayout(new FlowLayout(FlowLayout.CENTER));
+                painel.add(lblSemPecas);
             } else {
                  painel.setLayout(new GridLayout(1, 0, 30, 0));
                  for (Peca peca : listaDePecas) {
-                     painel.add(new CardPeca(peca));
+                     // O CardPeca não precisa de serviços, apenas do objeto de domínio.
+                     CardPeca card = new CardPeca(peca);
+                     painel.add(card);
                  }
             }
         } catch (Exception e) {
-            // Tratamento de erro
+            System.err.println("Erro ao buscar todas as peças: " + e.getMessage());
+            e.printStackTrace();
+            JLabel lblErro = new JLabel("Erro ao carregar as peças. Tente novamente mais tarde.");
+            lblErro.setFont(Constantes.FONTE_TEXTO);
+            lblErro.setForeground(Color.RED);
+            painel.setLayout(new FlowLayout(FlowLayout.CENTER));
+            painel.add(lblErro);
         }
+        
         painel.revalidate();
         painel.repaint();
     }
@@ -134,7 +155,6 @@ public class TelaPrincipal extends JPanel {
      */
     private void abrirSelecaoPeca() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // Passa todos os serviços, incluindo o novo sessaoServico.
         frame.setContentPane(new TelaSelecionarPeca(
             this.pecaServico, 
             this.clienteServico, 
@@ -152,8 +172,13 @@ public class TelaPrincipal extends JPanel {
     private void abrirConsultaBilhete() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         frame.setContentPane(new TelaInformarCPF(
-                true, null, null,
-                this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
+                true, // modoConsulta = true
+                null, // sessao
+                null, // assentosSelecionados
+                this.clienteServico,
+                this.pecaServico,
+                this.reservaServico,
+                this.sessaoServico
         ));
         frame.revalidate();
         frame.repaint();
@@ -166,8 +191,13 @@ public class TelaPrincipal extends JPanel {
     private void abrirCadastroCliente() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
         frame.setContentPane(new TelaCadastrar(
-                null, null, null,
-                this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
+                null, // cpf
+                null, // sessao
+                null, // assentosSelecionados
+                this.clienteServico,
+                this.pecaServico,
+                this.reservaServico,
+                this.sessaoServico
         ));
         frame.revalidate();
         frame.repaint();
