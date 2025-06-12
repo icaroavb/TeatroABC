@@ -123,7 +123,7 @@ public class TelaSelecionarPeca extends JPanel {
         btnVoltar.setFont(Constantes.FONTE_BOTAO.deriveFont(22f));
         btnVoltar.setEnabled(true);
         btnVoltar.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnVoltar.addActionListener(_ -> voltarParaTelaPrincipal());
+        btnVoltar.addActionListener(a -> voltarParaTelaPrincipal());
         /**
          * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
          * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
@@ -144,7 +144,7 @@ public class TelaSelecionarPeca extends JPanel {
         btnContinuar.setFont(Constantes.FONTE_BOTAO.deriveFont(22f));
         btnContinuar.setEnabled(false);
         btnContinuar.setAlignmentX(Component.RIGHT_ALIGNMENT);
-        btnContinuar.addActionListener(_ -> navegarParaSelecionarSessao());
+        btnContinuar.addActionListener(a -> navegarParaSelecionarSessao());
         /**
          * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
          * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
