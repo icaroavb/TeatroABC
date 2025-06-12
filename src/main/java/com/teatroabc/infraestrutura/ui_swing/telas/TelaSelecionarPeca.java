@@ -31,6 +31,7 @@ public class TelaSelecionarPeca extends JPanel {
     // Estado da UI
     private Peca pecaSelecionada;
     private BotaoAnimado btnContinuar;
+    private BotaoAnimado btnVoltar;
     private JPanel painelDosCardsDePecas;
 
     /**
@@ -62,9 +63,7 @@ public class TelaSelecionarPeca extends JPanel {
         setLayout(new BorderLayout(0, 20));
         setBackground(Constantes.AZUL_ESCURO);
         setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
-
-        add(criarCabecalhoDaTela(), BorderLayout.NORTH);
-
+     
         JPanel painelConteudo = new JPanel();
         painelConteudo.setLayout(new BoxLayout(painelConteudo, BoxLayout.Y_AXIS));
         painelConteudo.setOpaque(false);
@@ -78,48 +77,75 @@ public class TelaSelecionarPeca extends JPanel {
 
         this.painelDosCardsDePecas = new JPanel(new GridLayout(1, 0, 30, 0));
         this.painelDosCardsDePecas.setOpaque(false);
-        this.painelDosCardsDePecas.setMaximumSize(new Dimension(1150, 460));
+
+        //this.painelDosCardsDePecas.setMaximumSize(new Dimension(1150, 460));
+
         this.painelDosCardsDePecas.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         adicionarCardsDePecasAoPainel(this.painelDosCardsDePecas);
         painelConteudo.add(this.painelDosCardsDePecas);
         painelConteudo.add(Box.createRigidArea(new Dimension(0, 40)));
 
+        btnVoltar = new BotaoAnimado("VOLTAR",
+            Constantes.CINZA_ESCURO, //Cor padrão
+            Constantes.AZUL_CLARO, //Cor Transição 
+            new Dimension(400, 70));
+            
+        btnVoltar.setFont(Constantes.FONTE_BOTAO.deriveFont(22f));
+        btnVoltar.setEnabled(true);
+        btnVoltar.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnVoltar.addActionListener(_ -> voltarParaTelaPrincipal());
+        /**
+         * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
+         * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
+         * Vantagens: É extremamente conciso, direto e fácil de ler. A intenção ("quando este botão for clicado, chame este método") é imediatamente óbvia.
+         * Outra abordagem mais clássica:
+         * // Em TelaPrincipal.java
+         * PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
+         *      this::abrirSelecaoPeca,
+         *      this::abrirConsultaBilhete,
+         *      this::abrirCadastroCliente);
+         */
+        
         btnContinuar = new BotaoAnimado("CONTINUAR",
-                Constantes.LARANJA, Constantes.AMARELO.darker(), new Dimension(300, 60));
+            Constantes.CINZA_ESCURO, //Cor padrão
+            Constantes.AZUL_CLARO, //Cor Transição
+            new Dimension(400, 70));
+
         btnContinuar.setFont(Constantes.FONTE_BOTAO.deriveFont(22f));
         btnContinuar.setEnabled(false);
-        btnContinuar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnContinuar.addActionListener(e -> navegarParaSelecionarSessao());
-
-        painelConteudo.add(btnContinuar);
+        btnContinuar.setAlignmentX(Component.RIGHT_ALIGNMENT);
+        btnContinuar.addActionListener(_ -> navegarParaSelecionarSessao());
+        /**
+         * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
+         * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
+         * Vantagens: É extremamente conciso, direto e fácil de ler. A intenção ("quando este botão for clicado, chame este método") é imediatamente óbvia.
+         * Outra abordagem mais clássica:
+         * // Em TelaPrincipal.java
+         * PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
+         *      this::abrirSelecaoPeca,
+         *      this::abrirConsultaBilhete,
+         *      this::abrirCadastroCliente);
+         */
+        
+         // 1. Painel para alinhar os botões
+        JPanel painelBotoes = new JPanel();
+        //painelBotoes.setLayout(new BoxLayout(painelBotoes, BoxLayout.X_AXIS));
+        painelBotoes.setOpaque(false); // Para manter o fundo azul da tela
+        // 2. Adicione o botão Voltar à esquerda
+        painelBotoes.add(btnVoltar);
+        // 3. Adicione um espaçador flexível no meio
+        painelBotoes.add(Box.createHorizontalGlue());
+        // 4. Adicione o botão Continuar à direita
+        painelBotoes.add(btnContinuar);
+        // 5. Adicione o painel de botões ao painel de conteúdo principal
+        painelConteudo.add(painelBotoes);
         painelConteudo.add(Box.createVerticalGlue());
 
         add(painelConteudo, BorderLayout.CENTER);
     }
 
-    /**
-     * Cria o painel de cabeçalho da tela.
-     * @return JPanel do cabeçalho.
-     */
-    private JPanel criarCabecalhoDaTela() {
-        JPanel cabecalho = new JPanel(new BorderLayout());
-        cabecalho.setOpaque(false);
-
-        JButton btnVoltarUI = new JButton("<< Voltar para Tela Principal");
-        btnVoltarUI.setFont(new Font("Arial", Font.PLAIN, 16));
-        btnVoltarUI.setForeground(Constantes.AZUL_CLARO);
-        btnVoltarUI.setContentAreaFilled(false);
-        btnVoltarUI.setBorderPainted(false);
-        btnVoltarUI.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnVoltarUI.addActionListener(e -> voltarParaTelaPrincipal());
-        cabecalho.add(btnVoltarUI, BorderLayout.WEST);
-
-        LogoTeatro logo = new LogoTeatro();
-        logo.setPreferredSize(new Dimension(200,60));
-        cabecalho.add(logo, BorderLayout.EAST);
-        return cabecalho;
-    }
+    
 
     /**
      * Busca as peças através do serviço e popula o painel fornecido com componentes {@link CardPeca}.

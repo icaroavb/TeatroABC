@@ -70,10 +70,22 @@ public class TelaPrincipal extends JPanel {
 
         // Instancia o novo componente e passa as ações (métodos de navegação) como lambdas.
         PainelNavegacao_TelaPrincipal painelBotoes = new PainelNavegacao_TelaPrincipal(
-            e -> abrirSelecaoPeca(),
-            e -> abrirConsultaBilhete(),
-            e -> abrirCadastroCliente()
+            _ -> abrirSelecaoPeca(),
+            _ -> abrirConsultaBilhete(),
+            _ -> abrirCadastroCliente()
         );
+        /**
+         * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
+         * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
+         * Vantagens: É extremamente conciso, direto e fácil de ler. A intenção ("quando este botão for clicado, chame este método") é imediatamente óbvia.
+         * Outra abordagem mais clássica:
+         * // Em TelaPrincipal.java
+         * PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
+         *      this::abrirSelecaoPeca,
+         *      this::abrirConsultaBilhete,
+         *      this::abrirCadastroCliente);
+         */
+        
         containerPrincipal.add(painelBotoes);
         
         containerPrincipal.add(Box.createVerticalStrut(30));
@@ -92,6 +104,7 @@ public class TelaPrincipal extends JPanel {
      * @param painel O JPanel onde os cards das peças serão adicionados.
      */
     private void adicionarCardsPecasDinamicamente(JPanel painel) {
+
         painel.removeAll();
         
         try {
