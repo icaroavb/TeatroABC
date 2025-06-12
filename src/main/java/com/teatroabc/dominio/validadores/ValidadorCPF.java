@@ -87,7 +87,7 @@ public class ValidadorCPF {
     } 
 
     /**
-     * Encapsulamento da lógica do blacklist - CPFS que são formados números repetidos
+     * Encapsulamento da lógica do blacklist - CPFS que são formados números repetidos somente
      * @param cpf
      * @return true se detectar um cpf que seja, por exemplo, 111.111.111-11
      */
@@ -96,7 +96,7 @@ public class ValidadorCPF {
     }
 
     /**
-     * Normaliza uma string de CPF, removendo caracteres não numéricos.r
+     * Normaliza uma string de CPF, removendo caracteres não numéricos.
      * @param cpf A string de CPF a ser normalizada.
      * @return O CPF contendo apenas dígitos, ou a string original se for nula.
      *         Retorna uma string vazia se o CPF original for uma string vazia após a remoção.

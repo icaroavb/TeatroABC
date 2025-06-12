@@ -1,40 +1,68 @@
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
 import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio; // Implementar
-import com.teatroabc.infraestrutura.utilitarios_comuns.GeradorIdUtil;
-import java.util.*;
-import java.time.LocalDateTime;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
+/**
+ * Implementação (Adaptador Secundário) do repositório de Peças.
+ * Atualmente, os dados das peças são hardcoded para fins de demonstração.
+ * Esta classe é responsável por fornecer os objetos Peca que representam
+ * as obras artísticas disponíveis no teatro.
+ */
 public class PecaRepositorio implements IPecaRepositorio {
-    private static final List<Peca> pecasDB = new ArrayList<>(); // Renomeado para clareza
 
+    private static final List<Peca> pecasDB = new ArrayList<>();
+
+    // Bloco estático para popular o banco de dados em memória na inicialização.
     static {
-        // Inicialização como antes, usando GeradorIdUtil e cores Hex.
-        // O Peca construtor agora espera o ID como primeiro argumento.
+        // IDs agora são fixos para corresponder aos dados de exemplo dos arquivos.        
+        
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
-                "WICKEDONIA", "A PARÓDIA MUSICAL", "Uma paródia hilária do famoso musical",
-                "#3CB371", "imagens/wickedonia.png", LocalDateTime.of(2024, 4, 25, 20, 0)
+                "ee4ef3e1-38d8-4456-9773-3160b7f70479",
+                "WICKEDONIA",
+                "A PARÓDIA MUSICAL",
+                "Uma paródia hilária do famoso musical",
+                "#3CB371",
+                "imagens/wickedonia.png"
+                // O argumento LocalDateTime foi removido daqui.
         ));
+        
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
-                "HERMANOTEU", "", "Comédia com os personagens mais queridos do humor",
-                "#EF7D00", "imagens/hermanoteu.png", LocalDateTime.of(2024, 5, 2, 21, 0)
+                "0c22d34c-bf3b-4250-b536-53cbf276114d",
+                "HERMANOTEU",
+                "NA TERRA DE GODAH",
+                "Comédia com os personagens mais queridos do humor",
+                "#EF7D00",
+                "imagens/hermanoteu.png"
+                // O argumento LocalDateTime foi removido daqui.
         ));
+        
         pecasDB.add(new Peca(
-                GeradorIdUtil.gerarNovoId(),
-                "MORTE E VIDA SEVERINA", "", "Clássico de João Cabral de Melo Neto",
-                "#E53935", "imagens/morte_vida_severina.jpg", LocalDateTime.of(2024, 5, 10, 19, 30)
+                "27460ed2-aa6d-4bb4-b68a-46938b6b242e",
+                "MORTE E VIDA SEVERINA",
+                "",
+                "Clássico de João Cabral de Melo Neto",
+                "#E53935",
+                "imagens/morte_vida_severina.jpg"
+                // O argumento LocalDateTime foi removido daqui.
         ));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Peca> listarTodas() {
-        // Retorna uma nova lista (cópia superficial) para proteger a lista interna de modificações externas.
+        // Retorna uma cópia da lista para evitar modificações externas.
         return new ArrayList<>(pecasDB);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<Peca> buscarPorId(String id) {
         if (id == null) {

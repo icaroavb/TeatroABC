@@ -34,7 +34,9 @@ public class MembroABCGold implements PlanoFidelidade {
         return DESCRICAO_BENEFICIOS;
     }
 
-    // Exemplo, se implementado na interface:
+    /**
+     * Abaixo, validações adicionais que poderiam ser inclusas no nosso projeto, especificamente: Telefoe e E-mail.
+     */
     // @Override
     // public boolean requerTelefone() {
     //     return true; // Telefone é obrigatório para ser membro ABC Gold

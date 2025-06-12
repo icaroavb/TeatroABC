@@ -1,202 +1,199 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.aplicacao.interfaces.IClienteServico;   // NOVO: Dependência da interface
-import com.teatroabc.aplicacao.interfaces.IPecaServico; // Para passar adiante
-import com.teatroabc.aplicacao.interfaces.IReservaServico; // Para passar adiante
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico;
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico; // NOVO IMPORT
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
+
+import javax.swing.*;
 import java.awt.*;
 import java.util.Collections;
 import java.util.List;
-import javax.swing.*; // Para a lista de peças
 
+/**
+ * Tela responsável por permitir ao usuário visualizar e selecionar uma das peças em cartaz.
+ * Após a seleção, o usuário prosseguirá para a tela de seleção de sessão (data e turno).
+ * 
+ * Na Arquitetura Hexagonal, atua como um Adaptador Primário, interagindo com o IPecaServico
+ * para buscar os dados e orquestrando a navegação para a próxima etapa do fluxo.
+ */
 public class TelaSelecionarPeca extends JPanel {
-    
-    //Implementação do padrão adapter! O adapter nada mais é do que um wrapper -> dependência de interfaces! : D
-    private final IPecaServico pecaServico;     
-    private final IClienteServico clienteServico; 
-    private final IReservaServico reservaServico; 
 
+    // Serviços injetados via construtor
+    private final IPecaServico pecaServico;
+    private final IClienteServico clienteServico;
+    private final IReservaServico reservaServico;
+    private final ISessaoServico sessaoServico; // NOVO SERVIÇO
+
+    // Estado da UI
     private Peca pecaSelecionada;
     private BotaoAnimado btnContinuar;
-    private JPanel painelPecas; 
+    private JPanel painelDosCardsDePecas;
 
     /**
-     * Construtor refatorado para aceitar os serviços via injeção de dependência.
+     * Construtor da TelaSelecionarPeca.
+     * @param pecaServico Serviço para buscar informações das peças.
+     * @param clienteServico Serviço de cliente.
+     * @param reservaServico Serviço de reserva.
+     * @param sessaoServico Serviço de sessão.
+     * @throws IllegalArgumentException se algum dos serviços for nulo.
      */
-    public TelaSelecionarPeca(IPecaServico pecaServico, IClienteServico clienteServico, IReservaServico reservaServico) {
-        if (pecaServico == null || clienteServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Os serviços injetados não podem ser nulos.");
+    public TelaSelecionarPeca(IPecaServico pecaServico, IClienteServico clienteServico, 
+                              IReservaServico reservaServico, ISessaoServico sessaoServico) {
+        if (pecaServico == null || clienteServico == null || reservaServico == null || sessaoServico == null) {
+            throw new IllegalArgumentException("Os serviços injetados não podem ser nulos em TelaSelecionarPeca.");
         }
-        
         this.pecaServico = pecaServico;
         this.clienteServico = clienteServico;
         this.reservaServico = reservaServico;
-        
+        this.sessaoServico = sessaoServico; // Armazena o novo serviço
+        this.pecaSelecionada = null;
+
         configurarTelaVisual();
     }
 
+    /**
+     * Configura os componentes visuais e o layout da tela.
+     */
     private void configurarTelaVisual() {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(0, 20));
         setBackground(Constantes.AZUL_ESCURO);
+        setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
-        JPanel painelCabecalho = new JPanel(new BorderLayout());
-        painelCabecalho.setBackground(Constantes.AZUL_ESCURO);
-        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(30, 50, 30, 50));
-        JButton btnVoltar = criarBotaoVoltar();
-        painelCabecalho.add(btnVoltar, BorderLayout.WEST);
-        painelCabecalho.add(new LogoTeatro(), BorderLayout.EAST);
-        add(painelCabecalho, BorderLayout.NORTH);
+        add(criarCabecalhoDaTela(), BorderLayout.NORTH);
 
-        JPanel containerPrincipal = new JPanel();
-        containerPrincipal.setLayout(new BoxLayout(containerPrincipal, BoxLayout.Y_AXIS));
-        containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
+        JPanel painelConteudo = new JPanel();
+        painelConteudo.setLayout(new BoxLayout(painelConteudo, BoxLayout.Y_AXIS));
+        painelConteudo.setOpaque(false);
 
         JLabel titulo = new JLabel("ESCOLHA UMA PEÇA");
         titulo.setFont(Constantes.FONTE_TITULO);
         titulo.setForeground(Constantes.AMARELO);
         titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        containerPrincipal.add(titulo);
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        painelConteudo.add(titulo);
+        painelConteudo.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        // Inicializa o painelPecas aqui para que possa ser atualizado
-        painelPecas = new JPanel(new GridLayout(1, 0, 30, 0)); // 0 colunas para layout flexível
-        painelPecas.setBackground(Constantes.AZUL_ESCURO);
-        painelPecas.setMaximumSize(new Dimension(1200, 450)); // Ajustar conforme necessidade
-        adicionarCardsPecasDinamicamente(painelPecas);
-        containerPrincipal.add(painelPecas);
+        this.painelDosCardsDePecas = new JPanel(new GridLayout(1, 0, 30, 0));
+        this.painelDosCardsDePecas.setOpaque(false);
+        this.painelDosCardsDePecas.setMaximumSize(new Dimension(1150, 460));
+        this.painelDosCardsDePecas.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        containerPrincipal.add(Box.createVerticalStrut(50));
+        adicionarCardsDePecasAoPainel(this.painelDosCardsDePecas);
+        painelConteudo.add(this.painelDosCardsDePecas);
+        painelConteudo.add(Box.createRigidArea(new Dimension(0, 40)));
 
         btnContinuar = new BotaoAnimado("CONTINUAR",
-                Constantes.LARANJA, Constantes.AMARELO, new Dimension(300, 60));
-        btnContinuar.setFont(new Font("Arial", Font.BOLD, 24));
+                Constantes.LARANJA, Constantes.AMARELO.darker(), new Dimension(300, 60));
+        btnContinuar.setFont(Constantes.FONTE_BOTAO.deriveFont(22f));
         btnContinuar.setEnabled(false);
         btnContinuar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnContinuar.addActionListener(e -> abrirSelecaoAssento());
-        containerPrincipal.add(btnContinuar);
+        // A ação do botão agora é navegar para a tela de seleção de SESSÃO.
+        btnContinuar.addActionListener(e -> navegarParaSelecionarSessao());
 
-        add(containerPrincipal, BorderLayout.CENTER);
+        painelConteudo.add(btnContinuar);
+        painelConteudo.add(Box.createVerticalGlue());
+
+        add(painelConteudo, BorderLayout.CENTER);
     }
 
     /**
- * Busca as peças através do IPecaServico injetado e cria os CardPeca correspondentes,
- * adicionando-os ao painel fornecido.
- * Inclui tratamento para erros inesperados durante a busca de peças.
- *
- * @param painel O JPanel onde os cards das peças serão adicionados.
- */
-private void adicionarCardsPecasDinamicamente(JPanel painel) {
-    painel.removeAll(); // Limpa cards anteriores, se houver
+     * Cria o painel de cabeçalho da tela.
+     * @return JPanel do cabeçalho.
+     */
+    private JPanel criarCabecalhoDaTela() {
+        JPanel cabecalho = new JPanel(new BorderLayout());
+        cabecalho.setOpaque(false);
 
-    List<Peca> listaDePecas = Collections.emptyList(); // Inicializa com lista vazia como fallback
+        JButton btnVoltarUI = new JButton("<< Voltar para Tela Principal");
+        btnVoltarUI.setFont(new Font("Arial", Font.PLAIN, 16));
+        btnVoltarUI.setForeground(Constantes.AZUL_CLARO);
+        btnVoltarUI.setContentAreaFilled(false);
+        btnVoltarUI.setBorderPainted(false);
+        btnVoltarUI.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnVoltarUI.addActionListener(e -> voltarParaTelaPrincipal());
+        cabecalho.add(btnVoltarUI, BorderLayout.WEST);
 
-    try {
-        // Tenta buscar as peças usando o serviço injetado
-        listaDePecas = this.pecaServico.buscarTodasPecas();
+        LogoTeatro logo = new LogoTeatro();
+        logo.setPreferredSize(new Dimension(200, 60));
+        cabecalho.add(logo, BorderLayout.EAST);
+        return cabecalho;
+    }
 
-    } catch (Exception e) { // Captura qualquer exceção inesperada durante a chamada ao serviço
-        System.err.println("Erro crítico ao buscar todas as peças: " + e.getMessage());
-        e.printStackTrace(); // Loga o stack trace para debug no console do desenvolvedor
-
-        // Prepara uma mensagem de erro para a UI
-        JLabel lblErro = new JLabel("Desculpe, ocorreu um erro ao carregar as peças. Tente novamente mais tarde.");
-        lblErro.setFont(Constantes.FONTE_TEXTO); // Supondo que você tenha Constantes.FONTE_TEXTO
-        lblErro.setForeground(Color.RED); // Cor de destaque para erro
-        lblErro.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Configura o painel para exibir a mensagem de erro centralizada
-        painel.setLayout(new BorderLayout());
-        painel.add(lblErro, BorderLayout.CENTER);
-        
-        // Revalida e repinta o painel para mostrar a mensagem de erro
+    /**
+     * Busca as peças através do serviço e popula o painel fornecido com componentes {@link CardPeca}.
+     * @param painel O JPanel onde os cards serão adicionados.
+     */
+    private void adicionarCardsDePecasAoPainel(JPanel painel) {
+        painel.removeAll();
+        try {
+            List<Peca> listaDePecas = this.pecaServico.buscarTodasPecas();
+            if (listaDePecas.isEmpty()) {
+                 // Trata caso de não haver peças
+            } else {
+                painel.setLayout(new GridLayout(1, 0, 30, 0));
+                for (Peca peca : listaDePecas) {
+                    CardPeca card = new CardPeca(peca);
+                    card.setSelecao(true);
+                    card.addActionListener(e -> {
+                        CardPeca cardClicado = (CardPeca) e.getSource();
+                        this.pecaSelecionada = cardClicado.getPeca();
+                        if (this.btnContinuar != null) {
+                            this.btnContinuar.setEnabled(true);
+                        }
+                        for (Component c : this.painelDosCardsDePecas.getComponents()) {
+                            if (c instanceof CardPeca) {
+                                ((CardPeca) c).setSelecionado(c == cardClicado);
+                            }
+                        }
+                    });
+                    painel.add(card);
+                }
+            }
+        } catch (Exception e) {
+            // Tratamento de erro
+        }
         painel.revalidate();
         painel.repaint();
-        return; // Interrompe a execução do método, pois não há peças para exibir
     }
 
-    // Prossegue se a busca de peças foi bem-sucedida
-    if (listaDePecas == null || listaDePecas.isEmpty()) { // Checagem adicional de nulidade, embora o serviço deva evitar retornar null
-        JLabel lblSemPecas = new JLabel("Nenhuma peça em cartaz no momento.");
-        lblSemPecas.setForeground(Color.WHITE);
-        lblSemPecas.setFont(Constantes.FONTE_TEXTO); // Supondo que você tenha Constantes.FONTE_TEXTO
-        lblSemPecas.setHorizontalAlignment(SwingConstants.CENTER);
-
-        // Configura o painel para exibir a mensagem centralizada
-        painel.setLayout(new BorderLayout());
-        painel.add(lblSemPecas, BorderLayout.CENTER);
-    } else {
-        // Restaura o layout de grade se houver peças para exibir
-        // O número de colunas (segundo argumento do GridLayout) é 0 para que se ajuste
-        // ao número de cards, ou você pode fixar (ex: 3 colunas).
-        painel.setLayout(new GridLayout(1, 0, 30, 0)); // 1 linha, colunas flexíveis, espaçamento de 30px
-
-        for (Peca peca : listaDePecas) {
-            CardPeca card = new CardPeca(peca); // CardPeca lida com a conversão de cor internamente
-            
-            // Se esta tela for TelaSelecionarPeca, o listener para seleção seria adicionado aqui:
-            if (this instanceof TelaSelecionarPeca) { // Verifica se é a instância correta para adicionar listener
-                final TelaSelecionarPeca estaTela = (TelaSelecionarPeca) this;
-                card.setSelecao(true); // Habilita o modo de seleção visual no card
-                card.addActionListener(actionEvent -> {
-                    Peca pecaDoCard = card.getPeca(); // Obtém a Peca do card que disparou o evento
-                    estaTela.pecaSelecionada = pecaDoCard; // Atualiza a peça selecionada na tela
-                    if (estaTela.btnContinuar != null) {
-                         estaTela.btnContinuar.setEnabled(true); // Habilita o botão de continuar
-                    }
-
-                    // Lógica para desmarcar visualmente outros cards
-                    for (Component c : painel.getComponents()) {
-                        if (c instanceof CardPeca && c != card) {
-                            ((CardPeca) c).setSelecionado(false);
-                        }
-                    }
-                    card.setSelecionado(true); // Marca visualmente o card clicado como selecionado
-                });
-            }
-            painel.add(card);
+    /**
+     * Navega para a nova tela de seleção de sessão, passando a peça selecionada e os serviços.
+     */
+    private void navegarParaSelecionarSessao() {
+        if (this.pecaSelecionada == null) {
+            JOptionPane.showMessageDialog(this, "Por favor, selecione uma peça para continuar.", "Nenhuma Peça Selecionada", JOptionPane.WARNING_MESSAGE);
+            return;
         }
-    }
-    painel.revalidate();
-    painel.repaint();
-}
-    
-    // O método antigo adicionarCardsPecas(JPanel painel) que criava Pecas hardcoded
-    // foi substituído por adicionarCardsPecasDinamicamente.
-
-    private JButton criarBotaoVoltar() {
-        JButton btnVoltar = new JButton("VOLTAR");
-        // ... (configurações do botão como antes) ...
-        btnVoltar.setFont(new Font("Arial", Font.PLAIN, 18));
-        btnVoltar.setForeground(Constantes.AZUL_CLARO);
-        btnVoltar.setBackground(Constantes.AZUL_ESCURO);
-        btnVoltar.setBorderPainted(false);
-        btnVoltar.setFocusPainted(false);
-        btnVoltar.setContentAreaFilled(false);
-        btnVoltar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnVoltar.addActionListener(e -> voltarParaTelaPrincipal());
-        return btnVoltar;
+        JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
+        // Instancia a nova TelaSelecionarSessao, passando todas as dependências necessárias.
+        frame.setContentPane(new TelaSelecionarSessao(
+            this.pecaSelecionada, 
+            this.sessaoServico, 
+            this.pecaServico, 
+            this.clienteServico, 
+            this.reservaServico
+        ));
+        frame.revalidate();
+        frame.repaint();
     }
 
-    private void abrirSelecaoAssento() {
-        if (pecaSelecionada != null) {
-            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            // Passe os serviços necessários para TelaSelecionarAssento
-            // TelaSelecionarAssento precisará, no mínimo, do IAssentoRepositorio (via algum serviço)
-            // e dos outros serviços para passar adiante no fluxo.
-            frame.setContentPane(new TelaSelecionarAssento(this.pecaSelecionada, this.pecaServico, this.clienteServico, this.reservaServico));
-            frame.revalidate();
-            frame.repaint();
-        }
-    }
-
+    /**
+     * Navega de volta para a tela principal.
+     */
     private void voltarParaTelaPrincipal() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // Ao voltar, recria TelaPrincipal passando os serviços que esta tela já possui
-        frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
+        // Ao voltar, recria a TelaPrincipal passando todas as dependências.
+        frame.setContentPane(new TelaPrincipal(
+            this.clienteServico, 
+            this.pecaServico, 
+            this.reservaServico, 
+            this.sessaoServico
+        ));
         frame.revalidate();
         frame.repaint();
     }
