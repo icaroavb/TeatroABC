@@ -32,13 +32,13 @@ public class SessaoServico implements ISessaoServico {
     }
 
     //Encapsulamento da lógica de validação restrita para o repositório 
-    private boolean verificarSessao (ISessaoRepositorio sessaoRepositorio){
+    private boolean verificarRepositorioSessao (ISessaoRepositorio sessaoRepositorio){
         return sessaoRepositorio == null;
     }
 
-    //Encapsulamento da validação total da classe
+    //Encapsulamento da validação total da classe - se outras validações forem necessárias, futuramente, basta acrescentar aqui!
     public void apurarInformacoesEssenciais (){
-        if (verificarSessao(sessaoRepositorio)) {
+        if (verificarRepositorioSessao(sessaoRepositorio)) {
             throw new IllegalArgumentException("Repositório de sessões (ISessaoRepositorio) não pode ser nulo.");
         }
     }

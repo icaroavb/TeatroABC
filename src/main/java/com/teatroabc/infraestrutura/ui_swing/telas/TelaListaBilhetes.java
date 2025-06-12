@@ -6,6 +6,7 @@ import com.teatroabc.aplicacao.interfaces.IReservaServico;
 import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardBilhete;
+import com.teatroabc.infraestrutura.ui_swing.componentes.DialogoDetalhesBilhete;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes; // NOVO IMPORT
 import java.awt.*;

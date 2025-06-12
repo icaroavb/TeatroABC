@@ -5,20 +5,20 @@ import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio; // NOVO IMPORT
+import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio; 
 
 // --- Adaptadores de Saída (Implementações Concretas dos Repositórios) ---
 import com.teatroabc.infraestrutura.persistencia.implementacao.ClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.PecaRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.AssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.BilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.SessaoRepositorio; // NOVO IMPORT
+import com.teatroabc.infraestrutura.persistencia.implementacao.SessaoRepositorio; 
 
 // --- Portas de Entrada (Interfaces dos Serviços de Aplicação) ---
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; // NOVO IMPORT
+import com.teatroabc.aplicacao.interfaces.ISessaoServico; 
 
 // --- Implementações dos Serviços de Aplicação ---
 import com.teatroabc.aplicacao.servicos.ClienteServico;
