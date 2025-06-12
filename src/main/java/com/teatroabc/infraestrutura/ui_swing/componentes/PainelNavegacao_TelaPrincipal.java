@@ -10,7 +10,7 @@ import java.awt.event.ActionListener;
  * Agrupa as ações de "Comprar Bilhete", "Consultar Bilhete" e "Cadastrar Cliente"
  * em um único painel coeso e reutilizável.
  */
-public class PainelNavegacaoPrincipal extends JPanel {
+public class PainelNavegacao_TelaPrincipal extends JPanel {
 
     /**
      * Construtor do PainelNavegacaoPrincipal.
@@ -18,8 +18,13 @@ public class PainelNavegacaoPrincipal extends JPanel {
      * @param consultarAction O ActionListener para o botão "Consultar Bilhete".
      * @param cadastrarAction O ActionListener para o botão "Cadastrar Cliente".
      */
-    public PainelNavegacaoPrincipal(ActionListener comprarAction, ActionListener consultarAction, ActionListener cadastrarAction) {
+    public PainelNavegacao_TelaPrincipal(
+        ActionListener comprarAction, 
+        ActionListener consultarAction,
+        ActionListener cadastrarAction) 
+        {
         configurarPainel();
+
         adicionarBotoes(comprarAction, consultarAction, cadastrarAction);
     }
 
@@ -32,21 +37,21 @@ public class PainelNavegacaoPrincipal extends JPanel {
     }
 
     /**
-     * Cria, estiliza e adiciona os botões de navegação ao painel.
+     * Cria, estiliza e adiciona os botões de navegação ao painel
      */
     private void adicionarBotoes(ActionListener comprarAction, ActionListener consultarAction, ActionListener cadastrarAction) {
         BotaoAnimado btnComprar = new BotaoAnimado("COMPRAR BILHETE",
-                Constantes.LARANJA, Constantes.AMARELO, new Dimension(400, 70));
-        btnComprar.setFont(Constantes.FONTE_BOTAO);
+        Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(400, 70));
+        btnComprar.setFont(new Font("Arial", Font.BOLD, 18));
         btnComprar.addActionListener(comprarAction);
 
         BotaoAnimado btnConsultar = new BotaoAnimado("CONSULTAR BILHETE",
-                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(280, 60));
+                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(400, 70));
         btnConsultar.setFont(new Font("Arial", Font.BOLD, 18));
         btnConsultar.addActionListener(consultarAction);
 
         BotaoAnimado btnCadastrar = new BotaoAnimado("CADASTRAR CLIENTE",
-                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(250, 60));
+                Constantes.CINZA_ESCURO, Constantes.AZUL_CLARO, new Dimension(400, 70));
         btnCadastrar.setFont(new Font("Arial", Font.BOLD, 18));
         btnCadastrar.addActionListener(cadastrarAction);
 

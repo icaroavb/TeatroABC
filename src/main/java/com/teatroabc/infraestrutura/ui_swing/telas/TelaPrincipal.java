@@ -7,7 +7,7 @@ import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.componentes.PainelNavegacaoPrincipal;
+import com.teatroabc.infraestrutura.ui_swing.componentes.PainelNavegacao_TelaPrincipal;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import java.awt.*;
 import java.util.List;
@@ -38,6 +38,8 @@ public class TelaPrincipal extends JPanel {
         configurarTelaVisual();
     }
 
+    //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
+
     /**
      * Configura os componentes visuais e o layout da tela principal.
      * A lógica de criação dos botões foi movida para o componente PainelNavegacaoPrincipal.
@@ -67,7 +69,7 @@ public class TelaPrincipal extends JPanel {
         containerPrincipal.add(Box.createVerticalStrut(50));
 
         // Instancia o novo componente e passa as ações (métodos de navegação) como lambdas.
-        PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
+        PainelNavegacao_TelaPrincipal painelBotoes = new PainelNavegacao_TelaPrincipal(
             e -> abrirSelecaoPeca(),
             e -> abrirConsultaBilhete(),
             e -> abrirCadastroCliente()
@@ -166,7 +168,7 @@ public class TelaPrincipal extends JPanel {
         frame.setContentPane(new TelaCadastrar(
                 null, // cpf
                 null, // sessao
-                null, // assentosSelecionados
+                null, 
                 this.clienteServico,
                 this.pecaServico,
                 this.reservaServico,
