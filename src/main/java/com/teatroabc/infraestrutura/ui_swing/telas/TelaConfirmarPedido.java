@@ -1,84 +1,71 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Bilhete;
-import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.enums.Turno;
+import com.teatroabc.aplicacao.excecoes.ReservaInvalidaException;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.excecoes.ReservaInvalidaException;
-import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Bilhete;
+import com.teatroabc.dominio.modelos.Cliente;
+import com.teatroabc.dominio.modelos.Sessao;
+import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
+import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
-
-import javax.swing.*;
+import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
 import java.awt.*;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 /**
- * Tela responsável por exibir os detalhes finais de um pedido de compra de ingressos
- * e permitir que o usuário confirme a operação, resultando na criação de um Bilhete.
- * 
- * Na Arquitetura Hexagonal, atua como um Adaptador Primário. Sua principal função
- * é apresentar um resumo claro do pedido ao usuário e, mediante confirmação,
- * invocar o serviço IReservaServico para efetivar a transação.
+ * Tela responsável por exibir os detalhes finais de um pedido de compra e
+ * permitir que o usuário confirme a operação para gerar um Bilhete.
+ * Refatorada para trabalhar com o conceito de Sessao.
  */
 public class TelaConfirmarPedido extends JPanel {
-    // Contexto do pedido recebido via construtor
-    private final Peca peca;
     private final Cliente cliente;
+    private final Sessao sessao;
     private final List<Assento> assentos;
-    private final Turno turnoSelecionado;
 
-    // Serviços injetados
-    private final IClienteServico clienteServico; // Para repassar na navegação
-    private final IPecaServico pecaServico;       // Para repassar na navegação
-    private final IReservaServico reservaServico; // Para efetivar a reserva
+    private final IClienteServico clienteServico;
+    private final IPecaServico pecaServico;
+    private final IReservaServico reservaServico;
+    private final ISessaoServico sessaoServico;
 
     /**
-     * Construtor da TelaConfirmarPedido.
-     *
-     * @param peca A peça selecionada para a compra.
+     * Construtor refatorado da TelaConfirmarPedido.
      * @param cliente O cliente que está realizando a compra.
-     * @param assentos A lista de assentos selecionados pelo cliente.
-     * @param turno O turno escolhido para a apresentação da peça.
-     * @param clienteServico Serviço para operações de cliente.
-     * @param pecaServico Serviço para operações de peça.
-     * @param reservaServico Serviço para efetivar a reserva/criação do bilhete.
-     * @throws IllegalArgumentException se algum dos parâmetros essenciais for nulo ou inválido.
+     * @param sessao A sessão selecionada para a compra.
+     * @param assentos A lista de assentos selecionados.
+     * @param clienteServico Serviço para repassar na navegação.
+     * @param pecaServico Serviço para repassar na navegação.
+     * @param reservaServico Serviço para efetivar a reserva.
+     * @param sessaoServico Serviço para repassar na navegação.
      */
-    public TelaConfirmarPedido(Peca peca, Cliente cliente, List<Assento> assentos, Turno turno,
-                               IClienteServico clienteServico, IPecaServico pecaServico, IReservaServico reservaServico) {
+    public TelaConfirmarPedido(Cliente cliente, Sessao sessao, List<Assento> assentos,
+                               IClienteServico clienteServico, IPecaServico pecaServico, 
+                               IReservaServico reservaServico, ISessaoServico sessaoServico) {
         
-        if (peca == null) throw new IllegalArgumentException("Peca não pode ser nula para TelaConfirmarPedido.");
-        if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para TelaConfirmarPedido.");
-        if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia.");
-        if (turno == null) throw new IllegalArgumentException("Turno não pode ser nulo.");
-        if (clienteServico == null || pecaServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Serviços não podem ser nulos.");
+        if (cliente == null || sessao == null || assentos == null || assentos.isEmpty() ||
+            clienteServico == null || pecaServico == null || reservaServico == null || sessaoServico == null) {
+            throw new IllegalArgumentException("Nenhum parâmetro pode ser nulo para TelaConfirmarPedido.");
         }
         
-        this.peca = peca;
         this.cliente = cliente;
+        this.sessao = sessao;
         this.assentos = assentos; 
-        this.turnoSelecionado = turno;
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
+        this.sessaoServico = sessaoServico;
         
         configurarTelaVisual();
     }
 
-    /**
-     * Configura os componentes visuais e o layout da tela.
-     */
     private void configurarTelaVisual() {
         setLayout(new BorderLayout());
         setBackground(Constantes.AZUL_ESCURO);
@@ -130,12 +117,6 @@ public class TelaConfirmarPedido extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    /**
-     * Cria o painel que exibe o resumo do pedido para confirmação do usuário.
-     * Os valores financeiros aqui são para *exibição*; o cálculo final e autoritativo
-     * é sempre realizado pelo {@link IReservaServico} no backend.
-     * @return JPanel com os detalhes do pedido.
-     */
     private JPanel criarPainelDetalhesDoPedido() {
         JPanel painel = new JPanel();
         painel.setBackground(Constantes.CINZA_ESCURO);
@@ -164,9 +145,9 @@ public class TelaConfirmarPedido extends JPanel {
             gbc.insets = new Insets(8, 15, 8, 15);
         }
 
-        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Peça:", this.peca.getTitulo());
-        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Data:", FormatadorData.formatar(this.peca.getDataHora()));
-        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Turno:", this.turnoSelecionado.toString());
+        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Peça:", this.sessao.getPeca().getTitulo());
+        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Data:", FormatadorData.formatar(this.sessao.getDataHora()));
+        adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Turno:", this.sessao.getTurno().toString());
         String assentosStr = this.assentos.stream().map(Assento::getCodigo).collect(Collectors.joining(", "));
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Assentos:", assentosStr);
         adicionarLinhaDetalhe(painel, gbc, linhaAtual++, "Cliente:", this.cliente.getNome());
@@ -251,23 +232,19 @@ public class TelaConfirmarPedido extends JPanel {
         return badge;
     }
 
-    /**
-     * Delega a ação de finalização da compra para o serviço de reserva.
-     * Trata as exceções de negócio (ex: assento indisponível) e de sistema,
-     * exibindo feedback apropriado ao usuário.
-     * Em caso de sucesso, navega para a tela principal.
-     */
     private void processarConfirmacaoDaCompra() {
         try {
+            // A chamada para o serviço de reserva agora usa a assinatura correta.
             Bilhete bilheteCriado = this.reservaServico.criarReserva(
-                this.peca, this.cliente, this.assentos, this.turnoSelecionado
+                this.sessao, this.cliente, this.assentos
             );
 
+            // A exibição da mensagem de sucesso agora usa o getter correto do bilhete.
             StringBuilder mensagem = new StringBuilder("<html><body style='width: 350px;'>");
             mensagem.append("<h2>Compra Realizada com Sucesso!</h2>");
-            mensagem.append("<p><b>Peça:</b> ").append(bilheteCriado.getPeca().getTitulo()).append("</p>");
-            mensagem.append("<p><b>Data:</b> ").append(FormatadorData.formatar(bilheteCriado.getPeca().getDataHora())).append("</p>");
-            mensagem.append("<p><b>Turno:</b> ").append(bilheteCriado.getTurno().toString()).append("</p>");
+            mensagem.append("<p><b>Peça:</b> ").append(bilheteCriado.getSessao().getPeca().getTitulo()).append("</p>");
+            mensagem.append("<p><b>Data:</b> ").append(FormatadorData.formatar(bilheteCriado.getSessao().getDataHora())).append("</p>");
+            mensagem.append("<p><b>Turno:</b> ").append(bilheteCriado.getSessao().getTurno().toString()).append("</p>");
             mensagem.append("<p><b>Cliente:</b> ").append(bilheteCriado.getCliente().getNome()).append("</p>");
             String assentosStr = bilheteCriado.getAssentos().stream().map(Assento::getCodigo).collect(Collectors.joining(", "));
             mensagem.append("<p><b>Assentos:</b> ").append(assentosStr).append("</p>");
@@ -283,7 +260,7 @@ public class TelaConfirmarPedido extends JPanel {
             JOptionPane.showMessageDialog(this, mensagem.toString(), "Sucesso na Compra", JOptionPane.INFORMATION_MESSAGE);
 
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-            frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico));
+            frame.setContentPane(new TelaPrincipal(this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico));
             frame.revalidate();
             frame.repaint();
 
@@ -297,13 +274,11 @@ public class TelaConfirmarPedido extends JPanel {
         }
     }
 
-    /**
-     * Navega de volta para a tela de seleção de assentos, permitindo ao usuário
-     * alterar sua escolha.
-     */
     private void navegarParaTelaAnterior() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        frame.setContentPane(new TelaSelecionarAssento(this.peca, this.turnoSelecionado, this.pecaServico, this.clienteServico, this.reservaServico));
+        frame.setContentPane(new TelaSelecionarAssento(
+            this.sessao, this.pecaServico, this.clienteServico, this.reservaServico, this.sessaoServico
+        ));
         frame.revalidate();
         frame.repaint();
     }

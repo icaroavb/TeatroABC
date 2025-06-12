@@ -6,6 +6,7 @@ import com.teatroabc.infraestrutura.ui_swing.componentes.PainelCodigoBarras;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Cliente;
+import com.teatroabc.dominio.modelos.Sessao; // Importa a nova entidade de domínio
 import com.teatroabc.dominio.validadores.ValidadorCPF;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
@@ -17,32 +18,31 @@ import java.util.stream.Collectors;
 
 /**
  * Diálogo modal para exibir os detalhes completos de um Bilhete.
+ * Refatorado para obter os dados da peça e do turno através do objeto Sessao contido no Bilhete.
  * 
  * Na Arquitetura Hexagonal, esta classe é um Adaptador Primário que serve como
  * uma "view" especializada. Sua única responsabilidade é receber uma entidade de
- * domínio (Bilhete) e traduzir seus dados para uma representação visual
- * formatada e legível para o usuário final.
+ * domínio (Bilhete) e traduzir seus dados para uma representação visual.
  */
 public class DialogoDetalhesBilhete extends JDialog {
     
-    private final Bilhete bilheteExibido; // Armazena o bilhete para referência
+    private final Bilhete bilheteExibido;
 
     /**
      * Construtor principal que define um Frame pai.
-     * @param parent O Frame proprietário que será bloqueado enquanto o diálogo estiver visível.
+     * @param parent O Frame proprietário.
      * @param bilhete O objeto Bilhete cujos detalhes serão exibidos. Não pode ser nulo.
-     * @throws IllegalArgumentException se o bilhete for nulo.
      */
     public DialogoDetalhesBilhete(Frame parent, Bilhete bilhete) {
-        super(parent, "Detalhes do Bilhete", true); // true para ser modal
+        super(parent, "Detalhes do Bilhete", true);
         if (bilhete == null) throw new IllegalArgumentException("Bilhete não pode ser nulo para DialogoDetalhesBilhete.");
         this.bilheteExibido = bilhete;
         configurarDialogo();
     }
     
     /**
-     * Construtor de conveniência que não define um Frame pai explícito.
-     * @param bilhete O objeto Bilhete cujos detalhes serão exibidos.
+     * Construtor de conveniência sem Frame pai explícito.
+     * @param bilhete O objeto Bilhete a ser exibido.
      */
     public DialogoDetalhesBilhete(Bilhete bilhete) {
         this((Frame) null, bilhete);
@@ -52,7 +52,7 @@ public class DialogoDetalhesBilhete extends JDialog {
      * Configura a estrutura, tamanho, e os componentes do diálogo.
      */
     private void configurarDialogo() {
-        setSize(580, 750); // Tamanho ajustado para o conteúdo
+        setSize(580, 750);
         setLocationRelativeTo(getParent());
         setResizable(false);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -60,7 +60,6 @@ public class DialogoDetalhesBilhete extends JDialog {
         JPanel painelPrincipal = new JPanel(new BorderLayout());
         painelPrincipal.setBackground(Constantes.AZUL_ESCURO);
         
-        // Cabeçalho com logo
         JPanel cabecalho = new JPanel(new FlowLayout(FlowLayout.CENTER));
         cabecalho.setBackground(Constantes.AZUL_ESCURO);
         cabecalho.setBorder(BorderFactory.createEmptyBorder(20, 0, 15, 0));
@@ -68,25 +67,18 @@ public class DialogoDetalhesBilhete extends JDialog {
         logo.setPreferredSize(new Dimension(250, 70));
         cabecalho.add(logo);
         
-        // Conteúdo do bilhete (com rolagem)
         JScrollPane scrollConteudo = new JScrollPane(criarPainelConteudoBilhete());
         scrollConteudo.setBorder(null);
         scrollConteudo.getViewport().setOpaque(false);
         scrollConteudo.setOpaque(false);
         
-        // Botão para fechar o diálogo
         JPanel painelBotao = new JPanel(new FlowLayout(FlowLayout.CENTER));
         painelBotao.setBackground(Constantes.AZUL_ESCURO);
         painelBotao.setBorder(BorderFactory.createEmptyBorder(15, 0, 20, 0));
         
-        BotaoAnimado btnFechar = new BotaoAnimado(
-            "FECHAR",
-            Constantes.AZUL_CLARO,
-            Constantes.AZUL_CLARO.darker(),
-            new Dimension(160, 50)
-        );
+        BotaoAnimado btnFechar = new BotaoAnimado("FECHAR", Constantes.AZUL_CLARO, Constantes.AZUL_CLARO.darker(), new Dimension(160, 50));
         btnFechar.setFont(new Font("Arial", Font.BOLD, 16));
-        btnFechar.addActionListener(e -> dispose()); // dispose() fecha o diálogo
+        btnFechar.addActionListener(e -> dispose());
         painelBotao.add(btnFechar);
         
         painelPrincipal.add(cabecalho, BorderLayout.NORTH);
@@ -98,6 +90,7 @@ public class DialogoDetalhesBilhete extends JDialog {
     
     /**
      * Cria o painel que contém todos os detalhes formatados do bilhete.
+     * Acessa os dados da peça e do turno através do objeto Sessao.
      * @return Um JPanel com o conteúdo do bilhete.
      */
     private JPanel criarPainelConteudoBilhete() {
@@ -114,20 +107,22 @@ public class DialogoDetalhesBilhete extends JDialog {
         ));
         
         Cliente clienteDoBilhete = this.bilheteExibido.getCliente();
+        Sessao sessaoDoBilhete = this.bilheteExibido.getSessao(); // Pega o objeto Sessao do bilhete
 
         if (clienteDoBilhete.isMembroGold()) {
             painelDetalhes.add(criarBadgeABCGoldVisual());
             painelDetalhes.add(Box.createVerticalStrut(15));
         }
         
-        JLabel lblTituloPeca = new JLabel(this.bilheteExibido.getPeca().getTitulo());
+        // MUDANÇA: Acessa o título da peça através da sessão
+        JLabel lblTituloPeca = new JLabel(sessaoDoBilhete.getPeca().getTitulo());
         lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 26));
         lblTituloPeca.setAlignmentX(Component.CENTER_ALIGNMENT);
         lblTituloPeca.setForeground(Color.BLACK);
         painelDetalhes.add(lblTituloPeca);
 
-        if (this.bilheteExibido.getPeca().getSubtitulo() != null && !this.bilheteExibido.getPeca().getSubtitulo().isEmpty()){
-            JLabel lblSubtituloPeca = new JLabel(this.bilheteExibido.getPeca().getSubtitulo());
+        if (sessaoDoBilhete.getPeca().getSubtitulo() != null && !sessaoDoBilhete.getPeca().getSubtitulo().isEmpty()){
+            JLabel lblSubtituloPeca = new JLabel(sessaoDoBilhete.getPeca().getSubtitulo());
             lblSubtituloPeca.setFont(new Font("Arial", Font.ITALIC, 16));
             lblSubtituloPeca.setAlignmentX(Component.CENTER_ALIGNMENT);
             lblSubtituloPeca.setForeground(Color.DARK_GRAY);
@@ -135,8 +130,9 @@ public class DialogoDetalhesBilhete extends JDialog {
         }
         painelDetalhes.add(Box.createVerticalStrut(25));
         
-        adicionarLinhaDeInformacao(painelDetalhes, "Data Apresentação:", FormatadorData.formatar(this.bilheteExibido.getPeca().getDataHora()));
-        adicionarLinhaDeInformacao(painelDetalhes, "Turno:", this.bilheteExibido.getTurno().toString());
+        // MUDANÇA: Acessa a data e o turno através da sessão
+        adicionarLinhaDeInformacao(painelDetalhes, "Data Apresentação:", FormatadorData.formatar(sessaoDoBilhete.getDataHora()));
+        adicionarLinhaDeInformacao(painelDetalhes, "Turno:", sessaoDoBilhete.getTurno().toString());
         adicionarLinhaDeInformacao(painelDetalhes, "Cliente:", clienteDoBilhete.getNome());
         adicionarLinhaDeInformacao(painelDetalhes, "CPF:", ValidadorCPF.formatarParaExibicao(clienteDoBilhete.getCpf()));
         

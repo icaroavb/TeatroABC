@@ -1,44 +1,39 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Sessao; // MUDANÇA: Agora usa Sessao
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico; // IMPORT DO NOVO COMPONENTE
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.aplicacao.interfaces.IClienteServico;
-import com.teatroabc.aplicacao.interfaces.IPecaServico;
-import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; // MUDANÇA: Inclui o novo serviço
+import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.dominio.validadores.ValidadorCPF;
-
-import javax.swing.*;
-import javax.swing.text.MaskFormatter;
+import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
+import com.teatroabc.infraestrutura.ui_swing.componentes.PainelEntradaCPF;
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import java.awt.*;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Optional;
+import javax.swing.*;
 
 /**
  * Tela para o usuário informar o CPF. Atua como um roteador de fluxos.
- * Refatorada para trabalhar com o conceito de Sessao.
+ * A lógica do formulário de entrada foi encapsulada no componente {@link PainelEntradaCPF}.
  */
 public class TelaInformarCPF extends JPanel {
     // Contexto de navegação
     private final boolean modoConsulta;
-    private final Sessao sessao; // MUDANÇA: Armazena o objeto Sessao
+    private final Sessao sessao;
     private final List<Assento> assentosSelecionados;
-
-    // Componente da UI
-    private JFormattedTextField txtCPF;
 
     // Serviços injetados
     private final IClienteServico clienteServico;
     private final IPecaServico pecaServico;
     private final IReservaServico reservaServico;
     private final ISessaoServico sessaoServico;
+
+    // A referência ao painel de entrada é mantida para que se possa obter o CPF dele.
+    private PainelEntradaCPF painelEntradaCPF;
 
     /**
      * Construtor refatorado da TelaInformarCPF.
@@ -50,7 +45,6 @@ public class TelaInformarCPF extends JPanel {
      * @param pecaServico Serviço de peça.
      * @param reservaServico Serviço de reserva.
      * @param sessaoServico Serviço de sessão.
-     * @throws IllegalArgumentException se algum dos serviços for nulo.
      */
     public TelaInformarCPF(boolean modoConsulta, Sessao sessao, List<Assento> assentosSelecionados,
                            IClienteServico clienteServico, IPecaServico pecaServico, 
@@ -60,7 +54,7 @@ public class TelaInformarCPF extends JPanel {
         }
         
         this.modoConsulta = modoConsulta;
-        this.sessao = sessao; // Armazena a Sessao
+        this.sessao = sessao;
         this.assentosSelecionados = assentosSelecionados;
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
@@ -70,10 +64,9 @@ public class TelaInformarCPF extends JPanel {
         configurarTelaVisual();
     }
     
-    // O método setTurnoSelecionado() não é mais necessário, pois o turno já está dentro da Sessao.
-
     /**
      * Configura os componentes visuais e o layout da tela.
+     * A lógica de criação do formulário foi movida para o componente PainelEntradaCPF.
      */
     private void configurarTelaVisual() {
         setLayout(new BorderLayout());
@@ -84,35 +77,23 @@ public class TelaInformarCPF extends JPanel {
         containerPrincipal.setBackground(Constantes.AZUL_ESCURO);
         containerPrincipal.setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
 
-        JPanel painelLogo = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        painelLogo.setOpaque(false);
-        painelLogo.add(new LogoTeatro());
-        containerPrincipal.add(painelLogo);
+        // Adiciona um espaçador no topo para empurrar o conteúdo para o centro vertical.
+        containerPrincipal.add(Box.createVerticalGlue());
+
+        containerPrincipal.add(new LogoTeatro());
         containerPrincipal.add(Box.createRigidArea(new Dimension(0, 60)));
 
-        JLabel titulo = new JLabel(modoConsulta ? "CONSULTAR BILHETES" : "IDENTIFIQUE-SE COM CPF");
-        titulo.setFont(Constantes.FONTE_TITULO.deriveFont(48f));
-        titulo.setForeground(Constantes.AMARELO);
-        titulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        containerPrincipal.add(titulo);
-        containerPrincipal.add(Box.createRigidArea(new Dimension(0, 40)));
+        // Instancia o novo componente e passa a ação de "Continuar" como um lambda.
+        String titulo = modoConsulta ? "CONSULTAR BILHETES" : "IDENTIFIQUE-SE COM CPF";
+        this.painelEntradaCPF = new PainelEntradaCPF(titulo, e -> processarContinuar());
+        containerPrincipal.add(this.painelEntradaCPF);
 
-        JPanel painelCPF = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        painelCPF.setOpaque(false);
-        configurarCampoCPF();
-        painelCPF.add(txtCPF);
-        containerPrincipal.add(painelCPF);
-        containerPrincipal.add(Box.createRigidArea(new Dimension(0, 40)));
-
-        BotaoAnimado btnContinuar = new BotaoAnimado("CONTINUAR",
-                Constantes.LARANJA, Constantes.AMARELO.darker(), new Dimension(380, 65));
-        btnContinuar.setFont(Constantes.FONTE_BOTAO);
-        btnContinuar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        btnContinuar.addActionListener(e -> processarContinuar());
-        containerPrincipal.add(btnContinuar);
-
+        // Adiciona outro espaçador para manter o conteúdo centralizado.
+        containerPrincipal.add(Box.createVerticalGlue());
+        
         add(containerPrincipal, BorderLayout.CENTER);
 
+        // O botão de voltar permanece aqui, pois é parte do layout geral da TELA.
         JPanel painelVoltar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         painelVoltar.setOpaque(false);
         painelVoltar.setBorder(BorderFactory.createEmptyBorder(0, 20, 10, 0));
@@ -127,28 +108,14 @@ public class TelaInformarCPF extends JPanel {
         add(painelVoltar, BorderLayout.SOUTH);
     }
     
-    private void configurarCampoCPF() {
-        try {
-            MaskFormatter maskCPF = new MaskFormatter("###.###.###-##");
-            maskCPF.setPlaceholderCharacter('_');
-            txtCPF = new JFormattedTextField(maskCPF);
-        } catch (ParseException e) {
-            txtCPF = new JFormattedTextField();
-            System.err.println("Erro ao criar máscara de CPF: " + e.getMessage());
-        }
-        
-        txtCPF.setPreferredSize(new Dimension(380, 55));
-        // ... Estilo do campo permanece o mesmo ...
-    }
-
     /**
-     * Processa a ação do botão "Continuar".
-     * A lógica de navegação agora usa o objeto Sessao.
+     * Processa a ação do botão "Continuar". Valida o CPF e navega para a próxima tela.
      */
     private void processarContinuar() {
-        String cpfNormalizado = ValidadorCPF.normalizar(txtCPF.getText());
+        // O CPF agora é obtido diretamente do componente encapsulado.
+        String cpfNormalizado = this.painelEntradaCPF.getCPF();
 
-        if (cpfNormalizado == null || !ValidadorCPF.isValid(cpfNormalizado)) {
+        if (!ValidadorCPF.isValid(cpfNormalizado)) {
             JOptionPane.showMessageDialog(this, "O CPF informado é inválido ou incompleto. Por favor, verifique.", "CPF Inválido", JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -158,16 +125,14 @@ public class TelaInformarCPF extends JPanel {
         try {
             if (modoConsulta) {
                 frame.setContentPane(new TelaListaBilhetes(cpfNormalizado, reservaServico, clienteServico, pecaServico, sessaoServico));
-            } else { // Modo compra
+            } else {
                 Optional<Cliente> clienteOpt = this.clienteServico.buscarPorCpf(cpfNormalizado);
                 if (clienteOpt.isPresent()) {
-                    // Cliente existe, vai para a tela de confirmação
                     frame.setContentPane(new TelaConfirmarPedido(
                         clienteOpt.get(), this.sessao, this.assentosSelecionados,
                         this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
                     ));
                 } else {
-                    // Cliente não existe, vai para a tela de cadastro
                     frame.setContentPane(new TelaCadastrar(
                         cpfNormalizado, this.sessao, this.assentosSelecionados,
                         this.clienteServico, this.pecaServico, this.reservaServico, this.sessaoServico
@@ -177,12 +142,13 @@ public class TelaInformarCPF extends JPanel {
             frame.revalidate();
             frame.repaint();
         } catch (Exception ex) {
-            // Tratamento de erro...
+            JOptionPane.showMessageDialog(this, "Ocorreu um erro ao processar sua solicitação: " + ex.getMessage(), "Erro de Sistema", JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
     }
 
     /**
-     * Navega para a tela anterior apropriada.
+     * Navega para a tela anterior apropriada com base no modo atual.
      */
     private void navegarParaTelaAnterior() {
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);

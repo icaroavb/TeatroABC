@@ -1,15 +1,16 @@
 package com.teatroabc.infraestrutura.ui_swing.componentes;
 
-import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
-import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Bilhete;
+import com.teatroabc.dominio.modelos.Sessao;
+import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes; // Importa a nova entidade de domínio
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 /**
  * Componente visual customizado para exibir um resumo das informações de um Bilhete
@@ -23,6 +24,10 @@ public class CardBilhete extends JPanel {
     private final Bilhete bilhete;
     private ActionListener actionListener;
 
+    /**
+     * Construtor do CardBilhete.
+     * @param bilhete O objeto de domínio Bilhete a ser exibido. Não pode ser nulo.
+     */
     public CardBilhete(Bilhete bilhete) {
         if (bilhete == null) {
             throw new IllegalArgumentException("O objeto Bilhete não pode ser nulo.");
@@ -48,6 +53,11 @@ public class CardBilhete extends JPanel {
         add(criarPainelDoBotao(), BorderLayout.EAST);
     }
     
+    /**
+     * Cria o painel que contém as informações textuais do bilhete.
+     * Acessa os dados da peça e da apresentação através do objeto Sessao.
+     * @return JPanel configurado com os detalhes do bilhete.
+     */
     private JPanel criarPainelDeInformacoes() {
         JPanel painelInfo = new JPanel(new GridBagLayout());
         painelInfo.setOpaque(false);
@@ -56,24 +66,33 @@ public class CardBilhete extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(2, 0, 2, 20);
 
+        // Pega a sessão do bilhete para facilitar o acesso aos dados
+        Sessao sessao = bilhete.getSessao();
+
+        // Título da Peça
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        JLabel lblTituloPeca = new JLabel(bilhete.getPeca().getTitulo());
+        JLabel lblTituloPeca = new JLabel(sessao.getPeca().getTitulo()); // MUDANÇA: Usa sessao.getPeca()
         lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 20));
         lblTituloPeca.setForeground(Color.WHITE);
         painelInfo.add(lblTituloPeca, gbc);
 
+        // Rótulo "Data"
         gbc.gridy = 1; gbc.gridwidth = 1;
         painelInfo.add(criarLabelDeRotulo("Data"), gbc);
         
+        // Rótulo "Assentos"
         gbc.gridy = 2;
         painelInfo.add(criarLabelDeRotulo("Assentos"), gbc);
         
+        // Valor da Data (formatado)
         gbc.gridx = 1; gbc.gridy = 1;
-        JLabel lblDataValor = criarLabelDeValor(FormatadorData.formatar(bilhete.getPeca().getDataHora()));
+        JLabel lblDataValor = criarLabelDeValor(FormatadorData.formatar(sessao.getDataHora())); // MUDANÇA: Usa sessao.getDataHora()
         painelInfo.add(lblDataValor, gbc);
 
+        // Valor dos Assentos (formatado)
         gbc.gridy = 2;
-        String assentosTexto = bilhete.getAssentos().stream()
+        List<Assento> assentos = bilhete.getAssentos();
+        String assentosTexto = assentos.stream()
             .map(Assento::getCodigo)
             .collect(Collectors.joining(", "));
         JLabel lblAssentosValor = criarLabelDeValor(assentosTexto);
@@ -96,10 +115,6 @@ public class CardBilhete extends JPanel {
         return label;
     }
 
-    /**
-     * Cria o painel que contém o botão de ação "Visualizar".
-     * @return JPanel com o botão.
-     */
     private JPanel criarPainelDoBotao() {
         JPanel painelBotao = new JPanel(new GridBagLayout());
         painelBotao.setOpaque(false);
@@ -108,14 +123,9 @@ public class CardBilhete extends JPanel {
             Constantes.AZUL_CLARO, new Color(70, 130, 180), new Dimension(120, 40));
         btnVisualizar.setFont(new Font("Arial", Font.BOLD, 14));
         
-        // Adiciona um listener que repassa o evento para o listener externo.
         btnVisualizar.addActionListener(e -> {
             if (actionListener != null) {
-                // **CORREÇÃO APLICADA AQUI**
-                // Cria um novo ActionEvent, mas agora a fonte (o primeiro argumento)
-                // é o próprio CardBilhete (this), e não o botão que foi clicado.
-                // Isso permite que a tela que ouve este evento faça o cast para CardBilhete
-                // sem erro e obtenha os dados do bilhete correto.
+                // Cria um novo ActionEvent, passando o CardBilhete (this) como a fonte.
                 ActionEvent eventoDoCard = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null);
                 actionListener.actionPerformed(eventoDoCard);
             }

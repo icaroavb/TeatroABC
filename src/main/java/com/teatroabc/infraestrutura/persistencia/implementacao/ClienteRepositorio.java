@@ -1,71 +1,88 @@
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
 import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio; // Implementar a interface
+import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-// import java.util.Optional; // Se for usar Optional
+import java.util.Optional; // Importa a classe Optional
 
-public class ClienteRepositorio implements IClienteRepositorio { // IMPLEMENTA A INTERFACE
+/**
+ * Implementação (Adaptador Secundário) do repositório de Clientes.
+ * Responsável por traduzir objetos Cliente para o formato de persistência
+ * em arquivo de texto e vice-versa.
+ */
+public class ClienteRepositorio implements IClienteRepositorio {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void salvar(Cliente cliente) {
-        // A lógica de verificar se já existe foi movida para o Serviço.
-        // O repositório assume que a decisão de salvar (ou não) já foi tomada.
-        // Se ainda quiser uma verificação aqui, pode ser um log ou uma exceção de infraestrutura.
-
+        // Formata os dados do cliente em uma string para salvar no arquivo.
         String linha = String.format("%s|%s|%s|%s|%s|%s",
-                cliente.getCpf(), // Assumindo que o CPF no objeto Cliente já está normalizado
+                cliente.getCpf(),
                 cliente.getNome(),
                 cliente.getDataNascimento().format(DATE_FORMATTER),
                 cliente.getTelefone() == null ? "" : cliente.getTelefone(),
                 cliente.getEmail() == null ? "" : cliente.getEmail(),
-                cliente.getPlanoFidelidade().getIdentificadorPlano() // Usar o identificador do plano
+                cliente.getPlanoFidelidade().getIdentificadorPlano()
         );
-
         GerenciadorArquivos.salvarCliente(linha);
-        System.out.println("Cliente persistido: " + cliente.getNome() +
-                " - Plano: " + cliente.getPlanoFidelidade().getNomePlano());
     }
 
+    /**
+     * {@inheritDoc}
+     * O método agora retorna um Optional para indicar de forma segura a possível ausência de um cliente.
+     */
     @Override
-    public Cliente buscarPorCpf(String cpf) { // cpf já vem normalizado do serviço
-        String linha = GerenciadorArquivos.buscarClientePorCpf(cpf); // GerenciadorArquivos deve buscar pelo CPF normalizado
+    public Optional<Cliente> buscarPorCpf(String cpf) {
+        String linha = GerenciadorArquivos.buscarClientePorCpf(cpf);
 
         if (linha != null) {
-            String[] partes = linha.split("\\|");
-            // Assumindo o novo formato de 6 partes: CPF|NOME|DATA_NASC|TELEFONE|EMAIL|ID_PLANO
-            if (partes.length == 6) {
-                return new Cliente(
-                        partes[0], // CPF
-                        partes[1], // Nome
-                        LocalDate.parse(partes[2], DATE_FORMATTER), // Data Nascimento
-                        partes[3].isEmpty() ? null : partes[3],  // Telefone
-                        partes[4].isEmpty() ? null : partes[4],  // Email
-                        partes[5]  // Identificador do Plano de Fidelidade
-                );
-            } else if (partes.length == 4) { // Compatibilidade com formato antigo (sem email, sem plano)
-                System.out.println("Atenção: Lendo cliente em formato antigo (CPF: " + partes[0] + "). Assumindo plano padrão.");
-                return new Cliente(
-                        partes[0],
-                        partes[1],
-                        LocalDate.parse(partes[2], DATE_FORMATTER),
-                        partes[3],
-                        null, // Sem email
-                        "PADRAO" // Assumir plano padrão
-                );
-            } else {
-                System.err.println("Formato de linha inválido para cliente no arquivo: " + linha);
-                return null;
+            try {
+                String[] partes = linha.split("\\|");
+                if (partes.length >= 6) {
+                    
+                    // Lógica para traduzir o valor do plano lido do arquivo para um identificador padrão.
+                    String identificadorPlano;
+                    String valorPlanoDoArquivo = partes[5].toUpperCase();
+
+                    if (valorPlanoDoArquivo.equals("TRUE") || valorPlanoDoArquivo.equals("GOLD")) {
+                        identificadorPlano = "GOLD";
+                    } else {
+                        identificadorPlano = "PADRAO";
+                    }
+
+                    Cliente cliente = new Cliente(
+                            partes[0], // CPF
+                            partes[1], // Nome
+                            LocalDate.parse(partes[2], DATE_FORMATTER), // Data Nascimento
+                            partes[3].isEmpty() ? null : partes[3],  // Telefone
+                            partes[4].isEmpty() ? null : partes[4],  // Email
+                            identificadorPlano // Usa o identificador traduzido
+                    );
+
+                    // MUDANÇA: Retorna o cliente "enrolado" em um Optional.
+                    return Optional.of(cliente);
+                }
+            } catch (Exception e) {
+                System.err.println("Erro ao parsear cliente da linha: " + linha);
+                e.printStackTrace();
             }
         }
-        return null;
+        
+        // Se a linha for nula ou o parse falhar, retorna um Optional vazio.
+        return Optional.empty();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public boolean existe(String cpf) { // cpf já vem normalizado do serviço
+    public boolean existe(String cpf) {
+        // A forma mais eficiente de verificar a existência é ver se a busca retorna um valor.
         return GerenciadorArquivos.buscarClientePorCpf(cpf) != null;
     }
 }

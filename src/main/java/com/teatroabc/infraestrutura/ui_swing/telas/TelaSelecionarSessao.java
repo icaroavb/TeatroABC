@@ -1,33 +1,30 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.dominio.modelos.Peca;
-import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
 import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.modelos.Peca;
+import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
+import com.teatroabc.infraestrutura.ui_swing.componentes.PainelSelecaoDia;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
-
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.time.format.TextStyle;
-import java.util.Collections;
+import java.awt.event.ActionListener;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.swing.*;
 
 /**
  * Tela responsável por permitir ao usuário selecionar uma data e turno específicos
- * (uma Sessao) para uma peça previamente escolhida. Esta tela substitui a antiga
- * TelaSelecionarTurno, oferecendo uma experiência mais completa.
+ * (uma Sessao) para uma peça previamente escolhida. A lógica de renderização de
+ * cada dia foi encapsulada no componente {@link PainelSelecaoDia}.
  *
  * Na Arquitetura Hexagonal, atua como um Adaptador Primário, utilizando o ISessaoServico
- * para buscar as opções disponíveis e orquestrando a navegação.
+ * para buscar as opções disponíveis e orquestrando a navegação para a próxima etapa.
  */
 public class TelaSelecionarSessao extends JPanel {
 
@@ -51,7 +48,6 @@ public class TelaSelecionarSessao extends JPanel {
      * @param pecaServico Serviço para repassar na navegação.
      * @param clienteServico Serviço para repassar na navegação.
      * @param reservaServico Serviço para repassar na navegação.
-     * @throws IllegalArgumentException se Peca ou qualquer um dos serviços for nulo.
      */
     public TelaSelecionarSessao(Peca peca, ISessaoServico sessaoServico, IPecaServico pecaServico, IClienteServico clienteServico, IReservaServico reservaServico) {
         if (peca == null || sessaoServico == null || pecaServico == null || clienteServico == null || reservaServico == null) {
@@ -81,11 +77,11 @@ public class TelaSelecionarSessao extends JPanel {
         painelCentral.setLayout(new BoxLayout(painelCentral, BoxLayout.Y_AXIS));
         painelCentral.setOpaque(false);
         
-        // Ponto de interação com o núcleo: busca as sessões disponíveis.
+        // Ponto de interação com o núcleo: busca as sessões disponíveis para a peça.
         List<Sessao> sessoesDisponiveis = this.sessaoServico.buscarSessoesPorPeca(pecaSelecionada.getId());
         
         if (sessoesDisponiveis.isEmpty()) {
-            // Exibe mensagem se não houver sessões para a peça.
+            // Exibe mensagem informativa se não houver sessões cadastradas.
             JLabel lblSemSessoes = new JLabel("Nenhuma sessão disponível para esta peça no momento.");
             lblSemSessoes.setFont(Constantes.FONTE_SUBTITULO);
             lblSemSessoes.setForeground(Color.WHITE);
@@ -94,15 +90,30 @@ public class TelaSelecionarSessao extends JPanel {
             painelCentral.add(lblSemSessoes);
             painelCentral.add(Box.createVerticalGlue());
         } else {
-            // Agrupa as sessões por data para exibição organizada.
+            // Agrupa as sessões por dia para exibição organizada.
             Map<String, List<Sessao>> sessoesPorDia = sessoesDisponiveis.stream()
                 .collect(Collectors.groupingBy(s -> FormatadorData.formatar(s.getDataHora(), "yyyy-MM-dd")));
                 
             ButtonGroup grupoRadiosSessao = new ButtonGroup();
 
-            // Cria um bloco de seleção para cada dia com sessões disponíveis.
+            // Itera sobre os dias e cria um painel de seleção para cada um.
             sessoesPorDia.keySet().stream().sorted().forEach(dia -> {
-                painelCentral.add(criarBlocoDeSessaoParaDia(sessoesPorDia.get(dia), grupoRadiosSessao));
+                // ActionListener que será passado para cada PainelSelecaoDia.
+                // Ele atualiza a sessão escolhida na tela principal.
+                ActionListener listenerSelecao = e -> {
+                    String idSessaoSelecionada = e.getActionCommand();
+                    this.sessaoEscolhida = sessoesDisponiveis.stream()
+                        .filter(s -> s.getId().equals(idSessaoSelecionada))
+                        .findFirst().orElse(null);
+                    
+                    if (btnContinuar != null) btnContinuar.setEnabled(true);
+                };
+
+                // Instancia o novo componente encapsulado.
+                PainelSelecaoDia painelDoDia = new PainelSelecaoDia(
+                    sessoesPorDia.get(dia), grupoRadiosSessao, listenerSelecao
+                );
+                painelCentral.add(painelDoDia);
                 painelCentral.add(Box.createRigidArea(new Dimension(0, 25)));
             });
         }
@@ -147,58 +158,6 @@ public class TelaSelecionarSessao extends JPanel {
     }
 
     /**
-     * Cria um painel visual para um dia específico, contendo os botões de rádio para cada turno.
-     * @param sessoesDoDia A lista de sessões para aquele dia.
-     * @param grupoRadios O ButtonGroup ao qual os botões de rádio pertencerão.
-     * @return Um JPanel representando o bloco de seleção para um dia.
-     */
-    private JPanel criarBlocoDeSessaoParaDia(List<Sessao> sessoesDoDia, ButtonGroup grupoRadios) {
-        JPanel painelDia = new JPanel();
-        painelDia.setLayout(new BoxLayout(painelDia, BoxLayout.Y_AXIS));
-        painelDia.setOpaque(false);
-        // Usa a data da primeira sessão para formatar o título do bloco.
-        String tituloDoDia = formatarTituloDia(sessoesDoDia.get(0));
-        painelDia.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(Constantes.AZUL_CLARO, 1, true),
-            tituloDoDia,
-            TitledBorder.LEFT, TitledBorder.TOP,
-            new Font("Arial", Font.BOLD, 18), Constantes.AMARELO
-        ));
-
-        JPanel painelHorarios = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
-        painelHorarios.setOpaque(false);
-
-        for (Sessao sessao : sessoesDoDia) {
-            JRadioButton radio = new JRadioButton(sessao.getTurno().toString());
-            radio.setFont(Constantes.FONTE_BOTAO.deriveFont(18f));
-            radio.setForeground(Color.WHITE);
-            radio.setOpaque(false);
-            radio.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            radio.addActionListener(e -> {
-                this.sessaoEscolhida = sessao;
-                if (btnContinuar != null) btnContinuar.setEnabled(true);
-            });
-            grupoRadios.add(radio);
-            painelHorarios.add(radio);
-        }
-        
-        painelDia.add(painelHorarios);
-        return painelDia;
-    }
-
-    /**
-     * Formata o título para o bloco do dia (ex: "Sexta-feira, 20 de junho").
-     * @param sessao Uma sessão daquele dia.
-     * @return Uma string formatada.
-     */
-    private String formatarTituloDia(Sessao sessao) {
-        Locale br = new Locale("pt", "BR");
-        String diaDaSemana = sessao.getDataHora().getDayOfWeek().getDisplayName(TextStyle.FULL, br);
-        String dataFormatada = FormatadorData.formatar(sessao.getDataHora(), "dd 'de' MMMM");
-        return String.format("%s, %s", diaDaSemana.substring(0, 1).toUpperCase() + diaDaSemana.substring(1), dataFormatada);
-    }
-
-    /**
      * Cria o painel do rodapé contendo o botão "Continuar".
      * @return JPanel configurado para o rodapé.
      */
@@ -222,7 +181,7 @@ public class TelaSelecionarSessao extends JPanel {
     }
 
     /**
-     * Navega para a tela de seleção de assentos.
+     * Navega para a tela de seleção de assentos, passando a sessão escolhida e os serviços.
      */
     private void prosseguirParaSelecionarAssento() {
         if (this.sessaoEscolhida == null) {
@@ -231,14 +190,13 @@ public class TelaSelecionarSessao extends JPanel {
         }
 
         JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
-        // Agora, a TelaSelecionarAssento precisa ser refatorada para aceitar um objeto Sessao.
-        TelaSelecionarAssento telaAssentos = new TelaSelecionarAssento(
-                this.sessaoEscolhida, // Passa o objeto Sessao inteiro
+        frame.setContentPane(new TelaSelecionarAssento(
+                this.sessaoEscolhida,
                 this.pecaServico, 
                 this.clienteServico, 
-                this.reservaServico
-        );
-        frame.setContentPane(telaAssentos);
+                this.reservaServico,
+                this.sessaoServico
+        ));
         frame.revalidate();
         frame.repaint();
     }
