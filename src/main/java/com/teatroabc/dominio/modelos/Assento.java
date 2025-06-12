@@ -11,7 +11,7 @@ public class Assento {
     private final int fileira;
     private final int numero;
     private final CategoriaAssento categoria;
-    private final BigDecimal preco; // Preço é agora um atributo final do Assento
+    private final BigDecimal preco; 
     private StatusAssento status;
 
     public Assento(String codigo, int fileira, int numero, CategoriaAssento categoria, BigDecimal preco) {

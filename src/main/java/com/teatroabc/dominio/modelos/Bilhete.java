@@ -19,7 +19,7 @@ import java.util.Objects;
 public class Bilhete {
     private final String id;
     private final String codigoBarras;
-    private final Sessao sessao; // MUDANÇA: Substitui os campos 'peca' e 'turno'
+    private final Sessao sessao; 
     private final Cliente cliente;
     private final List<Assento> assentos;
     private final BigDecimal subtotal;

@@ -65,7 +65,7 @@ public class Sessao {
     }
 
     /**
-     * @return A data e hora de início desta sessão.
+     * @return A data e hora de início de uma sessão específica
      */
     public LocalDateTime getDataHora() { 
         return dataHora; 
