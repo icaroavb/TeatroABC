@@ -5,20 +5,20 @@ import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio; // NOVO IMPORT
+import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio; 
 
 // --- Adaptadores de Saída (Implementações Concretas dos Repositórios) ---
 import com.teatroabc.infraestrutura.persistencia.implementacao.ClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.PecaRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.AssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.implementacao.BilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.SessaoRepositorio; // NOVO IMPORT
+import com.teatroabc.infraestrutura.persistencia.implementacao.SessaoRepositorio; 
 
 // --- Portas de Entrada (Interfaces dos Serviços de Aplicação) ---
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; // NOVO IMPORT
+import com.teatroabc.aplicacao.interfaces.ISessaoServico; 
 
 // --- Implementações dos Serviços de Aplicação ---
 import com.teatroabc.aplicacao.servicos.ClienteServico;
@@ -58,7 +58,7 @@ public class TeatroABCApplication {
         // O PecaRepositorio agora é uma dependência para outros repositórios.
         IPecaRepositorio pecaRepositorio = new PecaRepositorio();
         
-        // O novo SessaoRepositorio depende do PecaRepositorio para construir as sessões.
+        // O SessaoRepositorio depende do PecaRepositorio para construir as sessões.
         ISessaoRepositorio sessaoRepositorio = new SessaoRepositorio(pecaRepositorio);
 
         // O BilheteRepositorio depende dos outros para reconstruir entidades completas.
@@ -68,8 +68,6 @@ public class TeatroABCApplication {
         IClienteServico clienteServico = new ClienteServico(clienteRepositorio);
         IPecaServico pecaServico = new PecaServico(pecaRepositorio, assentoRepositorio);
         IReservaServico reservaServico = new ReservaServico(bilheteRepositorio, assentoRepositorio);
-        
-        // Instanciação do novo serviço de sessão.
         ISessaoServico sessaoServico = new SessaoServico(sessaoRepositorio);
 
         // 3. Criação e Início do Adaptador de Entrada Principal (UI Swing)
@@ -84,12 +82,14 @@ public class TeatroABCApplication {
                 sessaoServico // Passando o novo serviço
             );
 
+            //ponto de entrada para configurar sincronização com o banco de dados
             JFrame frame = new JFrame("Teatro ABC - Sistema de Bilheteria");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1400, 900);
-            frame.setLocationRelativeTo(null);
-            frame.setResizable(true);
-            
+
+            //instruções abaixo adicionadas para garantir que app vai iniciar maximizado
+            frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+            frame.setLocationRelativeTo(null);            
             frame.setContentPane(telaPrincipal);
             frame.setVisible(true);
         });

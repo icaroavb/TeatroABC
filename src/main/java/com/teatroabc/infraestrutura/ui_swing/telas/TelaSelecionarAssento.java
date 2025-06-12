@@ -131,7 +131,8 @@ public class TelaSelecionarAssento extends JPanel {
         
         ConfiguracaoPlantaTeatro.getLayout().getSecoes().forEach(secaoConfig -> {
             List<Assento> assentos = assentosPorCategoria.getOrDefault(secaoConfig.getCategoria(), Collections.emptyList());
-            if (secaoConfig.getAlinhamento() == Alinhamento.CENTRO && !assentos.isEmpty()) {
+            // LINHA CORRIGIDA (Adicione a verificação se a categoria NÃO é FRISA):
+            if (secaoConfig.getAlinhamento() == Alinhamento.CENTRO && secaoConfig.getCategoria() != CategoriaAssento.FRISA && !assentos.isEmpty()) {
                 painelCentro.add(criarPainelDeSecao(secaoConfig, assentos));
                 painelCentro.add(Box.createVerticalStrut(20));
             }

@@ -1,8 +1,5 @@
-package com.teatroabc.infraestrutura.ui_swing.telas;
+package com.teatroabc.infraestrutura.ui_swing.componentes;
 
-import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
-import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.componentes.PainelCodigoBarras;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Cliente;

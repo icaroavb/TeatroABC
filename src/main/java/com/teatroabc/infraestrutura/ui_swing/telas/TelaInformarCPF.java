@@ -1,20 +1,21 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
-import com.teatroabc.aplicacao.interfaces.IClienteServico;
-import com.teatroabc.aplicacao.interfaces.IPecaServico; // IMPORT DO NOVO COMPONENTE
-import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico;
-import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.dominio.modelos.Sessao;
-import com.teatroabc.dominio.validadores.ValidadorCPF;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.componentes.PainelEntradaCPF;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
+import com.teatroabc.dominio.modelos.Sessao;
+import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Cliente;
+import com.teatroabc.aplicacao.interfaces.IClienteServico;
+import com.teatroabc.aplicacao.interfaces.IPecaServico;
+import com.teatroabc.aplicacao.interfaces.IReservaServico;
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.validadores.ValidadorCPF;
+
+import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import java.util.Optional;
-import javax.swing.*;
 
 /**
  * Tela para o usuário informar o CPF. Atua como um roteador de fluxos.
@@ -36,7 +37,7 @@ public class TelaInformarCPF extends JPanel {
     private PainelEntradaCPF painelEntradaCPF;
 
     /**
-     * Construtor refatorado da TelaInformarCPF.
+     * Construtor da TelaInformarCPF.
      *
      * @param modoConsulta {@code true} para consulta, {@code false} para compra.
      * @param sessao A sessão selecionada (relevante no modo compra, pode ser nulo em consulta).
@@ -112,7 +113,7 @@ public class TelaInformarCPF extends JPanel {
      * Processa a ação do botão "Continuar". Valida o CPF e navega para a próxima tela.
      */
     private void processarContinuar() {
-        // O CPF agora é obtido diretamente do componente encapsulado.
+        // O CPF agora é obtido diretamente do componente encapsulado, já normalizado.
         String cpfNormalizado = this.painelEntradaCPF.getCPF();
 
         if (!ValidadorCPF.isValid(cpfNormalizado)) {

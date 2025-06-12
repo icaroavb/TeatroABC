@@ -1,22 +1,28 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
+//importar interfaces dos campos privados
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
 import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+//modelagem para escolha das pecas e sessoes
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.dominio.modelos.Sessao;
+//importar componentes de UI que foram encapsulados
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.componentes.PainelSelecaoDia;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
+//demais componentes necessários para UI
 import java.awt.*;
 import java.awt.event.ActionListener;
+import javax.swing.*;
+//demais bibliotecas necessárias
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.swing.*;
+
 
 /**
  * Tela responsável por permitir ao usuário selecionar uma data e turno específicos
@@ -49,10 +55,17 @@ public class TelaSelecionarSessao extends JPanel {
      * @param clienteServico Serviço para repassar na navegação.
      * @param reservaServico Serviço para repassar na navegação.
      */
-    public TelaSelecionarSessao(Peca peca, ISessaoServico sessaoServico, IPecaServico pecaServico, IClienteServico clienteServico, IReservaServico reservaServico) {
-        if (peca == null || sessaoServico == null || pecaServico == null || clienteServico == null || reservaServico == null) {
-            throw new IllegalArgumentException("Peça e Serviços não podem ser nulos para TelaSelecionarSessao.");
-        }
+    public TelaSelecionarSessao(
+        //injecao de servicos ocorre a partir da tela anterior...
+        Peca peca, 
+        ISessaoServico sessaoServico, 
+        IPecaServico pecaServico, 
+        IClienteServico clienteServico, 
+        IReservaServico reservaServico) 
+        {
+        //encapsulamento da validacao
+        validacaoServicos(peca, clienteServico, pecaServico, reservaServico, sessaoServico);
+
         this.pecaSelecionada = peca;
         this.sessaoServico = sessaoServico;
         this.pecaServico = pecaServico;
@@ -61,6 +74,35 @@ public class TelaSelecionarSessao extends JPanel {
         this.sessaoEscolhida = null;
 
         configurarTelaVisual();
+    }
+
+    //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
+    private boolean verificarPeca (Peca peca){
+        return peca == null;
+    }
+    private boolean verificarClienteServicoNull (IClienteServico clienteServico){
+        return clienteServico == null;
+    }
+    private boolean verificarPecaServicoNull (IPecaServico pecaServico){
+        return pecaServico == null;
+    }
+    private boolean verificarReservaServicoNull (IReservaServico reservaServico){
+        return reservaServico == null;
+    }
+    private boolean verificarSessaoServicoNull (ISessaoServico sessaoServico){
+        return sessaoServico == null;
+    }
+    //Encapsular a lógica de validação total dos serviços - todos os serviços injetados são essenciais!
+    private void validacaoServicos (
+                                    Peca peca,
+                                    IClienteServico clienteServico, 
+                                    IPecaServico pecaServico, 
+                                    IReservaServico reservaServico, 
+                                    ISessaoServico sessaoServico
+                                    ){
+        if (verificarClienteServicoNull(clienteServico) || verificarPecaServicoNull(pecaServico) || verificarReservaServicoNull(reservaServico) || verificarSessaoServicoNull(sessaoServico)) {
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
+        }
     }
 
     /**

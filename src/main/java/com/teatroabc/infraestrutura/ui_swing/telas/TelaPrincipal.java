@@ -7,7 +7,7 @@ import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.CardPeca;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
-import com.teatroabc.infraestrutura.ui_swing.componentes.PainelNavegacaoPrincipal;
+import com.teatroabc.infraestrutura.ui_swing.componentes.PainelNavegacao_TelaPrincipal;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import java.awt.*;
 import java.util.List;
@@ -25,11 +25,15 @@ public class TelaPrincipal extends JPanel {
     private final IReservaServico reservaServico;
     private final ISessaoServico sessaoServico;
 
-    public TelaPrincipal(IClienteServico clienteServico, IPecaServico pecaServico, 
-                         IReservaServico reservaServico, ISessaoServico sessaoServico) {
-        if (clienteServico == null || pecaServico == null || reservaServico == null || sessaoServico == null) {
-            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
-        }
+    public TelaPrincipal(
+                        IClienteServico clienteServico, 
+                        IPecaServico pecaServico, 
+                        IReservaServico reservaServico, 
+                        ISessaoServico sessaoServico
+                        ){
+        //lógica da validação de serviços 
+        validacaoServicos(clienteServico, pecaServico, reservaServico, sessaoServico);
+        
         this.clienteServico = clienteServico;
         this.pecaServico = pecaServico;
         this.reservaServico = reservaServico;
@@ -38,6 +42,31 @@ public class TelaPrincipal extends JPanel {
         configurarTelaVisual();
     }
 
+    //Encapsulamento das lógicas de validação quanto aos serviços injetados (considerados individualmente)
+    private boolean verificarClienteServicoNull (IClienteServico clienteServico){
+        return clienteServico == null;
+    }
+    private boolean verificarPecaServicoNull (IPecaServico pecaServico){
+        return pecaServico == null;
+    }
+    private boolean verificarReservaServicoNull (IReservaServico reservaServico){
+        return reservaServico == null;
+    }
+    private boolean verificarSessaoServicoNull (ISessaoServico sessaoServico){
+        return sessaoServico == null;
+    }
+    //Encapsular a lógica de validação total dos serviços - todos os serviços injetados são essenciais!
+    private void validacaoServicos (
+                                    IClienteServico clienteServico, 
+                                    IPecaServico pecaServico, 
+                                    IReservaServico reservaServico, 
+                                    ISessaoServico sessaoServico
+                                    ){
+        if (verificarClienteServicoNull(clienteServico) || verificarPecaServicoNull(pecaServico) || verificarReservaServicoNull(reservaServico) || verificarSessaoServicoNull(sessaoServico)) {
+            throw new IllegalArgumentException("Todos os serviços injetados na TelaPrincipal não podem ser nulos.");
+        }
+    }
+    
     /**
      * Configura os componentes visuais e o layout da tela principal.
      * A lógica de criação dos botões foi movida para o componente PainelNavegacaoPrincipal.
@@ -67,11 +96,23 @@ public class TelaPrincipal extends JPanel {
         containerPrincipal.add(Box.createVerticalStrut(50));
 
         // Instancia o novo componente e passa as ações (métodos de navegação) como lambdas.
-        PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
-            e -> abrirSelecaoPeca(),
-            e -> abrirConsultaBilhete(),
-            e -> abrirCadastroCliente()
+        PainelNavegacao_TelaPrincipal painelBotoes = new PainelNavegacao_TelaPrincipal(
+            _ -> abrirSelecaoPeca(),
+            _ -> abrirConsultaBilhete(),
+            _ -> abrirCadastroCliente()
         );
+        /**
+         * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 
+         * _ -> abrirSelecaoPeca() pode ser lido como: "Crie uma função que recebe um argumento vazio e, quando chamada, ignore o e e execute o método abrirSelecaoPeca()".
+         * Vantagens: É extremamente conciso, direto e fácil de ler. A intenção ("quando este botão for clicado, chame este método") é imediatamente óbvia.
+         * Outra abordagem mais clássica:
+         * // Em TelaPrincipal.java
+         * PainelNavegacaoPrincipal painelBotoes = new PainelNavegacaoPrincipal(
+         *      this::abrirSelecaoPeca,
+         *      this::abrirConsultaBilhete,
+         *      this::abrirCadastroCliente);
+         */
+        
         containerPrincipal.add(painelBotoes);
         
         containerPrincipal.add(Box.createVerticalStrut(30));
@@ -90,6 +131,7 @@ public class TelaPrincipal extends JPanel {
      * @param painel O JPanel onde os cards das peças serão adicionados.
      */
     private void adicionarCardsPecasDinamicamente(JPanel painel) {
+
         painel.removeAll();
         
         try {
@@ -166,7 +208,7 @@ public class TelaPrincipal extends JPanel {
         frame.setContentPane(new TelaCadastrar(
                 null, // cpf
                 null, // sessao
-                null, // assentosSelecionados
+                null, 
                 this.clienteServico,
                 this.pecaServico,
                 this.reservaServico,

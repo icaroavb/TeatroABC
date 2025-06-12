@@ -11,19 +11,10 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.text.ParseException;
 
-/**
- * Componente que encapsula o formulário de entrada de CPF, incluindo
- * o título, o campo de texto formatado e o botão de ação.
- */
 public class PainelEntradaCPF extends JPanel {
 
     private JFormattedTextField txtCPF;
 
-    /**
-     * Construtor do PainelEntradaCPF.
-     * @param tituloDaTela O texto a ser exibido como título principal.
-     * @param continuarAction O ActionListener a ser executado quando o botão "Continuar" for clicado.
-     */
     public PainelEntradaCPF(String tituloDaTela, ActionListener continuarAction) {
         configurarPainel();
         adicionarComponentes(tituloDaTela, continuarAction);
@@ -31,15 +22,23 @@ public class PainelEntradaCPF extends JPanel {
 
     /**
      * Retorna o CPF digitado pelo usuário, já normalizado (apenas dígitos).
-     * @return Uma string contendo os 11 dígitos do CPF, ou uma string vazia se nada foi digitado.
+     * @return Uma string contendo apenas os dígitos do CPF, ou uma string vazia.
      */
     public String getCPF() {
-        String texto = txtCPF.getText();
-        if (texto == null || texto.contains("_")) {
+        String textoFormatado = txtCPF.getText();
+        if (apurarTxtFormatado(textoFormatado)) {
             return "";
         }
-        return ValidadorCPF.normalizar(texto);
+        // ValidadorCPF.normalizar já remove pontos, traços e underscores.
+        return ValidadorCPF.normalizar(textoFormatado);
     }
+
+    //Encapsulameno da lógica do string que receberá o cpf
+    private boolean apurarTxtFormatado (String txt){
+        return txt == null;
+    }
+
+    //Encapsular
 
     private void configurarPainel() {
         setOpaque(false);
@@ -90,18 +89,22 @@ public class PainelEntradaCPF extends JPanel {
                 BorderFactory.createEmptyBorder(8, 15, 8, 15)
         ));
         
+        // Listener de foco para simular placeholder
         txtCPF.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent evt) {
-                if (String.valueOf(txtCPF.getValue()).equals("null")) {
+                if (txtCPF.getText().contains("_")) {
+                    // Move o cursor para o início para uma melhor experiência de usuário
+                    SwingUtilities.invokeLater(() -> txtCPF.setCaretPosition(0));
                     txtCPF.setForeground(Color.WHITE);
                 }
             }
 
             @Override
             public void focusLost(FocusEvent evt) {
-                String content = String.valueOf(txtCPF.getValue()).trim();
-                if (content.equals("null") || content.isEmpty()) {
+                if (getCPF().isEmpty()) {
+                    // Para redefinir o placeholder, é mais seguro limpar o valor e
+                    // deixar o MaskFormatter fazer seu trabalho.
                     txtCPF.setValue(null);
                     txtCPF.setForeground(Color.GRAY);
                 }

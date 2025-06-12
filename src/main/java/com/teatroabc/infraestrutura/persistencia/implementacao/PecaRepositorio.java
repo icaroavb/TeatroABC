@@ -43,7 +43,7 @@ public class PecaRepositorio implements IPecaRepositorio {
         pecasDB.add(new Peca(
                 "27460ed2-aa6d-4bb4-b68a-46938b6b242e",
                 "MORTE E VIDA SEVERINA",
-                "",
+                "O Auto do Natal Pernambucano",
                 "Clássico de João Cabral de Melo Neto",
                 "#E53935",
                 "imagens/morte_vida_severina.jpg"
