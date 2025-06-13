@@ -87,7 +87,7 @@ public class ValidadorCPF {
     } 
 
     /**
-     * Encapsulamento da lógica do blacklist - CPFS que são formados números repetidos somente
+     * Encapsulamento da lógica do blacklist - CPFs que são formados números repetidos somente
      * @param cpf
      * @return true se detectar um cpf que seja, por exemplo, 111.111.111-11
      */
@@ -107,6 +107,7 @@ public class ValidadorCPF {
         }
         return cpf.replaceAll("[^0-9]", "");
     }
+
 
     /**
      * Formata um CPF (apenas dígitos) para o padrão XXX.XXX.XXX-XX.

@@ -1,8 +1,9 @@
+// Arquivo: aplicacao/servicos/ReservaServico.java
 package com.teatroabc.aplicacao.servicos;
 
 import com.teatroabc.dominio.modelos.Bilhete;
 import com.teatroabc.dominio.modelos.Cliente;
-import com.teatroabc.dominio.modelos.Sessao; // MUDANÇA: Usa a nova entidade Sessao
+import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * Implementação do serviço de aplicação para criar e consultar reservas/bilhetes.
  * Orquestra a lógica de negócio, validando regras, calculando valores e interagindo
  * com os repositórios através de suas interfaces (Portas de Saída).
+ * REFATORADO: A lógica de verificação de disponibilidade de assentos agora é baseada na Sessao.
  */
 public class ReservaServico implements IReservaServico {
 
@@ -47,7 +49,6 @@ public class ReservaServico implements IReservaServico {
 
     /**
      * {@inheritDoc}
-     * A assinatura deste método foi refatorada para receber um objeto {@link Sessao}.
      */
     @Override
     public Bilhete criarReserva(Sessao sessao, Cliente cliente, List<Assento> assentosSelecionados)
@@ -65,8 +66,8 @@ public class ReservaServico implements IReservaServico {
                 .map(Assento::getCodigo)
                 .collect(Collectors.toList());
         
-        // A verificação agora usa os dados encapsulados no objeto Sessao
-        if (!assentoRepositorio.verificarDisponibilidade(sessao.getPeca().getId(), sessao.getTurno(), codigosAssentosSelecionados)) {
+        // REFATORADO: A verificação de disponibilidade agora usa o objeto Sessao.
+        if (!assentoRepositorio.verificarDisponibilidade(sessao, codigosAssentosSelecionados)) {
             throw new ReservaInvalidaException("Um ou mais assentos selecionados não estão mais disponíveis para esta sessão. Por favor, tente novamente.");
         }
 
@@ -90,7 +91,7 @@ public class ReservaServico implements IReservaServico {
         // 7. Obter data e hora da compra
         LocalDateTime dataHoraCompra = LocalDateTime.now();
 
-        // 8. Criar a instância da entidade Bilhete com o novo construtor
+        // 8. Criar a instância da entidade Bilhete com o construtor que aceita Sessao
         Bilhete bilhete = new Bilhete(
             novoIdBilhete,
             novoCodigoBarras,
@@ -103,13 +104,10 @@ public class ReservaServico implements IReservaServico {
             dataHoraCompra
         );
 
-        // 9. Persistir o bilhete
+        // 9. Persistir o bilhete. A implementação do repositório irá lidar com os detalhes.
         try {
-            // A responsabilidade de saber o turno para salvar agora é do repositório,
-            // que pode extraí-lo do bilhete.
             bilheteRepositorio.salvar(bilhete);
         } catch (Exception e) {
-            // Em um sistema real, considerar estratégias de rollback.
             throw new ReservaInvalidaException("Falha crítica ao tentar salvar o bilhete: " + e.getMessage(), e);
         }
         

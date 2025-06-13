@@ -23,11 +23,10 @@ public class BotaoAssento extends JButton {
      * @throws IllegalArgumentException se o objeto assento for nulo.
      */
     public BotaoAssento(Assento assento) {
-        if (assento == null) {
-            throw new IllegalArgumentException("Objeto Assento não pode ser nulo para criar um BotaoAssento.");
-        }
         this.assento = assento;
         
+        apurarValidacaoAssento();
+
         // Configurações visuais básicas do botão.
         setPreferredSize(new Dimension(TAMANHO_BOTAO, TAMANHO_BOTAO));
         setFocusPainted(false);
@@ -38,13 +37,25 @@ public class BotaoAssento extends JButton {
         atualizarInteratividadeBaseadaNoStatus();
     }
 
+    //encapsulamento da logica de validação do assento
+    private boolean verificarAssentoNull (Assento assento){
+        return assento == null;
+    }
+    //encapsulamento da lógica total da validação de asssentos
+    private void apurarValidacaoAssento (){
+        if (verificarAssentoNull(assento)) {
+            throw new IllegalArgumentException("Objeto Assento não pode ser nulo para criar um BotaoAssento.");
+        }
+    }
+
     /**
      * Atualiza a interatividade do botão (cursor, habilitado/desabilitado) com base
      * no status atual do assento associado. Este método deve ser chamado se o status
      * do assento for alterado externamente para que a UI reflita a mudança.
      */
     public void atualizarInteratividadeBaseadaNoStatus() {
-        if (this.assento.getStatus() == StatusAssento.OCUPADO) {
+        
+        if (verificarStatusOcupado(assento)) {
             // Se o assento está ocupado, ele não é clicável.
             setCursor(Cursor.getDefaultCursor());
             setEnabled(false);
@@ -55,6 +66,12 @@ public class BotaoAssento extends JButton {
         }
         repaint(); // Força a repintura para refletir qualquer mudança visual.
     }
+
+    //encapsulamento da lógica de assentos ocupados
+    private boolean verificarStatusOcupado (Assento assento){
+        return assento.getStatus().equals(StatusAssento.OCUPADO);
+    }
+    
 
     /**
      * {@inheritDoc}

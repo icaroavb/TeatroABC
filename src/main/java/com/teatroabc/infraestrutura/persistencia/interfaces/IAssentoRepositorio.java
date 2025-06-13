@@ -1,30 +1,31 @@
-// Pacote: com.teatroabc.repositorios.interfaces  PORTA DE SAÍDA
+// Arquivo: infraestrutura/persistencia/interfaces/IAssentoRepositorio.java
 package com.teatroabc.infraestrutura.persistencia.interfaces;
 
 import com.teatroabc.dominio.modelos.Assento;
-import com.teatroabc.dominio.enums.Turno;
+import com.teatroabc.dominio.modelos.Sessao;
 import java.util.List;
 
+/**
+ * Interface (Porta de Saída) para o repositório de Assentos.
+ * Define o contrato para operações de acesso a dados relacionadas aos assentos,
+ * agora centradas no conceito de Sessao.
+ */
 public interface IAssentoRepositorio {
     /**
-     * Retorna todos os assentos definidos para uma peça, com seu status atualizado
-     * para um turno específico (considerando os já ocupados).
+     * Retorna a planta de assentos completa para uma sessão específica, com o status
+     * de cada assento (Disponível, Ocupado) devidamente atualizado.
+     *
+     * @param sessao A sessão para a qual a planta de assentos será buscada.
+     * @return Uma lista de todos os Assentos para a sessão.
      */
-    List<Assento> buscarTodosAssentosPorPecaETurno(String idPeca, Turno turno);
+    List<Assento> buscarAssentosPorSessao(Sessao sessao);
 
     /**
-     * Verifica se um conjunto específico de assentos está disponível para uma peça e turno.
+     * Verifica se um conjunto específico de assentos está disponível para uma dada sessão.
+     *
+     * @param sessao A sessão na qual a verificação será feita.
+     * @param codigosAssentos A lista de códigos de assento a serem verificados.
      * @return true se todos os assentos estiverem disponíveis, false caso contrário.
      */
-    boolean verificarDisponibilidade(String idPeca, Turno turno, List<String> codigosAssentos);
-
-    /**
-     * Marca um conjunto de assentos como ocupados para uma peça e turno.
-     * (Esta responsabilidade pode ser do BilheteRepositorio ao salvar o bilhete)
-     * Se for aqui, o BilheteRepositorio chamaria este método.
-     */
-    // void marcarComoOcupados(String idPeca, Turno turno, List<String> codigosAssentos);
-
-    // O método GerenciadorArquivos.buscarAssentosOcupados já existe.
-    // Poderíamos ter o AssentoRepositorio usando-o.
+    boolean verificarDisponibilidade(Sessao sessao, List<String> codigosAssentos);
 }

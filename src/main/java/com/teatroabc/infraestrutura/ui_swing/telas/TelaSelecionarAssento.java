@@ -1,3 +1,4 @@
+// Arquivo: infraestrutura/ui_swing/telas/TelaSelecionarAssento.java
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
@@ -16,6 +17,7 @@ import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAssento;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorMoeda;
+
 import java.awt.*;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ import javax.swing.border.TitledBorder;
  * Tela responsável por permitir ao usuário selecionar assentos para uma Sessão específica.
  * Renderiza a planta do teatro dinamicamente com base na configuração centralizada
  * e na disponibilidade de assentos para a sessão escolhida.
+ * REFATORADO: Utiliza ISessaoServico para buscar os assentos.
  */
 public class TelaSelecionarAssento extends JPanel {
     // Contexto da seleção
@@ -60,15 +63,22 @@ public class TelaSelecionarAssento extends JPanel {
         this.reservaServico = reservaServico;
         this.sessaoServico = sessaoServico;
         this.assentosSelecionadosPeloUsuario = new ArrayList<>();
+        
+        // A carga dos assentos agora usa o serviço correto.
         this.assentosDaPlanta = carregarAssentosParaSessao();
+        
         configurarTelaVisual();
     }
 
     private List<Assento> carregarAssentosParaSessao() {
         try {
-            return pecaServico.buscarAssentosDaPecaPorTurno(sessaoEscolhida.getPeca().getId(), sessaoEscolhida.getTurno());
+            // REFATORADO: Chama o serviço correto (SessaoServico) para buscar os assentos.
+            return this.sessaoServico.buscarAssentosPorSessao(this.sessaoEscolhida);
         } catch (Exception e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Erro ao carregar os assentos para esta sessão.\n" + e.getMessage(),
+                "Erro de Sistema", JOptionPane.ERROR_MESSAGE);
             return Collections.emptyList();
         }
     }
@@ -131,7 +141,7 @@ public class TelaSelecionarAssento extends JPanel {
         
         ConfiguracaoPlantaTeatro.getLayout().getSecoes().forEach(secaoConfig -> {
             List<Assento> assentos = assentosPorCategoria.getOrDefault(secaoConfig.getCategoria(), Collections.emptyList());
-            // LINHA CORRIGIDA (Adicione a verificação se a categoria NÃO é FRISA):
+            
             if (secaoConfig.getAlinhamento() == Alinhamento.CENTRO && secaoConfig.getCategoria() != CategoriaAssento.FRISA && !assentos.isEmpty()) {
                 painelCentro.add(criarPainelDeSecao(secaoConfig, assentos));
                 painelCentro.add(Box.createVerticalStrut(20));

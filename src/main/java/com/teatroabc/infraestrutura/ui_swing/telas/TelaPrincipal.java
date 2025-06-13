@@ -97,9 +97,9 @@ public class TelaPrincipal extends JPanel {
 
         // Instancia o novo componente e passa as ações (métodos de navegação) como lambdas.
         PainelNavegacao_TelaPrincipal painelBotoes = new PainelNavegacao_TelaPrincipal(
-            _ -> abrirSelecaoPeca(),
-            _ -> abrirConsultaBilhete(),
-            _ -> abrirCadastroCliente()
+            a -> abrirSelecaoPeca(),
+            a -> abrirConsultaBilhete(),
+            a -> abrirCadastroCliente()
         );
         /**
          * O que faz: Para cada ActionListener esperado pelo construtor, estamos criando uma função anônima na hora. 

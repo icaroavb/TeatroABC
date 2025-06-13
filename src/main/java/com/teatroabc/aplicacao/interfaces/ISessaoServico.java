@@ -1,26 +1,29 @@
+// Arquivo: aplicacao/interfaces/ISessaoServico.java
 package com.teatroabc.aplicacao.interfaces;
 
+import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.modelos.Sessao;
 import java.util.List;
 
 /**
  * Interface (Porta de Entrada) para o serviço de aplicação responsável pelas
  * operações de negócio relacionadas às Sessões.
- * Define o contrato para buscar informações sobre as sessões disponíveis.
+ * REFATORADO: Agora inclui a responsabilidade de buscar os assentos para uma sessão.
  */
 public interface ISessaoServico {
-
     /**
-     * Busca todas as sessões disponíveis para uma peça específica,
-     * prontas para serem exibidas na UI.
+     * Busca todas as sessões disponíveis para uma peça específica.
      *
      * @param idPeca O ID da peça para a qual as sessões devem ser buscadas.
-     * @return Uma lista de objetos {@link Sessao}. A lista pode ser vazia se não
-     *         houver sessões para a peça ou se o ID for inválido.
+     * @return Uma lista de objetos {@link Sessao}.
      */
     List<Sessao> buscarSessoesPorPeca(String idPeca);
-    
-    // Futuramente, poderíamos adicionar outros métodos de negócio, como:
-    // void cancelarSessao(String idSessao);
-    // Sessao agendarNovaSessao(DadosNovaSessaoDTO dados);
+
+    /**
+     * Busca a planta de assentos para uma sessão específica, com seus status atualizados.
+     *
+     * @param sessao A sessão para a qual os assentos serão buscados.
+     * @return Uma lista de objetos Assento.
+     */
+    List<Assento> buscarAssentosPorSessao(Sessao sessao);
 }

@@ -1,12 +1,12 @@
+// Arquivo: infraestrutura/persistencia/implementacao/AssentoRepositorio.java
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
 import com.teatroabc.dominio.modelos.Assento;
+import com.teatroabc.dominio.modelos.Sessao;
 import com.teatroabc.dominio.enums.CategoriaAssento;
 import com.teatroabc.dominio.enums.StatusAssento;
-import com.teatroabc.dominio.enums.Turno;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
-// NOVOS IMPORTS para usar a configuração centralizada
 import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
 import com.teatroabc.infraestrutura.config.SecaoConfig;
 import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
@@ -15,57 +15,44 @@ import java.util.*;
 
 /**
  * Implementação do repositório de assentos que interage com a persistência em arquivos.
- * Esta classe é responsável por gerar a planta completa de assentos do teatro e verificar sua disponibilidade.
- * 
- * REFATORAÇÃO: Esta classe não contém mais lógica de layout hardcoded. Ela obtém a
- * estrutura do teatro (seções, fileiras, assentos por fileira) da classe
- * ConfiguracaoPlantaTeatro, agindo como um consumidor de configuração.
- * Isso desacopla a lógica de persistência da lógica de layout físico do teatro,
- * aderindo ao princípio de Fonte Única de Verdade (Single Source of Truth).
+ * REFATORADO: A lógica agora é centrada na entidade Sessao. A disponibilidade de
+ * assentos é consultada usando o ID da sessão, o que torna o modelo mais consistente.
  */
 public class AssentoRepositorio implements IAssentoRepositorio {
 
     /**
      * {@inheritDoc}
-     * Gera dinamicamente a lista de todos os assentos para uma peça e turno,
-     * baseando-se na configuração centralizada em {@link ConfiguracaoPlantaTeatro}.
-     * O status de cada assento (Disponível/Ocupado) é definido consultando os
-     * dados de persistência.
+     * Gera dinamicamente a lista de todos os assentos para uma sessão,
+     * baseando-se na configuração centralizada e marcando como ocupados
+     * aqueles registrados para o ID da sessão específica.
      */
     @Override
-    public List<Assento> buscarTodosAssentosPorPecaETurno(String idPeca, Turno turno) {
-        if (idPeca == null || turno == null) {
-            // Lançar exceção ou retornar lista vazia é uma decisão de design.
-            // Retornar lista vazia é mais seguro para a UI não quebrar com null.
+    public List<Assento> buscarAssentosPorSessao(Sessao sessao) {
+        if (sessao == null) {
             return Collections.emptyList();
         }
 
         List<Assento> todosAssentos = new ArrayList<>();
-        // 1. Busca os códigos de assentos já ocupados da camada de persistência.
-        Set<String> codigosOcupadosRegistrados = GerenciadorArquivos.buscarAssentosOcupados(idPeca, turno.name());
+        // 1. Busca os códigos de assentos já ocupados para esta SESSÃO específica.
+        Set<String> codigosOcupados = GerenciadorArquivos.buscarAssentosOcupados(sessao.getId());
 
-        // 2. Obtém a configuração da planta do teatro da fonte única de verdade.
+        // 2. Obtém a configuração da planta do teatro.
         TeatroLayoutConfig layout = ConfiguracaoPlantaTeatro.getLayout();
 
-        // 3. Itera sobre a CONFIGURAÇÃO para gerar os assentos, em vez de usar loops hardcoded.
-        for (SecaoConfig secao : layout.getSecoes()) {
-            // Usa a primeira letra do nome da seção para o prefixo do código do assento.
-            // Ex: "Frisa" -> 'F', "Plateia A" -> 'P'
-            char prefixoCodigo = secao.getNomeDaSecao().charAt(0);
-            CategoriaAssento categoria = secao.getCategoria();
+        // 3. Itera sobre a CONFIGURAÇÃO para gerar a planta de assentos.
+        for (SecaoConfig secaoConfig : layout.getSecoes()) {
+            char prefixoCodigo = secaoConfig.getNomeDaSecao().charAt(0);
+            CategoriaAssento categoria = secaoConfig.getCategoria();
 
-            // Itera com base no número de fileiras e assentos por fileira definidos na configuração.
-            for (int numFileira = 1; numFileira <= secao.getNumeroDeFileiras(); numFileira++) {
-                for (int numAssento = 1; numAssento <= secao.getAssentosPorFileira(); numAssento++) {
+            for (int numFileira = 1; numFileira <= secaoConfig.getNumeroDeFileiras(); numFileira++) {
+                for (int numAssento = 1; numAssento <= secaoConfig.getAssentosPorFileira(); numAssento++) {
                     
                     String codigoAssento = String.format("%c%d-%d", prefixoCodigo, numFileira, numAssento);
                     
-                    // Cria a instância do objeto de domínio Assento.
                     Assento assento = new Assento(codigoAssento, numFileira, numAssento, categoria, categoria.getPrecoBase());
                     
-                    // 4. Define o status do assento.
-                    // Um assento é ocupado se estiver no arquivo de persistência OU na simulação.
-                    if (codigosOcupadosRegistrados.contains(codigoAssento) || isAssentoOcupadoSimulacao(codigoAssento, idPeca, turno)) {
+                    // 4. Define o status do assento: Ocupado se estiver na lista da sessão ou na simulação.
+                    if (codigosOcupados.contains(codigoAssento) || isAssentoOcupadoSimulacao(sessao, codigoAssento)) {
                         assento.setStatus(StatusAssento.OCUPADO);
                     }
                     
@@ -79,54 +66,41 @@ public class AssentoRepositorio implements IAssentoRepositorio {
 
     /**
      * {@inheritDoc}
-     * Esta implementação não precisa ser alterada, pois sua lógica é independente
-     * da geração da planta do teatro. Ela apenas verifica uma lista de códigos
-     * contra os dados de persistência.
      */
     @Override
-    public boolean verificarDisponibilidade(String idPeca, Turno turno, List<String> codigosAssentos) {
-        if (idPeca == null || turno == null) return false;
+    public boolean verificarDisponibilidade(Sessao sessao, List<String> codigosAssentos) {
+        if (sessao == null) return false;
         if (codigosAssentos == null || codigosAssentos.isEmpty()) {
-            return true; // Nenhum assento para verificar, logo, todos "disponíveis".
+            return true;
         }
         
-        Set<String> codigosOcupadosRegistrados = GerenciadorArquivos.buscarAssentosOcupados(idPeca, turno.name());
+        Set<String> codigosOcupados = GerenciadorArquivos.buscarAssentosOcupados(sessao.getId());
 
         for (String codigo : codigosAssentos) {
-            if (codigosOcupadosRegistrados.contains(codigo) || isAssentoOcupadoSimulacao(codigo, idPeca, turno)) {
-                // Se qualquer um dos assentos solicitados estiver ocupado, a verificação falha.
+            if (codigosOcupados.contains(codigo) || isAssentoOcupadoSimulacao(sessao, codigo)) {
                 return false;
             }
         }
         
-        // Se o loop terminar, todos os assentos verificados estão disponíveis.
         return true;
     }
 
     /**
      * Lógica de simulação para marcar aleatoriamente alguns assentos como ocupados.
-     * Isso adiciona variação na disponibilidade, útil para fins de demonstração
-     * e teste, já que o arquivo assentos_turnos.txt pode não estar completo.
-     * Em um sistema de produção, toda a ocupação viria exclusivamente da persistência.
-     * 
-     * @param codigoAssento O código do assento a ser verificado.
-     * @param idPeca O ID da peça.
-     * @param turno O turno da apresentação.
-     * @return true se o assento for considerado ocupado pela simulação, false caso contrário.
+     * Em um sistema real, a ocupação viria apenas da persistência.
      */
-    private boolean isAssentoOcupadoSimulacao(String codigoAssento, String idPeca, Turno turno) {
-        // Usa o hash do código, peça e turno para gerar um número pseudo-aleatório consistente.
-        int hash = (codigoAssento + idPeca + turno.name()).hashCode();
+    private boolean isAssentoOcupadoSimulacao(Sessao sessao, String codigoAssento) {
+        // Usa o hash do ID da sessão e do código do assento para gerar um número pseudo-aleatório consistente.
+        int hash = (sessao.getId() + codigoAssento).hashCode();
         double probabilidade;
         
-        switch (turno) {
-            case MANHA: probabilidade = 0.10; break; // 10% de ocupação simulada de manhã
-            case TARDE: probabilidade = 0.20; break; // 20% à tarde
-            case NOITE: probabilidade = 0.30; break; // 30% à noite
+        switch (sessao.getTurno()) {
+            case MANHA: probabilidade = 0.10; break;
+            case TARDE: probabilidade = 0.20; break;
+            case NOITE: probabilidade = 0.30; break;
             default:    probabilidade = 0.15;
         }
         
-        // Retorna true se o resultado do hash estiver dentro da faixa de probabilidade.
         return (Math.abs(hash) % 100) < (probabilidade * 100);
     }
 }

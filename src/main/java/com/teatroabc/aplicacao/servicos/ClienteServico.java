@@ -22,11 +22,16 @@ public class ClienteServico implements IClienteServico {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     public ClienteServico(IClienteRepositorio clienteRepositorio) {
-        if (clienteRepositorio == null) {
+        apurarValidacaoRepositorio(clienteRepositorio); //validacao da lógica
+        this.clienteRepositorio = clienteRepositorio;
+    }
+    //encapsular validavao do repositorio
+    private boolean validarRepositorio (IClienteRepositorio clienteRepositorio) {return clienteRepositorio == null;} 
+    private void apurarValidacaoRepositorio (IClienteRepositorio clienteRepositorio) {
+        if (validarRepositorio(clienteRepositorio)) {
             throw new IllegalArgumentException("Repositório de clientes (IClienteRepositorio) não pode ser nulo.");
         }
-        this.clienteRepositorio = clienteRepositorio;
-    }    
+    }   
 
     @Override
     public Cliente cadastrar(DadosCadastroClienteDTO dadosCadastro) throws ClienteJaCadastradoException, IllegalArgumentException {
@@ -72,6 +77,8 @@ public class ClienteServico implements IClienteServico {
         clienteRepositorio.salvar(novoCliente);
         return novoCliente;
     }
+    //encapsularLogica
+    
 
     /**
      * {@inheritDoc}

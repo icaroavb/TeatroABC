@@ -35,6 +35,7 @@ public interface PlanoFidelidade {
      */
     String getDescricaoBeneficios();
 
+    //abaixo idéias que podemos aproveitar para um eventual PI posterior
     /**
      * Indica se este plano de fidelidade requer que o cliente forneça um número de telefone.
      * (Exemplo de como o plano pode ditar regras para os dados do cliente)

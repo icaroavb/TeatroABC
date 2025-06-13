@@ -29,13 +29,20 @@ public class CardBilhete extends JPanel {
      * @param bilhete O objeto de domínio Bilhete a ser exibido. Não pode ser nulo.
      */
     public CardBilhete(Bilhete bilhete) {
-        if (bilhete == null) {
-            throw new IllegalArgumentException("O objeto Bilhete não pode ser nulo.");
-        }
-        this.bilhete = bilhete;
-        
+        validacaoBilhete();
+        this.bilhete = bilhete;        
         configurarLayoutECores();
         adicionarComponentesVisuais();
+    }
+
+    //encapsular a lógica de validaçao
+    private boolean verificarBilheteNull (Bilhete bilhete){
+        return bilhete == null;
+    }
+    private void validacaoBilhete (){
+        if (verificarBilheteNull(bilhete)) {
+            throw new IllegalArgumentException("O objeto Bilhete não pode ser nulo.");
+        }
     }
 
     private void configurarLayoutECores() {
@@ -71,7 +78,7 @@ public class CardBilhete extends JPanel {
 
         // Título da Peça
         gbc.gridx = 0; gbc.gridy = 0; gbc.gridwidth = 2;
-        JLabel lblTituloPeca = new JLabel(sessao.getPeca().getTitulo()); // MUDANÇA: Usa sessao.getPeca()
+        JLabel lblTituloPeca = new JLabel(sessao.getPeca().getTitulo()); 
         lblTituloPeca.setFont(new Font("Arial", Font.BOLD, 20));
         lblTituloPeca.setForeground(Color.WHITE);
         painelInfo.add(lblTituloPeca, gbc);
@@ -139,6 +146,7 @@ public class CardBilhete extends JPanel {
         this.actionListener = listener;
     }
     
+    //acesso ao bilhete para popular o card
     public Bilhete getBilhete() {
         return bilhete;
     }
