@@ -33,17 +33,4 @@ public class MembroABCGold implements PlanoFidelidade {
     public String getDescricaoBeneficios() {
         return DESCRICAO_BENEFICIOS;
     }
-
-    /**
-     * Abaixo, validações adicionais que poderiam ser inclusas no nosso projeto, especificamente: Telefoe e E-mail.
-     */
-    // @Override
-    // public boolean requerTelefone() {
-    //     return true; // Telefone é obrigatório para ser membro ABC Gold
-    // }
-
-    // @Override
-    // public boolean requerEmail() {
-    //     return true; // Email é obrigatório para ser membro ABC Gold
-    // }
 }

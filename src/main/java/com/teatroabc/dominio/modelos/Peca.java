@@ -43,37 +43,36 @@ public class Peca {
         this.caminhoImagem = caminhoImagem;
     }
     
-    // --- Métodos de Validação Interna ---
-
-    private boolean verificarId (String id){
-        return id == null || id.trim().isEmpty();
-    }
+    // // --- Métodos de Validação Interna ---
+    // private boolean verificarId (String id){
+    //     return id == null || id.trim().isEmpty();
+    // }
     
-    private boolean verificarTitulo (String titulo){
-        return titulo == null || titulo.trim().isEmpty();
-    }
+    // private boolean verificarTitulo (String titulo){
+    //     return titulo == null || titulo.trim().isEmpty();
+    // }
     
-    private boolean verificarCorFundoHex (String corFundoHex){
-        // Validação simples para formato hexadecimal.
-        return corFundoHex == null || !corFundoHex.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
-    }
+    // private boolean verificarCorFundoHex (String corFundoHex){
+    //     // Validação simples para formato hexadecimal.
+    //     return corFundoHex == null || !corFundoHex.matches("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+    // }
 
-    /**
-     * Encapsula a verificação de dados essenciais para a criação de uma Peça.
-     * Garante que a entidade não possa ser instanciada em um estado inválido.
-     * @throws IllegalArgumentException se algum dado obrigatório for inválido.
-     */
-    private void apurarInformacoesEssenciais(String id, String titulo, String corFundoHex){
-        if (verificarId(id)) {
-            throw new IllegalArgumentException("ID da peça não pode ser nulo ou vazio.");
-        }
-        if (verificarTitulo(titulo)) {
-            throw new IllegalArgumentException("Título da peça não pode ser nulo ou vazio.");
-        }
-        if (verificarCorFundoHex(corFundoHex)) {
-            throw new IllegalArgumentException("Cor de fundo em formato hexadecimal inválido ou ausente. Ex: #RRGGBB");
-        }
-    }
+    // /**
+    //  * Encapsula a verificação de dados essenciais para a criação de uma Peça.
+    //  * Garante que a entidade não possa ser instanciada em um estado inválido.
+    //  * @throws IllegalArgumentException se algum dado obrigatório for inválido.
+    //  */
+    // private void apurarInformacoesEssenciais(String id, String titulo, String corFundoHex){
+    //     if (verificarId(id)) {
+    //         throw new IllegalArgumentException("ID da peça não pode ser nulo ou vazio.");
+    //     }
+    //     if (verificarTitulo(titulo)) {
+    //         throw new IllegalArgumentException("Título da peça não pode ser nulo ou vazio.");
+    //     }
+    //     if (verificarCorFundoHex(corFundoHex)) {
+    //         throw new IllegalArgumentException("Cor de fundo em formato hexadecimal inválido ou ausente. Ex: #RRGGBB");
+    //     }
+    // }
 
     // --- Getters ---
 

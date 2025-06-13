@@ -7,9 +7,7 @@ import java.awt.event.*;
 /**
  * Um componente JButton customizado que apresenta animações de hover (passagem do mouse)
  * e uma aparência arredondada com sombra, proporcionando uma experiência de usuário mais rica.
- * 
- * Este componente é puramente visual e de infraestrutura de UI, não tendo conhecimento
- * sobre o domínio da aplicação.
+ *  
  */
 public class BotaoAnimado extends JButton {
     private final Color corOriginal; // Cor do botão em seu estado normal.

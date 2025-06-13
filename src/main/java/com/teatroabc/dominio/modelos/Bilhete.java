@@ -69,24 +69,31 @@ public class Bilhete {
         this.dataHoraCompra = dataHoraCompra;
     }
     
-    /**
-     * Encapsula a verificação de dados essenciais para a criação de um Bilhete.
-     * @throws IllegalArgumentException se algum dado obrigatório for inválido.
-     */
-    private void apurarInformacoesEssenciais(String id, String codigoBarras, Sessao sessao, 
-                                              Cliente cliente, List<Assento> assentos, 
-                                              BigDecimal subtotal, BigDecimal valorDesconto, 
-                                              BigDecimal valorTotal, LocalDateTime dataHoraCompra) {
-        if (id == null || id.trim().isEmpty()) throw new IllegalArgumentException("ID do bilhete não pode ser nulo ou vazio.");
-        if (codigoBarras == null || codigoBarras.trim().isEmpty()) throw new IllegalArgumentException("Código de barras não pode ser nulo ou vazio.");
-        if (sessao == null) throw new IllegalArgumentException("Sessão não pode ser nula para o bilhete.");
-        if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para o bilhete.");
-        if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia.");
-        if (subtotal == null || subtotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Subtotal não pode ser nulo ou negativo.");
-        if (valorDesconto == null || valorDesconto.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor de desconto não pode ser nulo ou negativo.");
-        if (valorTotal == null || valorTotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor total não pode ser nulo ou negativo.");
-        if (dataHoraCompra == null) throw new IllegalArgumentException("Data e hora da compra não podem ser nulos.");
-    }
+    // /**
+    //  * Encapsula a verificação de dados essenciais para a criação de um Bilhete.
+    //  * @throws IllegalArgumentException se algum dado obrigatório for inválido.
+    //  */
+    // private void apurarInformacoesEssenciais(
+    //                                         String id, 
+    //                                         String codigoBarras, 
+    //                                         Sessao sessao, 
+    //                                         Cliente cliente, 
+    //                                         List<Assento> assentos, 
+    //                                         BigDecimal subtotal, 
+    //                                         BigDecimal valorDesconto, 
+    //                                         BigDecimal valorTotal, 
+    //                                         LocalDateTime dataHoraCompra) 
+    //                                         {
+    //     if (id == null || id.trim().isEmpty()) throw new IllegalArgumentException("ID do bilhete não pode ser nulo ou vazio.");
+    //     if (codigoBarras == null || codigoBarras.trim().isEmpty()) throw new IllegalArgumentException("Código de barras não pode ser nulo ou vazio.");
+    //     if (sessao == null) throw new IllegalArgumentException("Sessão não pode ser nula para o bilhete.");
+    //     if (cliente == null) throw new IllegalArgumentException("Cliente não pode ser nulo para o bilhete.");
+    //     if (assentos == null || assentos.isEmpty()) throw new IllegalArgumentException("Lista de assentos não pode ser nula ou vazia.");
+    //     if (subtotal == null || subtotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Subtotal não pode ser nulo ou negativo.");
+    //     if (valorDesconto == null || valorDesconto.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor de desconto não pode ser nulo ou negativo.");
+    //     if (valorTotal == null || valorTotal.compareTo(BigDecimal.ZERO) < 0) throw new IllegalArgumentException("Valor total não pode ser nulo ou negativo.");
+    //     if (dataHoraCompra == null) throw new IllegalArgumentException("Data e hora da compra não podem ser nulos.");
+    // }
 
     // --- Getters ---
 

@@ -25,65 +25,68 @@ public class Reserva {
      * @param turno O turno da apresentação selecionado. Não pode ser nulo.
      * @throws IllegalArgumentException Se qualquer parâmetro essencial for nulo ou inválido.
      */
-    public Reserva(Cliente cliente, Peca peca, List<Assento> assentos, Turno turno) {
+    public Reserva(
+                Cliente cliente, 
+                Peca peca, 
+                List<Assento> assentos, 
+                Turno turno) {
 
         //validacao dos dados essencial encapsulada - comentar caso não seja mais interessante fazer a validacao
         //apurarInformacoesEssenciais(cliente, peca, assentos, turno);
-
         this.cliente = cliente;
         this.peca = peca;        
         this.assentos = Collections.unmodifiableList(new ArrayList<>(assentos)); // Cria uma cópia defensiva e garante que a lista interna não seja modificável externamente
         this.turno = turno;
     }
 
-    //encapsulamento das validações
-    /**
-     * Apurar se o campo privado cliente está nulo
-     * @param cliente
-     * @return true se estiver nulo
-     */
-    private boolean verificarCliente (Cliente cliente){
-        return cliente == null;
-    }
-    /**
-     * Apurar se o campo privado peca está nulo
-     * @param peca
-     * @return true se estiver nulo
-     */
-    private boolean verificarPeca (Peca peca){
-        return peca == null;
-    }
-    /**
-     * Apurar se o campo privado da lista de Assento está nula
-     * @param assentos
-     * @return true se estiver null
-     */
-    private boolean verificarAssento (List <Assento> assentos){
-        return assentos == null || assentos.isEmpty();
-    }
-    /**
-     * Encapsulamento para apurar se o turno está null
-     * @param turno
-     * @return true se o turno estiver com o valor null
-     */
-    private boolean verificarTurno (Turno turno){
-        return turno == null;
-    }
+    // //encapsulamento das validações
+    // /**
+    //  * Apurar se o campo privado cliente está nulo
+    //  * @param cliente
+    //  * @return true se estiver nulo
+    //  */
+    // private boolean verificarCliente (Cliente cliente){
+    //     return cliente == null;
+    // }
+    // /**
+    //  * Apurar se o campo privado peca está nulo
+    //  * @param peca
+    //  * @return true se estiver nulo
+    //  */
+    // private boolean verificarPeca (Peca peca){
+    //     return peca == null;
+    // }
+    // /**
+    //  * Apurar se o campo privado da lista de Assento está nula
+    //  * @param assentos
+    //  * @return true se estiver null
+    //  */
+    // private boolean verificarAssento (List <Assento> assentos){
+    //     return assentos == null || assentos.isEmpty();
+    // }
+    // /**
+    //  * Encapsulamento para apurar se o turno está null
+    //  * @param turno
+    //  * @return true se o turno estiver com o valor null
+    //  */
+    // private boolean verificarTurno (Turno turno){
+    //     return turno == null;
+    // }
 
-    //Encapsular validação de dados essenciais
-    /**
-     * Encapsulamento da validação de dados essenciais
-     * @param cliente
-     * @param peca
-     * @param assentos
-     * @param turno
-     */
-    public void apurarInformacoesEssenciais(Cliente cliente, Peca peca, List <Assento> assentos, Turno turno){
-        if (verificarCliente(cliente)) throw new IllegalArgumentException("Cliente não pode ser nulo para uma reserva.");
-        if (verificarPeca(peca)) throw new IllegalArgumentException("Peça não pode ser nula para uma reserva.");
-        if (verificarAssento(assentos)) throw new IllegalArgumentException("A lista de assentos não pode ser nula ou vazia para uma reserva.");
-        if (verificarTurno(turno)) throw new IllegalArgumentException("Turno não pode ser nulo para uma reserva.");
-    }
+    // //Encapsular validação de dados essenciais
+    // /**
+    //  * Encapsulamento da validação de dados essenciais
+    //  * @param cliente
+    //  * @param peca
+    //  * @param assentos
+    //  * @param turno
+    //  */
+    // public void apurarInformacoesEssenciais(Cliente cliente, Peca peca, List <Assento> assentos, Turno turno){
+    //     if (verificarCliente(cliente)) throw new IllegalArgumentException("Cliente não pode ser nulo para uma reserva.");
+    //     if (verificarPeca(peca)) throw new IllegalArgumentException("Peça não pode ser nula para uma reserva.");
+    //     if (verificarAssento(assentos)) throw new IllegalArgumentException("A lista de assentos não pode ser nula ou vazia para uma reserva.");
+    //     if (verificarTurno(turno)) throw new IllegalArgumentException("Turno não pode ser nulo para uma reserva.");
+    // }
 
     // --- Getters ---
     public Cliente getCliente() { return cliente; }
