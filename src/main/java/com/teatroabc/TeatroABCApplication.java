@@ -1,3 +1,4 @@
+// Arquivo: com/teatroabc/TeatroABCApplication.java
 package com.teatroabc;
 
 // --- Portas de Saída (Interfaces dos Repositórios) ---
@@ -24,7 +25,7 @@ import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.aplicacao.servicos.ClienteServico;
 import com.teatroabc.aplicacao.servicos.PecaServico;
 import com.teatroabc.aplicacao.servicos.ReservaServico;
-import com.teatroabc.aplicacao.servicos.SessaoServico; // NOVO IMPORT
+import com.teatroabc.aplicacao.servicos.SessaoServico;
 
 // --- Adaptador de Entrada Principal (UI) ---
 import com.teatroabc.infraestrutura.ui_swing.telas.TelaPrincipal;
@@ -49,45 +50,35 @@ public class TeatroABCApplication {
             e.printStackTrace();
         }
 
-        // --- Montagem da Arquitetura e Injeção de Dependência ---
+        // --- Montagem da Arquitetura e Injeção de Dependência REFATORADA ---
 
         // 1. Criação dos Adaptadores de Saída (Repositórios Concretos)
         IClienteRepositorio clienteRepositorio = new ClienteRepositorio();
         IAssentoRepositorio assentoRepositorio = new AssentoRepositorio();
-        
-        // O PecaRepositorio agora é uma dependência para outros repositórios.
         IPecaRepositorio pecaRepositorio = new PecaRepositorio();
-        
-        // O SessaoRepositorio depende do PecaRepositorio para construir as sessões.
         ISessaoRepositorio sessaoRepositorio = new SessaoRepositorio(pecaRepositorio);
-
-        // O BilheteRepositorio depende dos outros para reconstruir entidades completas.
         IBilheteRepositorio bilheteRepositorio = new BilheteRepositorio(clienteRepositorio, pecaRepositorio);
 
         // 2. Criação dos Serviços de Aplicação (Núcleo do Hexágono)
         IClienteServico clienteServico = new ClienteServico(clienteRepositorio);
-        IPecaServico pecaServico = new PecaServico(pecaRepositorio, assentoRepositorio);
+        // PecaServico agora não depende mais de AssentoRepositorio
+        IPecaServico pecaServico = new PecaServico(pecaRepositorio);
         IReservaServico reservaServico = new ReservaServico(bilheteRepositorio, assentoRepositorio);
-        ISessaoServico sessaoServico = new SessaoServico(sessaoRepositorio);
+        // SessaoServico agora depende de AssentoRepositorio
+        ISessaoServico sessaoServico = new SessaoServico(sessaoRepositorio, assentoRepositorio);
 
         // 3. Criação e Início do Adaptador de Entrada Principal (UI Swing)
-        // A TelaPrincipal agora também recebe o ISessaoServico.
         SwingUtilities.invokeLater(() -> {
-            // A TelaPrincipal precisará ser adaptada para receber este novo serviço.
-            // Por enquanto, vamos assumir que seu construtor foi atualizado.
             TelaPrincipal telaPrincipal = new TelaPrincipal(
                 clienteServico, 
                 pecaServico, 
                 reservaServico,
-                sessaoServico // Passando o novo serviço
+                sessaoServico
             );
 
-            //ponto de entrada para configurar sincronização com o banco de dados
             JFrame frame = new JFrame("Teatro ABC - Sistema de Bilheteria");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setSize(1400, 900);
-
-            //instruções abaixo adicionadas para garantir que app vai iniciar maximizado
             frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
             frame.setLocationRelativeTo(null);            
             frame.setContentPane(telaPrincipal);

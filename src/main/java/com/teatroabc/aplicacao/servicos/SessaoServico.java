@@ -1,61 +1,60 @@
+// Arquivo: aplicacao/servicos/SessaoServico.java
 package com.teatroabc.aplicacao.servicos;
 
 import com.teatroabc.aplicacao.interfaces.ISessaoServico;
+import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.dominio.modelos.Sessao;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
 import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio;
 
 import java.util.Collections;
 import java.util.List;
 
 /**
- * Implementação do serviço de aplicação para gerenciar operações de negócio
- * relacionadas às Sessões.
- * Esta classe orquestra a lógica de busca de sessões, interagindo com a camada
- * de persistência através da interface {@link ISessaoRepositorio}.
+ * Implementação do serviço de aplicação para gerenciar operações de Sessões.
+ * REFATORADO: Agora também é responsável por orquestrar a busca de assentos
+ * para uma sessão, dependendo do IAssentoRepositorio.
  */
 public class SessaoServico implements ISessaoServico {
 
-    // Dependência da Porta de Saída (Interface do Repositório)
     private final ISessaoRepositorio sessaoRepositorio;
+    private final IAssentoRepositorio assentoRepositorio; // Dependência adicionada
 
     /**
-     * Constrói uma instância de {@code SessaoServico} com a dependência do repositório.
+     * Constrói uma instância de {@code SessaoServico} com suas dependências.
      *
-     * @param sessaoRepositorio A implementação de {@link ISessaoRepositorio} a ser utilizada
-     *                          para operações de persistência de sessões. Não pode ser nulo.
-     * @throws IllegalArgumentException se {@code sessaoRepositorio} for nulo.
+     * @param sessaoRepositorio O repositório para operações de persistência de sessões.
+     * @param assentoRepositorio O repositório para operações de acesso aos assentos.
      */
-    public SessaoServico(ISessaoRepositorio sessaoRepositorio) {
-        //basta descomentar para fazer a revalidação
-        //apurarInformacoesEssenciais();
-        this.sessaoRepositorio = sessaoRepositorio;
-    }
-
-    //Encapsulamento da lógica de validação restrita para o repositório 
-    private boolean verificarRepositorioSessao (ISessaoRepositorio sessaoRepositorio){
-        return sessaoRepositorio == null;
-    }
-
-    //Encapsulamento da validação total da classe - se outras validações forem necessárias, futuramente, basta acrescentar aqui!
-    public void apurarInformacoesEssenciais (){
-        if (verificarRepositorioSessao(sessaoRepositorio)) {
-            throw new IllegalArgumentException("Repositório de sessões (ISessaoRepositorio) não pode ser nulo.");
+    public SessaoServico(ISessaoRepositorio sessaoRepositorio, IAssentoRepositorio assentoRepositorio) {
+        if (sessaoRepositorio == null) {
+            throw new IllegalArgumentException("Repositório de sessões não pode ser nulo.");
         }
+        if (assentoRepositorio == null) {
+            throw new IllegalArgumentException("Repositório de assentos não pode ser nulo.");
+        }
+        this.sessaoRepositorio = sessaoRepositorio;
+        this.assentoRepositorio = assentoRepositorio;
+    }
+
+    @Override
+    public List<Sessao> buscarSessoesPorPeca(String idPeca) {
+        if (idPeca == null || idPeca.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        return this.sessaoRepositorio.buscarSessoesPorPeca(idPeca);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<Sessao> buscarSessoesPorPeca(String idPeca) {
-        // Validação de entrada básica.
-        if (idPeca == null || idPeca.trim().isEmpty()) {
-            return Collections.emptyList(); // Retorna lista vazia para entrada inválida.
+    public List<Assento> buscarAssentosPorSessao(Sessao sessao) {
+        if (sessao == null) {
+            return Collections.emptyList();
         }
-
-        // Delega a chamada diretamente para o repositório.
-        // Em casos mais complexos, poderia haver lógica de negócio aqui,
-        // como filtrar sessões que já passaram ou combinar dados.
-        return this.sessaoRepositorio.buscarSessoesPorPeca(idPeca);
+        // Delega a busca de assentos para o repositório de assentos,
+        // passando a sessão como contexto.
+        return this.assentoRepositorio.buscarAssentosPorSessao(sessao);
     }
 }

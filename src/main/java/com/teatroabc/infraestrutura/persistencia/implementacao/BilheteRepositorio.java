@@ -1,3 +1,4 @@
+// Arquivo: infraestrutura/persistencia/implementacao/BilheteRepositorio.java
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
 import com.teatroabc.dominio.modelos.*;
@@ -19,15 +20,13 @@ import java.util.stream.Collectors;
  * Implementação (Adaptador Secundário) do repositório de Bilhetes.
  * Responsável por traduzir objetos Bilhete para o formato de persistência
  * em arquivo de texto e vice-versa.
- * Refatorado para trabalhar com a entidade Sessao.
+ * REFATORADO: A marcação de assentos ocupados agora usa o ID da Sessão.
  */
 public class BilheteRepositorio implements IBilheteRepositorio {
     private static final DateTimeFormatter DATETIME_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final IClienteRepositorio clienteRepositorio;
     private final IPecaRepositorio pecaRepositorio;
-    // NOTA: Para buscar/criar a Sessao ao ler um bilhete, precisaríamos do SessaoRepositorio.
-    // Para simplificar, vamos reconstruir a Sessao aqui, mas a injeção do ISessaoRepositorio seria ideal.
     
     public BilheteRepositorio(IClienteRepositorio clienteRepositorio, IPecaRepositorio pecaRepositorio) {
         this.clienteRepositorio = clienteRepositorio;
@@ -49,30 +48,27 @@ public class BilheteRepositorio implements IBilheteRepositorio {
                 .map(Assento::getCodigo)
                 .collect(Collectors.joining(","));
 
-        // O formato do arquivo agora precisa salvar o ID da Sessão em vez de ID da Peça e Turno separadamente.
-        // Formato: ID|CODIGO_BARRAS|CPF_CLIENTE|ID_SESSAO|ASSENTOS_CSV|...
-        // Para manter a compatibilidade com seus dados atuais, vamos manter o formato antigo por enquanto,
-        // mas extraindo os dados da Sessao.
+        // O formato da linha do bilhete é mantido para compatibilidade com dados existentes,
+        // mas a lógica para marcar assentos é corrigida.
         String linha = String.format(Locale.US, "%s|%s|%s|%s|%s|%.2f|%.2f|%.2f|%s|%s",
                 bilhete.getId(),
                 bilhete.getCodigoBarras(),
                 bilhete.getCliente().getCpf(),
-                sessao.getPeca().getId(), // Pega o ID da Peça de dentro da Sessão
+                sessao.getPeca().getId(), 
                 assentosStr,
                 bilhete.getSubtotal(),
                 bilhete.getValorDesconto(),
                 bilhete.getValorTotal(),
-                sessao.getTurno().name(), // Pega o Turno de dentro da Sessão
+                sessao.getTurno().name(),
                 bilhete.getDataHoraCompra().format(DATETIME_FORMATTER)
         );
 
         GerenciadorArquivos.salvarBilhete(linha);
 
-        // Marca os assentos como ocupados usando os dados da Sessão.
+        // CORREÇÃO: Marca os assentos como ocupados usando o ID da Sessão.
         for (Assento assento : bilhete.getAssentos()) {
             GerenciadorArquivos.marcarAssentoOcupado(
-                    sessao.getPeca().getId(),
-                    sessao.getTurno().name(),
+                    sessao.getId(),
                     assento.getCodigo()
             );
         }
@@ -132,14 +128,11 @@ public class BilheteRepositorio implements IBilheteRepositorio {
             Cliente cliente = clienteOpt.get();
             Peca peca = pecaOpt.get();
             
-            // *** CORREÇÃO APLICADA AQUI ***
-            // Como a data da sessão não está no arquivo de bilhete, usamos a data da compra
-            // como um fallback para poder construir o objeto. Isso é uma limitação
-            // do nosso formato de arquivo de dados atual.
+            // Recria um objeto Sessao com base nos dados limitados do arquivo de bilhete.
             Sessao sessao = new Sessao(
                 GeradorIdUtil.gerarNovoId(), // ID temporário para a sessão
                 peca,
-                dataHoraCompra, // Usando a data da compra como fallback
+                dataHoraCompra, // Usando a data da compra como fallback para a data da sessão
                 turno
             );
 
