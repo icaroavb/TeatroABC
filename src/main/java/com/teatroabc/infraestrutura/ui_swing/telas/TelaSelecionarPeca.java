@@ -174,8 +174,6 @@ public class TelaSelecionarPeca extends JPanel {
         add(painelConteudo, BorderLayout.CENTER);
     }
 
-    
-
     /**
      * Busca as peças através do serviço e popula o painel fornecido com componentes {@link CardPeca}.
      * Configura o ActionListener para cada card para lidar com a seleção pelo usuário.
