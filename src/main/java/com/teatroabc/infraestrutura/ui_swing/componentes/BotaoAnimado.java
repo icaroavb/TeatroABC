@@ -23,7 +23,12 @@ public class BotaoAnimado extends JButton {
      * @param corHover A cor de fundo do botão no estado de hover.
      * @param tamanho A dimensão (largura e altura) preferencial do botão.
      */
-    public BotaoAnimado(String texto, Color corFundo, Color corHover, Dimension tamanho) {
+    public BotaoAnimado(
+                        String texto, 
+                        Color corFundo, 
+                        Color corHover, 
+                        Dimension tamanho
+                        ) {
         super(texto);
         this.corOriginal = corFundo;
         this.corHover = corHover;

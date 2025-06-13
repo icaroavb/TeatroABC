@@ -47,7 +47,11 @@ public class PainelSelecaoDia extends JPanel {
     /**
      * Cria e adiciona os botões de rádio para cada sessão do dia.
      */
-    private void adicionarRadiosDeSessao(List<Sessao> sessoesDoDia, ButtonGroup grupoRadios, ActionListener onSessaoSelecionada) {
+    private void adicionarRadiosDeSessao(
+                                        List<Sessao> sessoesDoDia, 
+                                        ButtonGroup grupoRadios, 
+                                        ActionListener onSessaoSelecionada) 
+                                        {
         JPanel painelHorarios = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 10));
         painelHorarios.setOpaque(false);
 
@@ -74,7 +78,7 @@ public class PainelSelecaoDia extends JPanel {
      * @return Uma string formatada.
      */
     private String formatarTituloDia(Sessao sessao) {
-        Locale br = new Locale("pt", "BR");
+        Locale br = Locale.forLanguageTag("pt-BR"); //maneira contemporânea para configuração da Locale
         String diaDaSemana = sessao.getDataHora().getDayOfWeek().getDisplayName(TextStyle.FULL, br);
         String dataFormatada = FormatadorData.formatar(sessao.getDataHora(), "dd 'de' MMMM");
         // Capitaliza a primeira letra do dia da semana.

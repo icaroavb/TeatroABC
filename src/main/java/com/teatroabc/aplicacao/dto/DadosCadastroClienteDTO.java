@@ -24,8 +24,14 @@ public class DadosCadastroClienteDTO {
      * @param email O endereço de e-mail do cliente (pode ser nulo ou vazio).
      * @param identificadorPlanoFidelidade O identificador textual do plano de fidelidade desejado.
      */
-    public DadosCadastroClienteDTO(String cpf, String nome, String dataNascimentoStr,
-                                   String telefone, String email, String identificadorPlanoFidelidade) {
+    public DadosCadastroClienteDTO(
+                                String cpf, 
+                                String nome, 
+                                String dataNascimentoStr,
+                                String telefone, 
+                                String email, 
+                                String identificadorPlanoFidelidade) 
+                                {
         // Validações básicas de nulidade podem ser adicionadas aqui se desejado,
         // embora o serviço de aplicação também deva validar os dados recebidos.
         // Por exemplo:
