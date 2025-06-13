@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.Optional; // Sugestão
 
 public interface IPecaRepositorio {
-    // void salvar(Peca peca); // Se houvesse cadastro de novas peças pelo sistema
+    
     List<Peca> listarTodas();
+    
     Optional<Peca> buscarPorId(String id); // Usando Optional
-    // Peca buscarPorId(String id); // Alternativa se não usar Optional
+    
 }

@@ -3,8 +3,10 @@ package com.teatroabc.dominio.enums;
 import java.math.BigDecimal;
 
 public enum CategoriaAssento {
-    //
-    PLATEIA_A("Plateia A", new BigDecimal("40.00")),
+    //Lógica de Negócio extraída do documento Consolidado do Projeto Integrador 2025 / 1
+    PLATEIA_A(
+        "Plateia A", 
+        new BigDecimal("40.00")),
     PLATEIA_B("Plateia B", new BigDecimal("60.00")),
     CAMAROTE("Camarote", new BigDecimal("80.00")),
     FRISA("Frisa", new BigDecimal("120.00")),
