@@ -1,11 +1,12 @@
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Optional;
+
 import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
 import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Optional; // Importa a classe Optional
 
 /**
  * Implementação (Adaptador Secundário) do repositório de Clientes.
@@ -18,8 +19,11 @@ public class ClienteRepositorio implements IClienteRepositorio {
     /**
      * {@inheritDoc}
      */
-    @Override
+    @Override   
     public void salvar(Cliente cliente) {
+
+
+        
         // Formata os dados do cliente em uma string para salvar no arquivo.
         String linha = String.format("%s|%s|%s|%s|%s|%s",
                 cliente.getCpf(),
@@ -30,6 +34,8 @@ public class ClienteRepositorio implements IClienteRepositorio {
                 cliente.getPlanoFidelidade().getIdentificadorPlano()
         );
         GerenciadorArquivos.salvarCliente(linha);
+
+
     }
 
     /**

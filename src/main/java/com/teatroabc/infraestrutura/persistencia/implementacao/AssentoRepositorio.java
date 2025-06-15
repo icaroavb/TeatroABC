@@ -1,17 +1,19 @@
 package com.teatroabc.infraestrutura.persistencia.implementacao;
 
-import com.teatroabc.dominio.modelos.Assento;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+
 import com.teatroabc.dominio.enums.CategoriaAssento;
 import com.teatroabc.dominio.enums.StatusAssento;
 import com.teatroabc.dominio.enums.Turno;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
-import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
-// NOVOS IMPORTS para usar a configuração centralizada
+import com.teatroabc.dominio.modelos.Assento;
 import com.teatroabc.infraestrutura.config.ConfiguracaoPlantaTeatro;
 import com.teatroabc.infraestrutura.config.SecaoConfig;
 import com.teatroabc.infraestrutura.config.TeatroLayoutConfig;
-
-import java.util.*;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
+import com.teatroabc.infraestrutura.persistencia.util.GerenciadorArquivos;
 
 /**
  * Implementação do repositório de assentos que interage com a persistência em arquivos.

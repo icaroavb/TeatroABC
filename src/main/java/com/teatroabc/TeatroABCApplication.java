@@ -1,35 +1,29 @@
 package com.teatroabc;
 
 // --- Portas de Saída (Interfaces dos Repositórios) ---
-import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio; 
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager; 
 
-// --- Adaptadores de Saída (Implementações Concretas dos Repositórios) ---
-import com.teatroabc.infraestrutura.persistencia.implementacao.ClienteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.PecaRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.AssentoRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.BilheteRepositorio;
-import com.teatroabc.infraestrutura.persistencia.implementacao.SessaoRepositorio; 
-
-// --- Portas de Entrada (Interfaces dos Serviços de Aplicação) ---
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
-import com.teatroabc.aplicacao.interfaces.ISessaoServico; 
-
-// --- Implementações dos Serviços de Aplicação ---
+import com.teatroabc.aplicacao.interfaces.ISessaoServico;
 import com.teatroabc.aplicacao.servicos.ClienteServico;
 import com.teatroabc.aplicacao.servicos.PecaServico;
 import com.teatroabc.aplicacao.servicos.ReservaServico;
-import com.teatroabc.aplicacao.servicos.SessaoServico; // NOVO IMPORT
-
-// --- Adaptador de Entrada Principal (UI) ---
+import com.teatroabc.aplicacao.servicos.SessaoServico;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.AssentoRepositorio_mySql;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.BilheteRepositorio_mysql;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.ClienteRepositorio_mySql;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.PecaRepositorio_mysql;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.SessaoRepositorio_mysql;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IAssentoRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IBilheteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IClienteRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.IPecaRepositorio;
+import com.teatroabc.infraestrutura.persistencia.interfaces.ISessaoRepositorio;
 import com.teatroabc.infraestrutura.ui_swing.telas.TelaPrincipal;
-
-import javax.swing.*;
 
 /**
  * Ponto de entrada principal da aplicação Teatro ABC.
@@ -52,17 +46,17 @@ public class TeatroABCApplication {
         // --- Montagem da Arquitetura e Injeção de Dependência ---
 
         // 1. Criação dos Adaptadores de Saída (Repositórios Concretos)
-        IClienteRepositorio clienteRepositorio = new ClienteRepositorio();
-        IAssentoRepositorio assentoRepositorio = new AssentoRepositorio();
+        IClienteRepositorio clienteRepositorio = new ClienteRepositorio_mySql();
+        IAssentoRepositorio assentoRepositorio = new AssentoRepositorio_mySql();
         
         // O PecaRepositorio agora é uma dependência para outros repositórios.
-        IPecaRepositorio pecaRepositorio = new PecaRepositorio();
+        IPecaRepositorio pecaRepositorio = new PecaRepositorio_mysql();
         
         // O SessaoRepositorio depende do PecaRepositorio para construir as sessões.
-        ISessaoRepositorio sessaoRepositorio = new SessaoRepositorio(pecaRepositorio);
+        ISessaoRepositorio sessaoRepositorio = new SessaoRepositorio_mysql(pecaRepositorio);
 
         // O BilheteRepositorio depende dos outros para reconstruir entidades completas.
-        IBilheteRepositorio bilheteRepositorio = new BilheteRepositorio(clienteRepositorio, pecaRepositorio);
+        IBilheteRepositorio bilheteRepositorio = new BilheteRepositorio_mysql(clienteRepositorio, sessaoRepositorio);
 
         // 2. Criação dos Serviços de Aplicação (Núcleo do Hexágono)
         IClienteServico clienteServico = new ClienteServico(clienteRepositorio);

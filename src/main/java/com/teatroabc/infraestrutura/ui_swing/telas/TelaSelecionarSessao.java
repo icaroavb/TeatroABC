@@ -1,27 +1,41 @@
 package com.teatroabc.infraestrutura.ui_swing.telas;
 
 //importar interfaces dos campos privados
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionListener;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+
 import com.teatroabc.aplicacao.interfaces.IClienteServico;
 import com.teatroabc.aplicacao.interfaces.IPecaServico;
 import com.teatroabc.aplicacao.interfaces.IReservaServico;
 import com.teatroabc.aplicacao.interfaces.ISessaoServico;
-//modelagem para escolha das pecas e sessoes
 import com.teatroabc.dominio.modelos.Peca;
 import com.teatroabc.dominio.modelos.Sessao;
-//importar componentes de UI que foram encapsulados
 import com.teatroabc.infraestrutura.ui_swing.componentes.BotaoAnimado;
 import com.teatroabc.infraestrutura.ui_swing.componentes.LogoTeatro;
 import com.teatroabc.infraestrutura.ui_swing.componentes.PainelSelecaoDia;
 import com.teatroabc.infraestrutura.ui_swing.constantes_ui.Constantes;
 import com.teatroabc.infraestrutura.ui_swing.util.FormatadorData;
-//demais componentes necessários para UI
-import java.awt.*;
-import java.awt.event.ActionListener;
-import javax.swing.*;
-//demais bibliotecas necessárias
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 
 /**
