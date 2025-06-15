@@ -1,10 +1,11 @@
 package com.teatroabc.dominio.modelos;
 
-import com.teatroabc.dominio.enums.CategoriaAssento;
-import com.teatroabc.dominio.enums.StatusAssento;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Objects;
+
+import com.teatroabc.dominio.enums.CategoriaAssento;
+import com.teatroabc.dominio.enums.StatusAssento;
 
 public class Assento {
     private final String codigo;

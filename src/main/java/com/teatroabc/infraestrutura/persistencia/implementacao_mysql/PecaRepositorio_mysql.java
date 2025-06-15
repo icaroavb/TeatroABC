@@ -55,25 +55,6 @@ public class PecaRepositorio_mysql implements IPecaRepositorio {
         return Optional.empty();
     }
 
-    public void inserir(Peca peca) {
-        String sql = "INSERT INTO peca (id_peca, Titulo, Subtitulo, Descricao, CorFundoHex, CaminhoImg) VALUES (?, ?, ?, ?, ?, ?)";
-
-        try (Connection conn = ConexaoMySQL.conectar();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, peca.getId());
-            ps.setString(2, peca.getTitulo());
-            ps.setString(3, peca.getSubtitulo());
-            ps.setString(4, peca.getDescricao());
-            ps.setString(5, peca.getCorFundoHex());
-            ps.setString(6, peca.getCaminhoImagem());
-
-            ps.executeUpdate();
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
     private Peca mapearResultSetParaPeca(ResultSet rs) throws SQLException {
         String id = rs.getString("id_peca");

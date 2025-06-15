@@ -13,7 +13,7 @@ import com.teatroabc.aplicacao.servicos.ClienteServico;
 import com.teatroabc.aplicacao.servicos.PecaServico;
 import com.teatroabc.aplicacao.servicos.ReservaServico;
 import com.teatroabc.aplicacao.servicos.SessaoServico;
-import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.AssentoRepositorio_mySql;
+import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.AssentoRepositorio_mysql;
 import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.BilheteRepositorio_mysql;
 import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.ClienteRepositorio_mySql;
 import com.teatroabc.infraestrutura.persistencia.implementacao_mysql.PecaRepositorio_mysql;
@@ -47,7 +47,7 @@ public class TeatroABCApplication {
 
         // 1. Criação dos Adaptadores de Saída (Repositórios Concretos)
         IClienteRepositorio clienteRepositorio = new ClienteRepositorio_mySql();
-        IAssentoRepositorio assentoRepositorio = new AssentoRepositorio_mySql();
+        IAssentoRepositorio assentoRepositorio = new AssentoRepositorio_mysql();
         
         // O PecaRepositorio agora é uma dependência para outros repositórios.
         IPecaRepositorio pecaRepositorio = new PecaRepositorio_mysql();
