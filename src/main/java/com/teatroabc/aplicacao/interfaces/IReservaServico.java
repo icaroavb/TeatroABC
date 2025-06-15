@@ -6,7 +6,6 @@ import com.teatroabc.dominio.modelos.Bilhete; // MUDANÇA: Usa a nova entidade S
 import com.teatroabc.dominio.modelos.Cliente;
 import com.teatroabc.dominio.modelos.Sessao;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Interface (Porta de Entrada) para o serviço de aplicação responsável pela lógica
