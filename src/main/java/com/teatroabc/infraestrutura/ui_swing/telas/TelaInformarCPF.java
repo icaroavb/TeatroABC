@@ -19,7 +19,7 @@ import java.util.Optional;
 
 /**
  * Tela para o usuário informar o CPF. Atua como um roteador de fluxos.
- * A lógica do formulário de entrada foi encapsulada no componente {@link PainelEntradaCPF}.
+ * A lógica do formulário de entrada encontra-se encapsulada no componente {@link PainelEntradaCPF}.
  */
 public class TelaInformarCPF extends JPanel {
     // Contexto de navegação

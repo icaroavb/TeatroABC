@@ -24,11 +24,6 @@ public class ReservaInvalidaException extends Exception {
     }
 
     /**
-     * Constrói uma nova {@code ReservaInvalidaException} com a mensagem de detalhe
-     * e causa especificadas.
-     * <p>
-     * Nota: A mensagem de detalhe associada a {@code cause} não é automaticamente
-     * incorporada na mensagem de detalhe desta exceção.
      *
      * @param message A mensagem de detalhe (que é salva para recuperação posterior
      *                pelo método {@link Throwable#getMessage()}).

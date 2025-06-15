@@ -11,14 +11,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Implementação do serviço de aplicação para gerenciar operações de Sessões.
- * REFATORADO: Agora também é responsável por orquestrar a busca de assentos
+ * Implementação do serviço de aplicação para gerenciar operações de Sessões e também é responsável por orquestrar a busca de assentos
  * para uma sessão, dependendo do IAssentoRepositorio.
  */
 public class SessaoServico implements ISessaoServico {
 
     private final ISessaoRepositorio sessaoRepositorio;
-    private final IAssentoRepositorio assentoRepositorio; // Dependência adicionada
+    private final IAssentoRepositorio assentoRepositorio; 
 
     /**
      * Constrói uma instância de {@code SessaoServico} com suas dependências.

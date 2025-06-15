@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
  * Implementação do serviço de aplicação para criar e consultar reservas/bilhetes.
  * Orquestra a lógica de negócio, validando regras, calculando valores e interagindo
  * com os repositórios através de suas interfaces (Portas de Saída).
- * REFATORADO: A lógica de verificação de disponibilidade de assentos agora é baseada na Sessao.
  */
 public class ReservaServico implements IReservaServico {
 
