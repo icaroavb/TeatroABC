@@ -10,7 +10,6 @@ import com.teatroabc.infraestrutura.utilitarios_comuns.GeradorIdUtil;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -82,18 +81,18 @@ public class SessaoRepositorio implements ISessaoRepositorio {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<Sessao> buscarPorId(String idSessao) {
-        if (idSessao == null || idSessao.trim().isEmpty()) {
-            return Optional.empty();
-        }
+    // /**
+    //  * {@inheritDoc}
+    //  */
+    // @Override
+    // public Optional<Sessao> buscarPorId(String idSessao) {
+    //     if (idSessao == null || idSessao.trim().isEmpty()) {
+    //         return Optional.empty();
+    //     }
 
-        // Busca na lista em memória a sessão com o ID correspondente.
-        return sessoesDB.stream()
-                .filter(sessao -> sessao.getId().equals(idSessao))
-                .findFirst();
-    }
+    //     // Busca na lista em memória a sessão com o ID correspondente.
+    //     return sessoesDB.stream()
+    //             .filter(sessao -> sessao.getId().equals(idSessao))
+    //             .findFirst();
+    // }
 }

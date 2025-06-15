@@ -2,7 +2,6 @@ package com.teatroabc.infraestrutura.persistencia.interfaces;
 
 import com.teatroabc.dominio.modelos.Sessao;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Interface (Porta de Saída) para o repositório de Sessões.
@@ -19,14 +18,14 @@ public interface ISessaoRepositorio {
      */
     List<Sessao> buscarSessoesPorPeca(String idPeca);
     
-    /**
-     * Busca uma sessão específica pelo seu ID único.
-     * @param idSessao O ID da sessão a ser buscada.
-     * @return Um {@link Optional} contendo a {@link Sessao} se encontrada,
-     *         ou um Optional vazio caso contrário.
-     */
-    Optional<Sessao> buscarPorId(String idSessao);
+    // /**
+    //  * Busca uma sessão específica pelo seu ID único.
+    //  * @param idSessao O ID da sessão a ser buscada.
+    //  * @return Um {@link Optional} contendo a {@link Sessao} se encontrada,
+    //  *         ou um Optional vazio caso contrário.
+    //  */
+    // Optional<Sessao> buscarPorId(String idSessao);
 
-    // No futuro, poderíamos ter métodos como:
-    // List<Sessao> buscarSessoesPorData(LocalDate data);
+    // // No futuro, poderíamos ter métodos como:
+    // // List<Sessao> buscarSessoesPorData(LocalDate data);
 }

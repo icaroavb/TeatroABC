@@ -125,14 +125,14 @@ public class ReservaServico implements IReservaServico {
         return bilheteRepositorio.listarPorCpfCliente(cpfNormalizado);
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Optional<Bilhete> buscarBilhetePorId(String idBilhete) {
-        if (idBilhete == null || idBilhete.trim().isEmpty()) {
-            return Optional.empty();
-        }
-        return bilheteRepositorio.buscarPorId(idBilhete);
-    }
+    // /**
+    //  * {@inheritDoc}
+    //  */
+    // @Override
+    // public Optional<Bilhete> buscarBilhetePorId(String idBilhete) {
+    //     if (idBilhete == null || idBilhete.trim().isEmpty()) {
+    //         return Optional.empty();
+    //     }
+    //     return bilheteRepositorio.buscarPorId(idBilhete);
+    // }
 }

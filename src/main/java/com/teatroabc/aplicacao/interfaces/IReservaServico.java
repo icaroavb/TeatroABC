@@ -49,5 +49,5 @@ public interface IReservaServico {
      * @param idBilhete O ID do bilhete a ser buscado.
      * @return Um {@link Optional} contendo o Bilhete se encontrado, ou um Optional vazio caso contrário.
      */
-    Optional<Bilhete> buscarBilhetePorId(String idBilhete);
+    //Optional<Bilhete> buscarBilhetePorId(String idBilhete);
 }
